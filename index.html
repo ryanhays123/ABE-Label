@@ -1,5 +1,5 @@
 from pathlib import Path
-import json, zipfile, shutil, re, textwrap
+import zipfile, shutil, json, re
 
 source = Path("/mnt/data/ABE-Wire-Label-Maker/index.html")
 if not source.exists():
@@ -8,7 +8,7 @@ if not source.exists():
 text = source.read_text(encoding="utf-8")
 ULTIMATE_UID = "MO2nbAimJ4TW5dpixmgMVLbFPpx2"
 
-# 1) Add styles for account management.
+# ---------- CSS ----------
 css_marker = "    @media (max-width: 1100px) {"
 accounts_css = r'''
     .admin-users-card {
@@ -57,6 +57,12 @@ accounts_css = r'''
       color: #705700;
     }
 
+    .role-pill.inactive {
+      border-color: #efc2bd;
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
     .admin-user-list {
       margin-top: 14px;
       display: flex;
@@ -73,6 +79,11 @@ accounts_css = r'''
       border: 1px solid var(--line);
       border-radius: 11px;
       background: var(--panel);
+    }
+
+    .admin-user-item.inactive {
+      opacity: 0.62;
+      background: var(--panel-2);
     }
 
     .admin-user-name {
@@ -112,7 +123,7 @@ if ".admin-users-card" not in text:
         raise ValueError("CSS insertion marker not found")
     text = text.replace(css_marker, accounts_css + css_marker, 1)
 
-# 2) Insert super-admin account management card before the settings card.
+# ---------- HTML ----------
 settings_marker = '''      <section class="panel admin-card settings-card">
         <div class="panel-heading">
           <div>
@@ -122,9 +133,11 @@ accounts_html = r'''      <section id="adminUsersCard" class="panel admin-card a
         <div class="panel-heading">
           <div>
             <h2>Admin accounts</h2>
-            <p>Only super admins can create accounts. Regular admins cannot access these controls.</p>
+            <p>Only Super Admins can create accounts. Regular Admins cannot access this section.</p>
           </div>
-          <button id="refreshAdminUsersButton" class="button button-secondary" type="button">Refresh accounts</button>
+          <button id="refreshAdminUsersButton" class="button button-secondary" type="button">
+            Refresh accounts
+          </button>
         </div>
 
         <div id="currentRoleBanner" class="role-banner">
@@ -135,7 +148,8 @@ accounts_html = r'''      <section id="adminUsersCard" class="panel admin-card a
         <form id="createAdminForm" class="form-grid">
           <label class="field">
             <span>Name</span>
-            <input id="newAdminName" class="input" type="text" maxlength="100" placeholder="Example: Jordan Smith" />
+            <input id="newAdminName" class="input" type="text" maxlength="100"
+                   placeholder="Example: Jordan Smith" />
           </label>
 
           <label class="field">
@@ -145,14 +159,8 @@ accounts_html = r'''      <section id="adminUsersCard" class="panel admin-card a
 
           <label class="field">
             <span>Temporary password</span>
-            <input
-              id="newAdminPassword"
-              class="input"
-              type="password"
-              autocomplete="new-password"
-              minlength="8"
-              required
-            />
+            <input id="newAdminPassword" class="input" type="password"
+                   autocomplete="new-password" minlength="8" required />
           </label>
 
           <label class="field">
@@ -166,7 +174,8 @@ accounts_html = r'''      <section id="adminUsersCard" class="panel admin-card a
           </label>
 
           <div class="notice field-full">
-            The new user signs in through the existing Admin button. They can use “Send password-reset email” to choose a new password.
+            This no-cost version revokes or restores website admin access. It does not delete
+            another person’s Firebase Authentication record.
           </div>
 
           <div class="button-row field-full">
@@ -180,85 +189,248 @@ accounts_html = r'''      <section id="adminUsersCard" class="panel admin-card a
 '''
 if 'id="adminUsersCard"' not in text:
     if settings_marker not in text:
-        raise ValueError("Settings card marker not found")
+        raise ValueError("Settings marker not found")
     text = text.replace(settings_marker, accounts_html + settings_marker, 1)
 
-# 3) Add Firebase Functions client import.
-auth_import = '''    import {
-      getAuth,
+# ---------- Firebase imports ----------
+app_import = 'import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";'
+new_app_import = '''import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";'''
+if app_import in text:
+    text = text.replace(app_import, new_app_import, 1)
+
+db_import_old = '''      onValue,
+      set,
+      update,
+      remove,
+      push'''
+db_import_new = '''      onValue,
+      get,
+      set,
+      update,
+      remove,
+      push'''
+if "      get,\n      set," not in text:
+    if db_import_old not in text:
+        raise ValueError("Database import marker not found")
+    text = text.replace(db_import_old, db_import_new, 1)
+
+auth_import_old = '''      getAuth,
       onAuthStateChanged,
       signInWithEmailAndPassword,
       signOut,
-      sendPasswordResetEmail
-    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";'''
-
-functions_import = auth_import + '''
-    import {
-      getFunctions,
-      httpsCallable
-    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";'''
-
-if 'firebase-functions.js' not in text:
-    if auth_import not in text:
+      sendPasswordResetEmail'''
+auth_import_new = '''      getAuth,
+      onAuthStateChanged,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      sendPasswordResetEmail,
+      updateProfile,
+      deleteUser,
+      setPersistence,
+      inMemoryPersistence'''
+if "createUserWithEmailAndPassword" not in text:
+    if auth_import_old not in text:
         raise ValueError("Auth import marker not found")
-    text = text.replace(auth_import, functions_import, 1)
+    text = text.replace(auth_import_old, auth_import_new, 1)
 
-# 4) Initialize Functions and protected UID.
-init_marker = '''    const app = initializeApp(firebaseConfig);
+# ---------- Firebase initialization ----------
+init_old = '''    const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);'''
-
-init_replacement = f'''    const app = initializeApp(firebaseConfig);
+init_new = f'''    const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
-    const functions = getFunctions(app, "us-central1");
 
-    const ULTIMATE_SUPER_ADMIN_UID = "{ULTIMATE_UID}";
+    // A separate in-memory Auth instance creates a new login without signing
+    // the currently logged-in Super Admin out of the main website.
+    const accountCreatorApp = initializeApp(firebaseConfig, "accountCreator");
+    const accountCreatorAuth = getAuth(accountCreatorApp);
+    const accountCreatorReady = setPersistence(accountCreatorAuth, inMemoryPersistence);
 
-    const ensureSuperAdminCallable = httpsCallable(functions, "ensureSuperAdmin");
-    const createAdminUserCallable = httpsCallable(functions, "createAdminUser");
-    const listAdminUsersCallable = httpsCallable(functions, "listAdminUsers");
-    const deleteAdminUserCallable = httpsCallable(functions, "deleteAdminUser");'''
+    const ULTIMATE_SUPER_ADMIN_UID = "{ULTIMATE_UID}";'''
+if "accountCreatorApp" not in text:
+    if init_old not in text:
+        raise ValueError("Initialization marker not found")
+    text = text.replace(init_old, init_new, 1)
 
-if "ULTIMATE_SUPER_ADMIN_UID" not in text:
-    if init_marker not in text:
-        raise ValueError("Firebase init marker not found")
-    text = text.replace(init_marker, init_replacement, 1)
-
-# 5) Extend state.
-state_marker = '''      currentUser: null,
+# ---------- State ----------
+state_old = '''      currentUser: null,
       activeCategory: "All",'''
-state_replacement = '''      currentUser: null,
-      currentClaims: {},
+state_new = '''      currentUser: null,
+      currentAdminRecord: null,
       adminUsers: [],
       activeCategory: "All",'''
-if "currentClaims:" not in text:
-    if state_marker not in text:
+if "currentAdminRecord:" not in text:
+    if state_old not in text:
         raise ValueError("State marker not found")
-    text = text.replace(state_marker, state_replacement, 1)
+    text = text.replace(state_old, state_new, 1)
 
-# 6) Insert account-management client functions before auth section.
-auth_section_marker = '''    /* ---------------- AUTH + FIREBASE ---------------- */'''
+# ---------- Free role/account functions ----------
+auth_marker = '''    /* ---------------- AUTH + FIREBASE ---------------- */'''
 
-account_functions = r'''
-    /* ---------------- SUPER ADMIN ACCOUNT MANAGEMENT ---------------- */
+free_functions = r'''
+    /* ---------------- FREE SUPER ADMIN ACCOUNT MANAGEMENT ---------------- */
 
-    function isCurrentSuperAdmin() {
-      return state.currentClaims?.superAdmin === true;
-    }
+    let stopCurrentRoleListener = null;
+    let stopAdminUsersListener = null;
 
-    function isCurrentUltimateSuperAdmin() {
+    function isUltimateSuperAdmin() {
       return state.currentUser?.uid === ULTIMATE_SUPER_ADMIN_UID;
     }
 
-    function callableErrorMessage(error, fallback) {
-      const raw = String(error?.message || "").replace(/^Firebase:\s*/i, "");
-      return raw || fallback;
+    function isSuperAdmin() {
+      return isUltimateSuperAdmin() ||
+        (
+          state.currentAdminRecord?.active === true &&
+          state.currentAdminRecord?.role === "superAdmin"
+        );
+    }
+
+    function isAuthorizedAdminRecord(record) {
+      return Boolean(
+        record &&
+        record.active === true &&
+        (record.role === "admin" || record.role === "superAdmin")
+      );
+    }
+
+    function firebaseErrorMessage(error, fallback) {
+      const code = String(error?.code || "");
+      if (code.includes("email-already-in-use")) {
+        return "That email already has a Firebase login. Restore its access from the account list, or use a different email.";
+      }
+      if (code.includes("weak-password")) {
+        return "Use a temporary password with at least 8 characters.";
+      }
+      if (code.includes("invalid-email")) {
+        return "Enter a valid email address.";
+      }
+      if (code.includes("too-many-requests")) {
+        return "Firebase temporarily blocked new account creation because of too many attempts. Try again later.";
+      }
+      if (code.includes("permission-denied")) {
+        return "Firebase rejected the change. Publish the new Realtime Database rules.";
+      }
+      return String(error?.message || fallback).replace(/^Firebase:\s*/i, "");
+    }
+
+    function roleLabel(record) {
+      if (record?.ultimate) return "Ultimate Super Admin";
+      return record?.role === "superAdmin" ? "Super Admin" : "Admin";
+    }
+
+    async function bootstrapUltimateSuperAdmin(user) {
+      if (user.uid !== ULTIMATE_SUPER_ADMIN_UID) return;
+
+      const userRef = ref(db, `labelMaker/adminUsers/${ULTIMATE_SUPER_ADMIN_UID}`);
+      const current = (await get(userRef)).val() || {};
+
+      await update(userRef, {
+        uid: ULTIMATE_SUPER_ADMIN_UID,
+        email: user.email || current.email || "",
+        displayName: user.displayName || current.displayName || "Ultimate Super Admin",
+        role: "superAdmin",
+        active: true,
+        ultimate: true,
+        createdAt: current.createdAt || Date.now(),
+        updatedAt: Date.now(),
+        createdBy: current.createdBy || ULTIMATE_SUPER_ADMIN_UID
+      });
+    }
+
+    function showAuthorizedAdmin(user, record) {
+      state.currentAdminRecord = record;
+
+      const label = roleLabel(record);
+      els.authStatus.textContent = `${user.email || "Signed in"} · ${label}`;
+      els.authStatus.className = "status online";
+      els.loginPanel.classList.add("hidden");
+      els.adminWorkspace.classList.remove("hidden");
+      els.signOutButton.classList.toggle("hidden", state.userView);
+
+      const superAdmin = isSuperAdmin();
+      els.adminUsersCard.classList.toggle("hidden", !superAdmin);
+      els.superAdminRoleOption.hidden = !isUltimateSuperAdmin();
+      els.superAdminRoleOption.disabled = !isUltimateSuperAdmin();
+
+      if (superAdmin) {
+        els.currentRoleText.textContent = isUltimateSuperAdmin()
+          ? "This is the permanently protected Ultimate Super Admin role."
+          : "This Super Admin can create and manage regular Admin accounts.";
+        els.currentRolePill.textContent = label;
+        els.currentRolePill.className =
+          `role-pill ${isUltimateSuperAdmin() ? "ultimate" : "super"}`;
+        subscribeAdminUserList();
+      } else {
+        stopAdminUsersListener?.();
+        stopAdminUsersListener = null;
+        state.adminUsers = [];
+      }
+    }
+
+    async function authorizeSignedInUser(user) {
+      if (user.uid === ULTIMATE_SUPER_ADMIN_UID) {
+        await bootstrapUltimateSuperAdmin(user);
+      }
+
+      stopCurrentRoleListener?.();
+      stopCurrentRoleListener = onValue(
+        ref(db, `labelMaker/adminUsers/${user.uid}`),
+        async snapshot => {
+          const record = snapshot.val();
+
+          if (!isAuthorizedAdminRecord(record)) {
+            state.currentAdminRecord = null;
+            await signOut(auth);
+            els.loginMessage.textContent =
+              "This login does not currently have active Admin access.";
+            els.loginMessage.classList.remove("hidden");
+            return;
+          }
+
+          showAuthorizedAdmin(user, record);
+        },
+        async error => {
+          console.error(error);
+          await signOut(auth);
+          els.loginMessage.textContent =
+            "The website could not verify this account’s Admin role. Check the database rules.";
+          els.loginMessage.classList.remove("hidden");
+        }
+      );
+    }
+
+    function subscribeAdminUserList() {
+      if (!isSuperAdmin()) return;
+
+      stopAdminUsersListener?.();
+      stopAdminUsersListener = onValue(
+        ref(db, "labelMaker/adminUsers"),
+        snapshot => {
+          const raw = snapshot.val() || {};
+          state.adminUsers = Object.entries(raw).map(([uid, value]) => ({
+            uid,
+            ...value
+          }));
+          renderAdminUsers();
+        },
+        error => {
+          console.error(error);
+          els.adminUsersList.innerHTML = `
+            <div class="notice">
+              Admin accounts could not be loaded. Publish the updated Realtime Database rules.
+            </div>
+          `;
+        }
+      );
     }
 
     function renderAdminUsers() {
       const users = [...state.adminUsers].sort((a, b) => {
-        if (a.ultimate !== b.ultimate) return a.ultimate ? -1 : 1;
+        if (Boolean(a.ultimate) !== Boolean(b.ultimate)) return a.ultimate ? -1 : 1;
         if (a.role !== b.role) return a.role === "superAdmin" ? -1 : 1;
         return String(a.email || a.displayName || "").localeCompare(
           String(b.email || b.displayName || "")
@@ -266,54 +438,66 @@ account_functions = r'''
       });
 
       if (!users.length) {
-        els.adminUsersList.innerHTML = `
-          <div class="empty-state">No admin accounts were returned.</div>
-        `;
+        els.adminUsersList.innerHTML =
+          `<div class="empty-state">No admin role records exist yet.</div>`;
         return;
       }
 
       els.adminUsersList.innerHTML = users.map(user => {
-        const roleLabel = user.ultimate
-          ? "Ultimate Super Admin"
-          : user.role === "superAdmin"
-            ? "Super Admin"
-            : "Admin";
+        const self = user.uid === state.currentUser?.uid;
+        const ultimate = user.uid === ULTIMATE_SUPER_ADMIN_UID || user.ultimate === true;
+        const superRole = user.role === "superAdmin";
+        const active = user.active === true;
 
-        const roleClass = user.ultimate
+        const canChange =
+          !ultimate &&
+          !self &&
+          (
+            isUltimateSuperAdmin() ||
+            (isSuperAdmin() && !superRole)
+          );
+
+        const pillClass = ultimate
           ? "ultimate"
-          : user.role === "superAdmin"
-            ? "super"
-            : "";
+          : !active
+            ? "inactive"
+            : superRole
+              ? "super"
+              : "";
 
-        const isSelf = user.uid === state.currentUser?.uid;
-        const canDelete =
-          !user.ultimate &&
-          !isSelf &&
-          (user.role !== "superAdmin" || isCurrentUltimateSuperAdmin());
+        const statusLabel = !active
+          ? "Access inactive"
+          : ultimate
+            ? "Ultimate Super Admin"
+            : superRole
+              ? "Super Admin"
+              : "Admin";
 
         return `
-          <article class="admin-user-item">
+          <article class="admin-user-item ${active ? "" : "inactive"}">
             <div>
-              <div class="admin-user-name">${escapeHtml(user.displayName || "Unnamed administrator")}</div>
+              <div class="admin-user-name">
+                ${escapeHtml(user.displayName || "Unnamed administrator")}
+              </div>
               <div class="admin-user-email">${escapeHtml(user.email || "No email")}</div>
               <div class="admin-user-meta">
-                <span class="role-pill ${roleClass}">${roleLabel}</span>
-                ${isSelf ? '<span>Current account</span>' : ""}
-                ${user.disabled ? '<span>Disabled</span>' : ""}
-                <span>Created ${escapeHtml(user.creationTime || "unknown")}</span>
+                <span class="role-pill ${pillClass}">${statusLabel}</span>
+                ${self ? "<span>Current account</span>" : ""}
+                <span>Added ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "unknown"}</span>
               </div>
             </div>
+
             <div class="admin-user-actions">
               ${
-                canDelete
+                canChange
                   ? `<button
-                       class="small-button danger"
+                       class="small-button ${active ? "danger" : ""}"
                        type="button"
-                       data-delete-admin="${escapeHtml(user.uid)}"
-                       data-delete-name="${escapeHtml(user.email || user.displayName || "this account")}"
-                     >Delete account</button>`
-                  : `<span class="role-pill ${user.ultimate ? "ultimate" : ""}">
-                       ${user.ultimate ? "Protected" : isSelf ? "Signed in" : "Protected role"}
+                       data-toggle-admin="${escapeHtml(user.uid)}"
+                       data-next-active="${active ? "false" : "true"}"
+                     >${active ? "Remove admin access" : "Restore admin access"}</button>`
+                  : `<span class="role-pill ${ultimate ? "ultimate" : ""}">
+                       ${ultimate ? "Protected" : self ? "Signed in" : "Protected role"}
                      </span>`
               }
             </div>
@@ -321,21 +505,29 @@ account_functions = r'''
         `;
       }).join("");
 
-      els.adminUsersList.querySelectorAll("[data-delete-admin]").forEach(button => {
+      els.adminUsersList.querySelectorAll("[data-toggle-admin]").forEach(button => {
         button.addEventListener("click", async () => {
-          const uid = button.dataset.deleteAdmin;
-          const name = button.dataset.deleteName;
+          const uid = button.dataset.toggleAdmin;
+          const nextActive = button.dataset.nextActive === "true";
+          const target = state.adminUsers.find(user => user.uid === uid);
+          if (!target) return;
 
-          if (!confirm(`Permanently delete ${name}? This cannot be undone.`)) return;
+          const actionText = nextActive ? "restore access for" : "remove access from";
+          if (!confirm(`Are you sure you want to ${actionText} ${target.email || target.displayName}?`)) {
+            return;
+          }
 
           button.disabled = true;
           try {
-            await deleteAdminUserCallable({ uid });
-            toast("Admin account deleted.");
-            await loadAdminUsers();
+            await update(ref(db, `labelMaker/adminUsers/${uid}`), {
+              active: nextActive,
+              updatedAt: Date.now(),
+              updatedBy: state.currentUser.uid
+            });
+            toast(nextActive ? "Admin access restored." : "Admin access removed.");
           } catch (error) {
             console.error(error);
-            toast(callableErrorMessage(error, "The admin account could not be deleted."));
+            toast(firebaseErrorMessage(error, "The account access could not be changed."));
           } finally {
             button.disabled = false;
           }
@@ -343,114 +535,92 @@ account_functions = r'''
       });
     }
 
-    async function loadAdminUsers() {
-      if (!isCurrentSuperAdmin()) return;
-
-      els.adminUsersList.innerHTML = `
-        <div class="empty-state">Loading admin accounts…</div>
-      `;
-
-      try {
-        const result = await listAdminUsersCallable();
-        state.adminUsers = Array.isArray(result.data?.users) ? result.data.users : [];
-        renderAdminUsers();
-      } catch (error) {
-        console.error(error);
-        els.adminUsersList.innerHTML = `
-          <div class="notice">
-            ${escapeHtml(callableErrorMessage(error, "Admin accounts could not be loaded."))}
-          </div>
-        `;
-      }
-    }
-
     async function createAdminAccount(event) {
       event.preventDefault();
 
-      if (!isCurrentSuperAdmin()) {
-        toast("Only a super admin can create admin accounts.");
+      if (!isSuperAdmin()) {
+        toast("Only a Super Admin can create an Admin account.");
         return;
       }
 
       const role = els.newAdminRole.value;
-      if (role === "superAdmin" && !isCurrentUltimateSuperAdmin()) {
+      if (role === "superAdmin" && !isUltimateSuperAdmin()) {
         toast("Only the Ultimate Super Admin can create another Super Admin.");
         return;
       }
 
-      const submitButton = els.createAdminForm.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
+      const email = els.newAdminEmail.value.trim().toLowerCase();
+      const password = els.newAdminPassword.value;
+      const displayName = els.newAdminName.value.trim();
+      const submit = els.createAdminForm.querySelector('button[type="submit"]');
+      submit.disabled = true;
+
+      let createdUser = null;
 
       try {
-        await createAdminUserCallable({
-          displayName: els.newAdminName.value.trim(),
-          email: els.newAdminEmail.value.trim(),
-          password: els.newAdminPassword.value,
-          role
+        await accountCreatorReady;
+        await signOut(accountCreatorAuth);
+
+        const credential = await createUserWithEmailAndPassword(
+          accountCreatorAuth,
+          email,
+          password
+        );
+        createdUser = credential.user;
+
+        if (displayName) {
+          await updateProfile(createdUser, { displayName });
+        }
+
+        await set(ref(db, `labelMaker/adminUsers/${createdUser.uid}`), {
+          uid: createdUser.uid,
+          email,
+          displayName,
+          role,
+          active: true,
+          ultimate: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          createdBy: state.currentUser.uid
         });
 
+        await signOut(accountCreatorAuth);
         els.createAdminForm.reset();
         els.newAdminRole.value = "admin";
-        toast(role === "superAdmin" ? "Super Admin account created." : "Admin account created.");
-        await loadAdminUsers();
+        toast(role === "superAdmin"
+          ? "Super Admin account created."
+          : "Admin account created.");
       } catch (error) {
         console.error(error);
-        toast(callableErrorMessage(error, "The admin account could not be created."));
+
+        // If the Firebase login was created but the role record failed, remove
+        // the new login while it is still signed in on the secondary Auth app.
+        if (createdUser) {
+          try {
+            await deleteUser(createdUser);
+          } catch (rollbackError) {
+            console.error("Could not roll back the new login:", rollbackError);
+          }
+        }
+
+        try {
+          await signOut(accountCreatorAuth);
+        } catch (_) {}
+
+        toast(firebaseErrorMessage(error, "The Admin account could not be created."));
       } finally {
-        submitButton.disabled = false;
-      }
-    }
-
-    async function applySignedInRole(user) {
-      if (user.uid === ULTIMATE_SUPER_ADMIN_UID) {
-        await ensureSuperAdminCallable();
-      }
-
-      const tokenResult = await user.getIdTokenResult(true);
-      state.currentClaims = tokenResult.claims || {};
-
-      const isSuperAdmin = state.currentClaims.superAdmin === true;
-      const isAdmin = isSuperAdmin || state.currentClaims.admin === true;
-
-      if (!isAdmin) {
-        throw new Error("This Firebase account has not been granted Admin access.");
-      }
-
-      const ultimate = user.uid === ULTIMATE_SUPER_ADMIN_UID;
-      const roleLabel = ultimate
-        ? "Ultimate Super Admin"
-        : isSuperAdmin
-          ? "Super Admin"
-          : "Admin";
-
-      els.authStatus.textContent = `${user.email || "Signed in"} · ${roleLabel}`;
-      els.authStatus.className = "status online";
-      els.loginPanel.classList.add("hidden");
-      els.adminWorkspace.classList.remove("hidden");
-      els.signOutButton.classList.toggle("hidden", state.userView);
-
-      els.adminUsersCard.classList.toggle("hidden", !isSuperAdmin);
-      els.superAdminRoleOption.disabled = !ultimate;
-      els.superAdminRoleOption.hidden = !ultimate;
-
-      if (isSuperAdmin) {
-        els.currentRoleText.textContent = ultimate
-          ? "This is the protected Ultimate Super Admin account."
-          : "This account can create regular Admin accounts.";
-        els.currentRolePill.textContent = roleLabel;
-        els.currentRolePill.className = `role-pill ${ultimate ? "ultimate" : "super"}`;
-        await loadAdminUsers();
+        submit.disabled = false;
       }
     }
 
 '''
-if "function isCurrentSuperAdmin()" not in text:
-    if auth_section_marker not in text:
+if "function isUltimateSuperAdmin()" not in text:
+    if auth_marker not in text:
         raise ValueError("Auth section marker not found")
-    text = text.replace(auth_section_marker, account_functions + auth_section_marker, 1)
+    text = text.replace(auth_marker, free_functions + auth_marker, 1)
 
-# 7) Replace auth-state handler with claim-enforced version.
-old_auth_handler = '''      onAuthStateChanged(auth, user => {
+# ---------- Replace auth state handler ----------
+old_handler = '''      onAuthStateChanged(auth, user => {
         state.currentUser = user;
 
         if (user) {
@@ -468,27 +638,29 @@ old_auth_handler = '''      onAuthStateChanged(auth, user => {
         }
       });'''
 
-new_auth_handler = '''      onAuthStateChanged(auth, async user => {
+new_handler = '''      onAuthStateChanged(auth, async user => {
         state.currentUser = user;
-        state.currentClaims = {};
+        state.currentAdminRecord = null;
 
         if (user) {
-          els.authStatus.textContent = "Checking account role…";
+          els.authStatus.textContent = "Checking Admin access…";
           els.authStatus.className = "status";
           try {
-            await applySignedInRole(user);
+            await authorizeSignedInUser(user);
           } catch (error) {
             console.error(error);
-            const message = callableErrorMessage(
-              error,
-              "This account is not authorized to use the Admin page."
-            );
             await signOut(auth);
-            els.loginMessage.textContent = message;
+            els.loginMessage.textContent =
+              firebaseErrorMessage(error, "This account is not authorized.");
             els.loginMessage.classList.remove("hidden");
           }
         } else {
+          stopCurrentRoleListener?.();
+          stopCurrentRoleListener = null;
+          stopAdminUsersListener?.();
+          stopAdminUsersListener = null;
           state.adminUsers = [];
+
           els.authStatus.textContent = "Signed out";
           els.authStatus.className = "status";
           els.loginPanel.classList.remove("hidden");
@@ -498,441 +670,145 @@ new_auth_handler = '''      onAuthStateChanged(auth, async user => {
         }
       });'''
 
-if old_auth_handler in text:
-    text = text.replace(old_auth_handler, new_auth_handler, 1)
-elif "onAuthStateChanged(auth, async user" not in text:
-    raise ValueError("Old auth handler not found")
+if old_handler in text:
+    text = text.replace(old_handler, new_handler, 1)
+elif "authorizeSignedInUser(user)" not in text:
+    raise ValueError("Auth handler not found")
 
-# 8) Add event handlers.
-events_marker = '''      els.loginForm.addEventListener("submit", login);
+# ---------- Events ----------
+events_old = '''      els.loginForm.addEventListener("submit", login);
       els.resetPasswordButton.addEventListener("click", resetPassword);'''
-
-events_replacement = '''      els.loginForm.addEventListener("submit", login);
+events_new = '''      els.loginForm.addEventListener("submit", login);
       els.resetPasswordButton.addEventListener("click", resetPassword);
       els.createAdminForm.addEventListener("submit", createAdminAccount);
-      els.refreshAdminUsersButton.addEventListener("click", loadAdminUsers);'''
-
+      els.refreshAdminUsersButton.addEventListener("click", subscribeAdminUserList);'''
 if 'els.createAdminForm.addEventListener("submit", createAdminAccount);' not in text:
-    if events_marker not in text:
-        raise ValueError("Login events marker not found")
-    text = text.replace(events_marker, events_replacement, 1)
+    if events_old not in text:
+        raise ValueError("Events marker not found")
+    text = text.replace(events_old, events_new, 1)
 
-# Save updated full index.
-output_dir = Path("/mnt/data/ABE-Wire-Label-Maker-Super-Admin")
-if output_dir.exists():
-    shutil.rmtree(output_dir)
-output_dir.mkdir(parents=True)
+# ---------- Output files ----------
+out_dir = Path("/mnt/data/ABE-Wire-Label-Maker-Free-Super-Admin")
+if out_dir.exists():
+    shutil.rmtree(out_dir)
+out_dir.mkdir(parents=True)
 
-index_path = output_dir / "index.html"
+index_path = out_dir / "index.html"
 index_path.write_text(text, encoding="utf-8")
 
-# Create secure Cloud Functions backend.
-functions_dir = output_dir / "functions"
-functions_dir.mkdir()
-
-functions_index = f'''"use strict";
-
-const {{ onCall, HttpsError }} = require("firebase-functions/v2/https");
-const {{ initializeApp }} = require("firebase-admin/app");
-const {{ getAuth }} = require("firebase-admin/auth");
-
-initializeApp();
-
-const REGION = "us-central1";
-const ULTIMATE_SUPER_ADMIN_UID = "{ULTIMATE_UID}";
-
-function requireSignedIn(request) {{
-  if (!request.auth) {{
-    throw new HttpsError("unauthenticated", "You must be signed in.");
-  }}
-}}
-
-function callerIsSuperAdmin(request) {{
-  return Boolean(
-    request.auth &&
-    (
-      request.auth.uid === ULTIMATE_SUPER_ADMIN_UID ||
-      request.auth.token?.superAdmin === true
-    )
-  );
-}}
-
-function requireSuperAdmin(request) {{
-  requireSignedIn(request);
-  if (!callerIsSuperAdmin(request)) {{
-    throw new HttpsError(
-      "permission-denied",
-      "Only a Super Admin can manage admin accounts."
-    );
-  }}
-}}
-
-function publicUserRecord(user) {{
-  const claims = user.customClaims || {{}};
-  const ultimate = user.uid === ULTIMATE_SUPER_ADMIN_UID;
-  const superAdmin = ultimate || claims.superAdmin === true;
-
-  return {{
-    uid: user.uid,
-    email: user.email || "",
-    displayName: user.displayName || "",
-    disabled: Boolean(user.disabled),
-    emailVerified: Boolean(user.emailVerified),
-    ultimate,
-    role: superAdmin ? "superAdmin" : "admin",
-    creationTime: user.metadata?.creationTime || "",
-    lastSignInTime: user.metadata?.lastSignInTime || ""
-  }};
-}}
-
-exports.ensureSuperAdmin = onCall(
-  {{ region: REGION, maxInstances: 10 }},
-  async (request) => {{
-    requireSignedIn(request);
-
-    if (request.auth.uid !== ULTIMATE_SUPER_ADMIN_UID) {{
-      throw new HttpsError(
-        "permission-denied",
-        "Only the protected Ultimate Super Admin account can bootstrap this role."
-      );
-    }}
-
-    const auth = getAuth();
-    const user = await auth.getUser(ULTIMATE_SUPER_ADMIN_UID);
-    const existingClaims = user.customClaims || {{}};
-
-    if (
-      existingClaims.admin !== true ||
-      existingClaims.superAdmin !== true ||
-      existingClaims.ultimateSuperAdmin !== true
-    ) {{
-      await auth.setCustomUserClaims(ULTIMATE_SUPER_ADMIN_UID, {{
-        ...existingClaims,
-        admin: true,
-        superAdmin: true,
-        ultimateSuperAdmin: true
-      }});
-    }}
-
-    return {{
-      success: true,
-      uid: ULTIMATE_SUPER_ADMIN_UID,
-      role: "superAdmin",
-      ultimate: true
-    }};
-  }}
-);
-
-exports.createAdminUser = onCall(
-  {{ region: REGION, maxInstances: 10 }},
-  async (request) => {{
-    requireSuperAdmin(request);
-
-    const email = String(request.data?.email || "").trim().toLowerCase();
-    const password = String(request.data?.password || "");
-    const displayName = String(request.data?.displayName || "").trim().slice(0, 100);
-    const role = request.data?.role === "superAdmin" ? "superAdmin" : "admin";
-
-    if (!email || !email.includes("@")) {{
-      throw new HttpsError("invalid-argument", "Enter a valid email address.");
-    }}
-
-    if (password.length < 8) {{
-      throw new HttpsError(
-        "invalid-argument",
-        "The temporary password must contain at least 8 characters."
-      );
-    }}
-
-    if (
-      role === "superAdmin" &&
-      request.auth.uid !== ULTIMATE_SUPER_ADMIN_UID
-    ) {{
-      throw new HttpsError(
-        "permission-denied",
-        "Only the Ultimate Super Admin can create another Super Admin."
-      );
-    }}
-
-    const auth = getAuth();
-    let createdUser = null;
-
-    try {{
-      createdUser = await auth.createUser({{
-        email,
-        password,
-        displayName: displayName || undefined,
-        disabled: false,
-        emailVerified: false
-      }});
-
-      await auth.setCustomUserClaims(createdUser.uid, {{
-        admin: true,
-        superAdmin: role === "superAdmin",
-        ultimateSuperAdmin: false
-      }});
-
-      const completedUser = await auth.getUser(createdUser.uid);
-      return {{
-        success: true,
-        user: publicUserRecord(completedUser)
-      }};
-    }} catch (error) {{
-      if (createdUser?.uid) {{
-        try {{
-          await auth.deleteUser(createdUser.uid);
-        }} catch (rollbackError) {{
-          console.error("Failed to roll back newly-created user:", rollbackError);
-        }}
-      }}
-
-      if (error?.code === "auth/email-already-exists") {{
-        throw new HttpsError(
-          "already-exists",
-          "A Firebase account already uses that email address."
-        );
-      }}
-
-      if (error?.code === "auth/invalid-password") {{
-        throw new HttpsError("invalid-argument", "The temporary password is invalid.");
-      }}
-
-      console.error("createAdminUser failed:", error);
-      throw new HttpsError("internal", "The admin account could not be created.");
-    }}
-  }}
-);
-
-exports.listAdminUsers = onCall(
-  {{ region: REGION, maxInstances: 10 }},
-  async (request) => {{
-    requireSuperAdmin(request);
-
-    const auth = getAuth();
-    const users = [];
-    let pageToken;
-
-    do {{
-      const result = await auth.listUsers(1000, pageToken);
-
-      for (const user of result.users) {{
-        const claims = user.customClaims || {{}};
-        if (
-          user.uid === ULTIMATE_SUPER_ADMIN_UID ||
-          claims.admin === true ||
-          claims.superAdmin === true
-        ) {{
-          users.push(publicUserRecord(user));
-        }}
-      }}
-
-      pageToken = result.pageToken;
-    }} while (pageToken);
-
-    return {{ users }};
-  }}
-);
-
-exports.deleteAdminUser = onCall(
-  {{ region: REGION, maxInstances: 10 }},
-  async (request) => {{
-    requireSuperAdmin(request);
-
-    const targetUid = String(request.data?.uid || "").trim();
-
-    if (!targetUid) {{
-      throw new HttpsError("invalid-argument", "An account UID is required.");
-    }}
-
-    if (targetUid === ULTIMATE_SUPER_ADMIN_UID) {{
-      throw new HttpsError(
-        "permission-denied",
-        "The Ultimate Super Admin account is permanently protected."
-      );
-    }}
-
-    if (targetUid === request.auth.uid) {{
-      throw new HttpsError(
-        "failed-precondition",
-        "You cannot delete the account currently signed in."
-      );
-    }}
-
-    const auth = getAuth();
-    let target;
-
-    try {{
-      target = await auth.getUser(targetUid);
-    }} catch (error) {{
-      if (error?.code === "auth/user-not-found") {{
-        throw new HttpsError("not-found", "That Firebase account no longer exists.");
-      }}
-      throw error;
-    }}
-
-    const targetClaims = target.customClaims || {{}};
-    const targetIsSuperAdmin = targetClaims.superAdmin === true;
-
-    if (
-      targetIsSuperAdmin &&
-      request.auth.uid !== ULTIMATE_SUPER_ADMIN_UID
-    ) {{
-      throw new HttpsError(
-        "permission-denied",
-        "Only the Ultimate Super Admin can delete another Super Admin."
-      );
-    }}
-
-    if (
-      targetClaims.admin !== true &&
-      targetClaims.superAdmin !== true
-    ) {{
-      throw new HttpsError(
-        "failed-precondition",
-        "The selected Firebase account is not an administrator."
-      );
-    }}
-
-    await auth.deleteUser(targetUid);
-
-    return {{
-      success: true,
-      deletedUid: targetUid
-    }};
-  }}
-);
-'''
-
-(functions_dir / "index.js").write_text(functions_index, encoding="utf-8")
-
-package_json = {
-    "name": "abe-label-maker-functions",
-    "private": True,
-    "main": "index.js",
-    "engines": {"node": "22"},
-    "scripts": {
-        "check": "node --check index.js",
-        "deploy": "firebase deploy --only functions"
-    },
-    "dependencies": {
-        "firebase-admin": "^14.2.0",
-        "firebase-functions": "^7.3.0"
-    }
-}
-(functions_dir / "package.json").write_text(
-    json.dumps(package_json, indent=2) + "\n",
-    encoding="utf-8"
-)
-
-firebase_json = {
-    "functions": {
-        "source": "functions",
-        "runtime": "nodejs22"
-    },
-    "database": {
-        "rules": "database.rules.json"
-    }
-}
-(output_dir / "firebase.json").write_text(
-    json.dumps(firebase_json, indent=2) + "\n",
-    encoding="utf-8"
-)
-
-firebaserc = {
-    "projects": {
-        "default": "abe-label-making"
-    }
-}
-(output_dir / ".firebaserc").write_text(
-    json.dumps(firebaserc, indent=2) + "\n",
-    encoding="utf-8"
-)
-
-database_rules = {
+rules = {
     "rules": {
         "labelMaker": {
-            ".read": True,
-            ".write": "auth != null && (auth.token.admin === true || auth.token.superAdmin === true)"
+            "presets": {
+                ".read": True,
+                ".write": (
+                    f"auth != null && (auth.uid === '{ULTIMATE_UID}' || "
+                    "(root.child('labelMaker/adminUsers').child(auth.uid).child('active').val() === true && "
+                    "(root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'admin' || "
+                    "root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'superAdmin')))"
+                )
+            },
+            "sheetSettings": {
+                ".read": True,
+                ".write": (
+                    f"auth != null && (auth.uid === '{ULTIMATE_UID}' || "
+                    "(root.child('labelMaker/adminUsers').child(auth.uid).child('active').val() === true && "
+                    "(root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'admin' || "
+                    "root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'superAdmin')))"
+                )
+            },
+            "adminUsers": {
+                ".read": (
+                    f"auth != null && (auth.uid === '{ULTIMATE_UID}' || "
+                    "(root.child('labelMaker/adminUsers').child(auth.uid).child('active').val() === true && "
+                    "root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'superAdmin'))"
+                ),
+                "$uid": {
+                    ".read": "auth != null && auth.uid === $uid",
+                    ".write": (
+                        f"auth != null && ("
+                        f"(auth.uid === '{ULTIMATE_UID}' && "
+                        f"($uid !== '{ULTIMATE_UID}' || "
+                        "(newData.child('role').val() === 'superAdmin' && "
+                        "newData.child('ultimate').val() === true && "
+                        "newData.child('active').val() === true))) || "
+                        f"(auth.uid !== '{ULTIMATE_UID}' && "
+                        "root.child('labelMaker/adminUsers').child(auth.uid).child('active').val() === true && "
+                        "root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'superAdmin' && "
+                        f"$uid !== '{ULTIMATE_UID}' && "
+                        "data.child('role').val() !== 'superAdmin' && "
+                        "newData.child('role').val() === 'admin' && "
+                        "newData.child('ultimate').val() !== true)"
+                        ")"
+                    ),
+                    ".validate": (
+                        "newData.hasChildren(['uid','email','role','active','ultimate']) && "
+                        "newData.child('uid').isString() && "
+                        "newData.child('email').isString() && "
+                        "(newData.child('role').val() === 'admin' || "
+                        "newData.child('role').val() === 'superAdmin') && "
+                        "newData.child('active').isBoolean() && "
+                        "newData.child('ultimate').isBoolean()"
+                    )
+                }
+            }
         }
     }
 }
-(output_dir / "database.rules.json").write_text(
-    json.dumps(database_rules, indent=2) + "\n",
-    encoding="utf-8"
-)
 
-deploy_guide = f"""ABE LABEL MAKER — SUPER ADMIN DEPLOYMENT
+rules_path = out_dir / "database-rules.json"
+rules_path.write_text(json.dumps(rules, indent=2) + "\n", encoding="utf-8")
+
+readme = f"""ABE LABEL MAKER — FREE SPARK PLAN VERSION
 
 Protected Ultimate Super Admin UID:
 {ULTIMATE_UID}
 
-GITHUB PAGES FILES
-Upload these files to the root of your GitHub Pages repository:
+GITHUB FILES
 - index.html
 - 94207.avif
 - Ok.jpg.png
 - abe-networks.png
 
-FIREBASE BACKEND FILES
-The functions/ folder, firebase.json, .firebaserc, and database.rules.json are
-deployed through Firebase CLI. They are not web-page assets.
+FIREBASE CHANGES
+1. Keep the Firebase project on the no-cost Spark plan.
+2. Authentication > Sign-in method: enable Email/Password.
+3. Authentication > Settings > Authorized domains:
+   add your GitHub Pages domain, such as YOUR-USERNAME.github.io.
+4. Realtime Database > Rules:
+   paste the complete contents of database-rules.json and click Publish.
+5. Sign in through the website with the account whose UID is shown above.
+   The website creates its protected Ultimate Super Admin role record.
 
-ONE-TIME SETUP
-1. Upgrade the Firebase project to the Blaze plan so Cloud Functions can deploy.
-2. Install Node.js 22 and the Firebase CLI.
-3. Open Terminal in this extracted project folder.
-4. Run:
-   npm install -g firebase-tools
-   firebase login
-   firebase use abe-label-making
-   cd functions
-   npm install
-   npm run check
-   cd ..
-   firebase deploy --only functions,database
+HOW FREE ACCOUNT CREATION WORKS
+- A separate browser Auth instance creates the new Firebase email/password login.
+- The signed-in Super Admin writes the user's role to Realtime Database.
+- Realtime Database rules—not browser visibility—enforce who may manage roles.
+- Regular Admins cannot create accounts.
+- Other Super Admins can create only regular Admins.
+- Only the Ultimate Super Admin can create another Super Admin.
+- Removing access disables the website role but leaves the Firebase Authentication
+  login record in place. This is necessary because deleting another user's Auth
+  record requires a trusted Admin SDK backend.
 
-AFTER DEPLOYMENT
-1. Upload the new index.html to GitHub and commit it.
-2. Sign in through the website using the Firebase account whose UID is:
-   {ULTIMATE_UID}
-3. The website calls ensureSuperAdmin automatically.
-4. Sign out and back in if the role does not appear immediately.
-5. The Admin Accounts section appears only for Super Admins.
-
-PERMISSIONS
-- Ultimate Super Admin:
-  * Protected from website deletion
-  * Can create Admins and Super Admins
-  * Can delete Admins and other Super Admins
-- Other Super Admins:
-  * Can create regular Admins
-  * Can delete regular Admins
-  * Cannot create or delete Super Admins
-- Admins:
-  * Can manage label presets and sheet settings
-  * Cannot view or manage admin accounts
-- Public users:
-  * Can use the label maker
-  * Cannot change saved presets or settings
-
-IMPORTANT
-Anyone who is an Owner/Editor of the Firebase or Google Cloud project may still
-delete users from the Firebase Console. The website and Cloud Functions protect
-the Ultimate Super Admin from deletion through this application.
+FREE-PLAN TRADEOFF
+Firebase Email/Password must permit client account creation for this workflow.
+Someone could technically create an ordinary Firebase Authentication login by
+calling the public client API, but that login receives no Admin role and cannot
+read private admin records or write presets/settings under the supplied rules.
 """
-(output_dir / "DEPLOY.txt").write_text(deploy_guide, encoding="utf-8")
+(out_dir / "SETUP.txt").write_text(readme, encoding="utf-8")
 
-# Create separate GitHub-only ZIP and full deployment ZIP.
-github_zip = Path("/mnt/data/ABE-Wire-Label-Maker-GitHub-Super-Admin.zip")
+github_zip = Path("/mnt/data/ABE-Wire-Label-Maker-Free-GitHub.zip")
 with zipfile.ZipFile(github_zip, "w", zipfile.ZIP_DEFLATED) as archive:
     archive.write(index_path, arcname="index.html")
 
-full_zip = Path("/mnt/data/ABE-Wire-Label-Maker-Super-Admin-Full.zip")
+full_zip = Path("/mnt/data/ABE-Wire-Label-Maker-Free-Full.zip")
 with zipfile.ZipFile(full_zip, "w", zipfile.ZIP_DEFLATED) as archive:
-    for file_path in output_dir.rglob("*"):
-        if file_path.is_file():
-            archive.write(file_path, arcname=file_path.relative_to(output_dir))
+    for file_path in out_dir.iterdir():
+        archive.write(file_path, arcname=file_path.name)
 
-print(f"Created updated index: {index_path} ({index_path.stat().st_size:,} bytes)")
+print(f"Created free index: {index_path} ({index_path.stat().st_size:,} bytes)")
+print(f"Created rules: {rules_path}")
 print(f"Created GitHub ZIP: {github_zip}")
-print(f"Created full Firebase deployment ZIP: {full_zip}")
+print(f"Created full ZIP: {full_zip}")
