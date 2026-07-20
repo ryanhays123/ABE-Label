@@ -1,12 +1,13 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="ABE label maker with Firebase-powered admin controls." />
-  <title>ABE Label Maker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Create and print wire, cable, equipment, and technology labels.">
+  <title>ABE Wire & Equipment Label Maker</title>
 
-  <!-- Drag, resize, rotate, and edit label text -->
   <script
     src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"
     crossorigin="anonymous"
@@ -15,65 +16,40 @@
 
   <style>
     :root {
-      --background: #f4f6f8;
-      --surface: #ffffff;
-      --surface-alt: #f8fafc;
-      --text: #18202a;
-      --muted: #687384;
-      --border: #dce2e8;
+      --bg: #f3f5f8;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --text: #17202a;
+      --muted: #697586;
+      --line: #dce2e8;
       --primary: #2457d6;
-      --primary-hover: #1945b6;
+      --primary-dark: #1945b6;
       --danger: #b42318;
       --danger-bg: #fff4f2;
       --success: #18794e;
-      --warning: #765d12;
+      --warning: #725a13;
       --warning-bg: #fff9e7;
       --shadow: 0 12px 34px rgba(27, 35, 46, 0.09);
       --radius: 16px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html {
-      min-height: 100%;
-    }
+    html { min-height: 100%; }
 
     body {
       min-height: 100vh;
       margin: 0;
-      background: var(--background);
+      background: var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    button,
-    input,
-    select,
-    textarea {
-      font: inherit;
-    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    h1, h2, h3, p { margin-top: 0; }
 
-    button,
-    a {
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    h1,
-    h2,
-    h3,
-    p {
-      margin-top: 0;
-    }
-
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     .sr-only {
       position: absolute;
@@ -93,18 +69,18 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
-      background: rgba(255, 255, 255, 0.96);
-      border-bottom: 1px solid var(--border);
+      gap: 18px;
       position: sticky;
       top: 0;
       z-index: 50;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.96);
       backdrop-filter: blur(10px);
     }
 
     .site-header h1 {
       margin: 0;
-      font-size: 1.28rem;
+      font-size: 1.25rem;
       letter-spacing: -0.02em;
     }
 
@@ -112,7 +88,7 @@
       margin: 0 0 2px;
       color: var(--primary);
       font-size: 0.7rem;
-      font-weight: 800;
+      font-weight: 850;
       letter-spacing: 0.14em;
     }
 
@@ -124,26 +100,26 @@
       flex-wrap: wrap;
     }
 
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
+    .status {
       min-height: 32px;
       padding: 6px 10px;
-      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
       border-radius: 999px;
-      background: var(--surface);
+      background: var(--panel);
       color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 700;
+      font-size: 0.77rem;
+      font-weight: 750;
     }
 
-    .status-badge.online {
+    .status.online {
       border-color: #b6dfca;
       background: #f1fbf6;
       color: var(--success);
     }
 
-    .status-badge.error {
+    .status.error {
       border-color: #efc2bd;
       background: var(--danger-bg);
       color: var(--danger);
@@ -157,14 +133,14 @@
       justify-content: center;
       border: 1px solid transparent;
       border-radius: 9px;
-      font-weight: 750;
+      font-weight: 760;
       line-height: 1;
-      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+      transition: 120ms ease;
     }
 
     .button:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: 0 5px 14px rgba(26, 35, 48, 0.1);
+      box-shadow: 0 5px 14px rgba(26,35,48,0.1);
     }
 
     .button:disabled {
@@ -175,20 +151,35 @@
     .button-primary {
       border-color: var(--primary);
       background: var(--primary);
-      color: white;
+      color: #fff;
     }
 
-    .button-primary:hover:not(:disabled) {
-      background: var(--primary-hover);
-    }
+    .button-primary:hover:not(:disabled) { background: var(--primary-dark); }
 
     .button-secondary {
-      border-color: var(--border);
-      background: var(--surface);
+      border-color: var(--line);
+      background: var(--panel);
       color: var(--text);
     }
 
     .button-danger {
+      border-color: #efc2bd;
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .small-button {
+      min-height: 32px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 0.76rem;
+      font-weight: 760;
+    }
+
+    .small-button.danger {
       border-color: #efc2bd;
       background: var(--danger-bg);
       color: var(--danger);
@@ -199,23 +190,108 @@
       border: 0;
       background: transparent;
       color: var(--primary);
-      font-weight: 700;
+      font-weight: 750;
       text-align: left;
     }
 
     .panel {
-      border: 1px solid var(--border);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: var(--surface);
+      background: var(--panel);
       box-shadow: var(--shadow);
     }
 
+    .input {
+      width: 100%;
+      min-height: 41px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      outline: none;
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .input:focus {
+      border-color: #7b9ce9;
+      box-shadow: 0 0 0 3px rgba(36,87,214,0.12);
+    }
+
+    .textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field > span {
+      color: #404a58;
+      font-size: 0.79rem;
+      font-weight: 800;
+    }
+
+    .field-full { grid-column: 1 / -1; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 13px;
+    }
+
+    .check-row {
+      min-height: 41px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+    }
+
+    .check-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.82rem;
+    }
+
+    .notice {
+      margin-top: 12px;
+      padding: 11px 13px;
+      border: 1px solid #e8d598;
+      border-radius: 10px;
+      background: var(--warning-bg);
+      color: var(--warning);
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    .toast {
+      max-width: min(410px, calc(100vw - 32px));
+      padding: 11px 14px;
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 100;
+      border-radius: 10px;
+      background: #1e2732;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+      font-size: 0.86rem;
+    }
+
+    /* USER PAGE */
     .designer-layout {
-      width: min(1600px, 100%);
+      width: min(1650px, 100%);
       margin: 0 auto;
       padding: 22px;
       display: grid;
-      grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+      grid-template-columns: minmax(270px, 340px) minmax(0, 1fr);
       gap: 20px;
     }
 
@@ -251,36 +327,6 @@
       line-height: 1.45;
     }
 
-    .input {
-      width: 100%;
-      min-height: 41px;
-      padding: 9px 11px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      outline: none;
-      background: var(--surface);
-      color: var(--text);
-    }
-
-    .input:focus {
-      border-color: #7b9ce9;
-      box-shadow: 0 0 0 3px rgba(36, 87, 214, 0.12);
-    }
-
-    .input-compact {
-      min-height: 36px;
-      padding: 6px 8px;
-    }
-
-    .number-input {
-      width: 78px;
-    }
-
-    .textarea {
-      min-height: 92px;
-      resize: vertical;
-    }
-
     .category-filters {
       display: flex;
       gap: 7px;
@@ -290,12 +336,12 @@
 
     .category-chip {
       padding: 6px 9px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--line);
       border-radius: 999px;
-      background: var(--surface);
+      background: var(--panel);
       color: var(--muted);
-      font-size: 0.75rem;
-      font-weight: 750;
+      font-size: 0.74rem;
+      font-weight: 760;
     }
 
     .category-chip.active {
@@ -304,51 +350,65 @@
       color: var(--primary);
     }
 
-    .label-library {
+    .preset-library {
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      gap: 11px;
     }
 
-    .library-item {
+    .preset-card {
       width: 100%;
-      min-height: 55px;
-      padding: 10px 11px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--surface);
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--panel);
       text-align: left;
       cursor: grab;
     }
 
-    .library-item:hover {
+    .preset-card:hover {
       border-color: #91abea;
       background: #f8faff;
     }
 
-    .library-item:active {
-      cursor: grabbing;
+    .preset-card:active { cursor: grabbing; }
+
+    .preset-card-title {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 800;
     }
 
-    .library-text {
-      display: block;
-      line-height: 1.25;
-      overflow-wrap: anywhere;
-    }
-
-    .library-meta {
-      display: block;
-      margin-top: 4px;
+    .preset-card-category {
       color: var(--muted);
-      font-family: Inter, ui-sans-serif, sans-serif;
-      font-size: 0.71rem;
-      font-style: normal;
-      font-weight: 600;
+      font-size: 0.7rem;
+      font-weight: 650;
+    }
+
+    .preset-preview {
+      width: 100%;
+      aspect-ratio: 2.675 / 1;
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #fff center / 100% 100% no-repeat;
+    }
+
+    .preset-preview-text {
+      position: absolute;
+      transform-origin: center;
+      white-space: pre;
+      line-height: 1.05;
+      pointer-events: none;
     }
 
     .empty-state {
       padding: 22px 14px;
-      border: 1px dashed var(--border);
+      border: 1px dashed var(--line);
       border-radius: 11px;
       color: var(--muted);
       text-align: center;
@@ -356,19 +416,19 @@
       line-height: 1.5;
     }
 
-    .editor-panel {
+    .sheet-panel {
       min-width: 0;
       padding: 18px;
     }
 
-    .canvas-stage {
-      min-height: 570px;
+    .sheet-stage {
+      min-height: 650px;
       padding: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: auto;
-      border: 1px solid var(--border);
+      border: 1px solid var(--line);
       border-radius: 13px;
       background-color: #e9edf2;
       background-image:
@@ -380,131 +440,41 @@
       background-size: 24px 24px;
     }
 
-    .canvas-stage.drag-active {
-      outline: 3px solid rgba(36, 87, 214, 0.3);
+    .sheet-stage.drag-active {
+      outline: 3px solid rgba(36,87,214,0.3);
       outline-offset: -3px;
     }
 
     .canvas-frame {
       flex: 0 0 auto;
-      background: white;
-      box-shadow: 0 16px 45px rgba(23, 31, 42, 0.23);
+      background: #fff;
+      box-shadow: 0 16px 45px rgba(23,31,42,0.23);
     }
 
-    .canvas-container {
-      display: block;
-    }
+    .canvas-container { display: block; }
 
-    .selection-toolbar {
+    .sheet-toolbar {
       margin-top: 14px;
-      padding: 13px;
-      display: flex;
-      align-items: end;
-      gap: 9px;
-      flex-wrap: wrap;
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      background: var(--surface-alt);
-    }
-
-    .toolbar-title {
-      align-self: center;
-      margin-right: 3px;
-      font-size: 0.84rem;
-      font-weight: 800;
-    }
-
-    .compact-field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 750;
-    }
-
-    .color-input {
-      width: 48px;
-      height: 36px;
-      padding: 3px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-    }
-
-    .segmented-buttons {
-      display: flex;
-    }
-
-    .icon-button {
-      width: 38px;
-      height: 36px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    .icon-button:first-child {
-      border-radius: 8px 0 0 8px;
-    }
-
-    .icon-button:last-child {
-      border-radius: 0 8px 8px 0;
-    }
-
-    .icon-button + .icon-button {
-      margin-left: -1px;
-    }
-
-    .icon-button.active {
-      border-color: var(--primary);
-      background: #eaf0ff;
-      color: var(--primary);
-      position: relative;
-      z-index: 1;
-    }
-
-    .editor-footer {
-      margin-top: 14px;
+      padding: 12px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 18px;
+      gap: 9px;
+      flex-wrap: wrap;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--panel-2);
     }
 
-    .keyboard-help {
-      margin: 0;
+    .sheet-help {
+      margin: 14px 0 0;
       color: var(--muted);
       font-size: 0.78rem;
       line-height: 1.45;
     }
 
-    .notice {
-      margin-top: 12px;
-      padding: 11px 13px;
-      border: 1px solid #e8d598;
-      border-radius: 10px;
-      background: var(--warning-bg);
-      color: var(--warning);
-      font-size: 0.85rem;
-      line-height: 1.45;
-    }
-
-    .toast {
-      max-width: min(390px, calc(100vw - 32px));
-      padding: 11px 14px;
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 100;
-      border-radius: 10px;
-      background: #1e2732;
-      color: white;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-      font-size: 0.86rem;
-    }
-
+    /* ADMIN PAGE */
     .admin-main {
-      width: min(1400px, 100%);
+      width: min(1550px, 100%);
       margin: 0 auto;
       padding: 22px;
     }
@@ -513,10 +483,6 @@
       width: min(470px, 100%);
       margin: 40px auto;
       padding: 24px;
-    }
-
-    .login-panel h2 {
-      margin-bottom: 8px;
     }
 
     .login-panel > p {
@@ -532,7 +498,7 @@
 
     .admin-grid {
       display: grid;
-      grid-template-columns: minmax(330px, 0.82fr) minmax(440px, 1.18fr);
+      grid-template-columns: minmax(440px, 1.12fr) minmax(360px, 0.88fr);
       gap: 20px;
     }
 
@@ -541,75 +507,96 @@
       align-self: start;
     }
 
-    .settings-card {
-      grid-column: 1 / -1;
-    }
+    .settings-card { grid-column: 1 / -1; }
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 13px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .field > span {
-      color: #404a58;
-      font-size: 0.79rem;
-      font-weight: 800;
-    }
-
-    .field-full {
-      grid-column: 1 / -1;
-    }
-
-    .check-field {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.87rem;
-      font-weight: 700;
-    }
-
-    .check-row {
-      min-height: 41px;
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-    }
-
-    .check-row label {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.82rem;
-    }
-
-    .admin-color-input {
-      width: 100%;
-      height: 41px;
-    }
-
-    .style-preview {
-      min-height: 82px;
-      padding: 16px;
+    .preset-editor-stage {
+      min-height: 350px;
+      padding: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      border: 1px dashed var(--border);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #e9edf2;
+    }
+
+    .preset-canvas-frame {
+      width: 800px;
+      height: 300px;
+      flex: 0 0 auto;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(23,31,42,0.2);
+    }
+
+    .text-add-row {
+      margin: 14px 0;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 9px;
+    }
+
+    .format-toolbar {
+      margin: 12px 0;
+      padding: 12px;
+      display: flex;
+      align-items: end;
+      gap: 9px;
+      flex-wrap: wrap;
+      border: 1px solid var(--line);
       border-radius: 11px;
-      background: var(--surface-alt);
-      text-align: center;
-      overflow-wrap: anywhere;
+      background: var(--panel-2);
+    }
+
+    .compact-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 760;
+    }
+
+    .compact-field select,
+    .compact-field input[type="number"] {
+      min-height: 36px;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .compact-field select { min-width: 145px; }
+    .compact-field input[type="number"] { width: 78px; }
+
+    .color-input {
+      width: 50px;
+      height: 36px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .icon-group { display: flex; }
+
+    .icon-button {
+      width: 38px;
+      height: 36px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .icon-button:first-child { border-radius: 8px 0 0 8px; }
+    .icon-button:last-child { border-radius: 0 8px 8px 0; }
+    .icon-button + .icon-button { margin-left: -1px; }
+
+    .icon-button.active {
+      position: relative;
+      z-index: 1;
+      border-color: var(--primary);
+      background: #eaf0ff;
+      color: var(--primary);
     }
 
     .admin-list {
@@ -620,32 +607,30 @@
     }
 
     .admin-item {
-      padding: 12px;
+      padding: 11px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0,1fr) auto;
       gap: 12px;
       align-items: center;
-      border: 1px solid var(--border);
+      border: 1px solid var(--line);
       border-radius: 11px;
     }
 
     .admin-item.hidden-option {
       opacity: 0.56;
-      background: var(--surface-alt);
+      background: var(--panel-2);
     }
 
-    .admin-item-text {
+    .admin-item-name {
+      font-size: 0.88rem;
+      font-weight: 820;
       overflow-wrap: anywhere;
-      line-height: 1.3;
     }
 
     .admin-item-meta {
       margin-top: 4px;
       color: var(--muted);
-      font-family: Inter, ui-sans-serif, sans-serif;
       font-size: 0.72rem;
-      font-style: normal;
-      font-weight: 600;
     }
 
     .admin-item-actions {
@@ -655,23 +640,20 @@
       justify-content: flex-end;
     }
 
-    .small-button {
-      min-height: 32px;
-      padding: 6px 8px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      font-size: 0.75rem;
-      font-weight: 750;
+    .advanced-grid {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
     }
 
-    .small-button.danger {
-      border-color: #efc2bd;
-      background: var(--danger-bg);
-      color: var(--danger);
+    details summary {
+      cursor: pointer;
+      color: var(--primary);
+      font-size: 0.84rem;
+      font-weight: 780;
     }
 
-    @media (max-width: 1050px) {
+    @media (max-width: 1100px) {
       .designer-layout,
       .admin-grid {
         grid-template-columns: 1fr;
@@ -682,12 +664,10 @@
         position: static;
       }
 
-      .settings-card {
-        grid-column: auto;
-      }
+      .settings-card { grid-column: auto; }
     }
 
-    @media (max-width: 650px) {
+    @media (max-width: 680px) {
       .site-header {
         padding: 12px 14px;
         align-items: flex-start;
@@ -698,22 +678,20 @@
         padding: 12px;
       }
 
-      .editor-panel,
       .library-panel,
+      .sheet-panel,
       .admin-card {
         padding: 14px;
       }
 
-      .canvas-stage {
-        min-height: 420px;
-        padding: 18px;
+      .sheet-stage,
+      .preset-editor-stage {
+        padding: 16px;
         justify-content: flex-start;
       }
 
-      .editor-heading,
-      .editor-footer,
-      .panel-heading {
-        align-items: flex-start;
+      .panel-heading,
+      .editor-heading {
         flex-direction: column;
       }
 
@@ -721,17 +699,13 @@
         grid-template-columns: 1fr;
       }
 
-      .field-full {
-        grid-column: auto;
-      }
+      .field-full { grid-column: auto; }
 
       .admin-item {
         grid-template-columns: 1fr;
       }
 
-      .admin-item-actions {
-        justify-content: flex-start;
-      }
+      .admin-item-actions { justify-content: flex-start; }
     }
   </style>
 </head>
@@ -740,14 +714,14 @@
   <header class="site-header">
     <div>
       <p class="eyebrow">ABE</p>
-      <h1 id="pageTitle">Label Maker</h1>
+      <h1 id="pageTitle">Wire & Equipment Label Maker</h1>
     </div>
 
     <div class="header-actions">
-      <span id="connectionStatus" class="status-badge">Connecting…</span>
-      <span id="authStatus" class="status-badge hidden">Signed out</span>
-      <button id="openUserButton" class="button button-secondary hidden" type="button">Label Maker</button>
-      <button id="openAdminButton" class="button button-secondary" type="button">Admin</button>
+      <span id="connectionStatus" class="status">Connecting…</span>
+      <span id="authStatus" class="status hidden">Signed out</span>
+      <button id="userPageButton" class="button button-secondary hidden" type="button">Label Maker</button>
+      <button id="adminPageButton" class="button button-secondary" type="button">Admin</button>
       <button id="signOutButton" class="button button-secondary hidden" type="button">Sign out</button>
     </div>
   </header>
@@ -757,80 +731,54 @@
     <aside class="panel library-panel">
       <div class="panel-heading">
         <div>
-          <h2>Label text</h2>
-          <p>Click an option or drag it onto the template.</p>
+          <h2>Premade label boxes</h2>
+          <p>Drag a completed design onto any label space, or click it to fill the next open space.</p>
         </div>
       </div>
 
-      <label class="sr-only" for="librarySearch">Search label text</label>
-      <input id="librarySearch" class="input" type="search" placeholder="Search options…" />
+      <label class="sr-only" for="presetSearch">Search presets</label>
+      <input id="presetSearch" class="input" type="search" placeholder="Search labels…" />
 
-      <div id="categoryFilters" class="category-filters" aria-label="Label categories"></div>
-      <div id="labelLibrary" class="label-library" aria-live="polite"></div>
+      <div id="categoryFilters" class="category-filters"></div>
+      <div id="presetLibrary" class="preset-library"></div>
     </aside>
 
-    <section class="panel editor-panel">
+    <section class="panel sheet-panel">
       <div class="editor-heading">
         <div>
-          <h2>Design label</h2>
-          <p>A clean label starts every time this page opens.</p>
+          <h2>Label sheet</h2>
+          <p>Each design snaps to the nearest label box and stays centered.</p>
         </div>
 
         <div class="button-row">
           <button id="undoButton" class="button button-secondary" type="button" disabled>Undo</button>
           <button id="redoButton" class="button button-secondary" type="button" disabled>Redo</button>
-          <button id="clearButton" class="button button-secondary" type="button">Start over</button>
+          <button id="clearSheetButton" class="button button-secondary" type="button">Clear sheet</button>
         </div>
       </div>
 
-      <div id="canvasStage" class="canvas-stage" aria-label="Label design area">
-        <div id="canvasFrame" class="canvas-frame">
-          <canvas id="labelCanvas"></canvas>
+      <div id="sheetStage" class="sheet-stage">
+        <div id="sheetCanvasFrame" class="canvas-frame">
+          <canvas id="sheetCanvas"></canvas>
         </div>
       </div>
 
-      <div id="templateMessage" class="notice hidden" role="status"></div>
+      <div id="sheetMessage" class="notice hidden"></div>
 
-      <div id="selectionToolbar" class="selection-toolbar hidden">
-        <div class="toolbar-title">Selected text</div>
-
-        <label class="compact-field">
-          <span>Font</span>
-          <select id="selectedFont" class="input input-compact"></select>
-        </label>
-
-        <label class="compact-field">
-          <span>Size</span>
-          <input id="selectedSize" class="input input-compact number-input" type="number" min="6" max="240" />
-        </label>
-
-        <label class="compact-field">
-          <span>Color</span>
-          <input id="selectedColor" class="color-input" type="color" />
-        </label>
-
-        <div class="segmented-buttons" aria-label="Text formatting">
-          <button id="boldButton" class="icon-button" type="button" title="Bold"><strong>B</strong></button>
-          <button id="italicButton" class="icon-button" type="button" title="Italic"><em>I</em></button>
-          <button id="underlineButton" class="icon-button" type="button" title="Underline"><u>U</u></button>
-        </div>
-
-        <button id="duplicateButton" class="button button-secondary" type="button">Duplicate</button>
-        <button id="forwardButton" class="button button-secondary" type="button">Forward</button>
-        <button id="backwardButton" class="button button-secondary" type="button">Backward</button>
-        <button id="deleteButton" class="button button-danger" type="button">Delete</button>
+      <div id="sheetSelectionToolbar" class="sheet-toolbar hidden">
+        <strong>Selected box:</strong>
+        <button id="duplicateBoxButton" class="button button-secondary" type="button">Duplicate to next open box</button>
+        <button id="deleteBoxButton" class="button button-danger" type="button">Remove</button>
       </div>
 
-      <div class="editor-footer">
-        <p class="keyboard-help">
-          Double-click text to edit it. Delete removes it. Ctrl/Cmd+D duplicates. Ctrl/Cmd+Z undoes.
-        </p>
-
-        <div class="button-row">
-          <button id="downloadButton" class="button button-secondary" type="button">Download PNG</button>
-          <button id="printButton" class="button button-primary" type="button">Print label</button>
-        </div>
+      <div class="sheet-toolbar">
+        <button id="downloadSheetButton" class="button button-secondary" type="button">Download sheet PNG</button>
+        <button id="printSheetButton" class="button button-primary" type="button">Print full sheet</button>
       </div>
+
+      <p class="sheet-help">
+        Drag an existing box to another label position to move it. If the destination is occupied, the two boxes swap places.
+      </p>
     </section>
   </main>
 
@@ -838,7 +786,7 @@
   <main id="adminPage" class="admin-main hidden">
     <section id="loginPanel" class="panel login-panel">
       <h2>Admin sign-in</h2>
-      <p>Sign in with the email/password account created in Firebase Authentication.</p>
+      <p>Use the email/password account created in Firebase Authentication.</p>
 
       <form id="loginForm" class="stack-form">
         <label class="field">
@@ -855,75 +803,86 @@
         <button id="resetPasswordButton" class="text-button" type="button">Send password-reset email</button>
       </form>
 
-      <div id="loginMessage" class="notice hidden" role="alert"></div>
+      <div id="loginMessage" class="notice hidden"></div>
     </section>
 
     <div id="adminWorkspace" class="admin-grid hidden">
       <section class="panel admin-card">
         <div class="panel-heading">
           <div>
-            <h2 id="labelFormTitle">Create text option</h2>
-            <p>Control the default appearance users receive.</p>
+            <h2 id="presetFormTitle">Create premade label box</h2>
+            <p>Add text, then drag, resize, rotate, and style it inside the example box.</p>
           </div>
         </div>
 
-        <form id="labelForm" class="form-grid">
-          <input id="editingId" type="hidden" />
+        <div id="presetEditorStage" class="preset-editor-stage">
+          <div class="preset-canvas-frame">
+            <canvas id="presetCanvas"></canvas>
+          </div>
+        </div>
 
-          <label class="field field-full">
-            <span>Text</span>
-            <textarea
-              id="labelText"
-              class="input textarea"
-              required
-              placeholder="Example: Plain Sourdough"
-            ></textarea>
+        <div id="boxImageMessage" class="notice hidden"></div>
+
+        <div class="text-add-row">
+          <input id="newTextInput" class="input" type="text" placeholder="Type words to add, such as RACK A or PORT 24" />
+          <button id="addTextButton" class="button button-primary" type="button">Add text</button>
+        </div>
+
+        <div id="presetFormatToolbar" class="format-toolbar hidden">
+          <label class="compact-field">
+            <span>Font</span>
+            <select id="presetFont"></select>
+          </label>
+
+          <label class="compact-field">
+            <span>Size</span>
+            <input id="presetFontSize" type="number" min="6" max="240" />
+          </label>
+
+          <label class="compact-field">
+            <span>Color</span>
+            <input id="presetColor" class="color-input" type="color" />
+          </label>
+
+          <div class="icon-group">
+            <button id="presetBold" class="icon-button" type="button"><strong>B</strong></button>
+            <button id="presetItalic" class="icon-button" type="button"><em>I</em></button>
+            <button id="presetUnderline" class="icon-button" type="button"><u>U</u></button>
+          </div>
+
+          <button id="presetDuplicateText" class="button button-secondary" type="button">Duplicate text</button>
+          <button id="presetDeleteText" class="button button-danger" type="button">Delete text</button>
+        </div>
+
+        <form id="presetForm" class="form-grid">
+          <input id="editingPresetId" type="hidden" />
+
+          <label class="field">
+            <span>Preset name</span>
+            <input id="presetName" class="input" type="text" required placeholder="Example: Rack A Port 24" />
           </label>
 
           <label class="field">
             <span>Category</span>
-            <input id="labelCategory" class="input" type="text" value="General" placeholder="General" />
+            <input id="presetCategory" class="input" type="text" value="General" />
           </label>
 
           <label class="field">
             <span>Display order</span>
-            <input id="labelSortOrder" class="input" type="number" value="0" step="1" />
-          </label>
-
-          <label class="field">
-            <span>Font</span>
-            <select id="labelFont" class="input"></select>
-          </label>
-
-          <label class="field">
-            <span>Font size</span>
-            <input id="labelFontSize" class="input" type="number" min="6" max="240" value="36" />
-          </label>
-
-          <label class="field">
-            <span>Color</span>
-            <input id="labelColor" class="color-input admin-color-input" type="color" value="#111111" />
+            <input id="presetSortOrder" class="input" type="number" value="0" step="1" />
           </label>
 
           <div class="field">
-            <span>Formatting</span>
+            <span>Availability</span>
             <div class="check-row">
-              <label><input id="labelBold" type="checkbox" /> Bold</label>
-              <label><input id="labelItalic" type="checkbox" /> Italic</label>
-              <label><input id="labelUnderline" type="checkbox" /> Underline</label>
+              <label><input id="presetVisible" type="checkbox" checked /> Visible to users</label>
             </div>
           </div>
 
-          <label class="check-field field-full">
-            <input id="labelVisible" type="checkbox" checked />
-            <span>Visible on the user page</span>
-          </label>
-
-          <div id="stylePreview" class="style-preview field-full">Preview text</div>
-
           <div class="button-row field-full">
-            <button class="button button-primary" type="submit">Save option</button>
-            <button id="cancelEditButton" class="button button-secondary hidden" type="button">Cancel edit</button>
+            <button class="button button-primary" type="submit">Save premade box</button>
+            <button id="cancelPresetEditButton" class="button button-secondary hidden" type="button">Cancel edit</button>
+            <button id="clearPresetEditorButton" class="button button-secondary" type="button">Clear example box</button>
           </div>
         </form>
       </section>
@@ -931,51 +890,89 @@
       <section class="panel admin-card">
         <div class="panel-heading">
           <div>
-            <h2>Manage text options</h2>
-            <p id="optionCount">0 options</p>
+            <h2>Manage premade boxes</h2>
+            <p id="presetCount">0 presets</p>
           </div>
-
-          <button id="seedButton" class="button button-secondary" type="button">Add starter options</button>
+          <button id="sampleTechPresetsButton" class="button button-secondary" type="button">Add sample tech presets</button>
         </div>
 
-        <label class="sr-only" for="adminSearch">Search text options</label>
-        <input id="adminSearch" class="input" type="search" placeholder="Search options…" />
-        <div id="adminLabelList" class="admin-list"></div>
+        <input id="adminPresetSearch" class="input" type="search" placeholder="Search premade boxes…" />
+        <div id="adminPresetList" class="admin-list"></div>
       </section>
 
       <section class="panel admin-card settings-card">
         <div class="panel-heading">
           <div>
-            <h2>Template and printing</h2>
-            <p>Keep 94207.avif in the same GitHub folder as this index.html.</p>
+            <h2>Sheet, example box, and snapping settings</h2>
+            <p>The default layout is a two-column by five-row label sheet.</p>
           </div>
         </div>
 
         <form id="settingsForm" class="form-grid">
           <label class="field field-full">
-            <span>Template image path</span>
-            <input id="templatePath" class="input" type="text" value="94207.avif" />
+            <span>Full sheet template image</span>
+            <input id="sheetTemplatePath" class="input" type="text" value="94207.avif" />
+          </label>
+
+          <label class="field field-full">
+            <span>Single example box image</span>
+            <input id="boxTemplatePath" class="input" type="text" value="Ok.jpg.png" />
           </label>
 
           <label class="field">
-            <span>Printed width (inches)</span>
-            <input id="labelWidth" class="input" type="number" min="0.25" max="30" step="0.01" value="4" />
+            <span>Printed sheet width (inches)</span>
+            <input id="sheetWidthIn" class="input" type="number" min="1" max="30" step="0.01" value="8.5" />
           </label>
 
           <label class="field">
-            <span>Printed height (inches)</span>
-            <input id="labelHeight" class="input" type="number" min="0.25" max="30" step="0.01" value="3" />
+            <span>Printed sheet height (inches)</span>
+            <input id="sheetHeightIn" class="input" type="number" min="1" max="30" step="0.01" value="11" />
           </label>
 
-          <label class="field">
-            <span>Editor width (pixels)</span>
-            <input id="canvasWidth" class="input" type="number" min="300" max="3000" step="1" value="1000" />
-          </label>
+          <details class="field-full">
+            <summary>Advanced snapping alignment</summary>
+            <div class="form-grid advanced-grid">
+              <label class="field">
+                <span>Columns</span>
+                <input id="gridColumns" class="input" type="number" min="1" max="10" step="1" value="2" />
+              </label>
 
-          <label class="field">
-            <span>Editor height (pixels)</span>
-            <input id="canvasHeight" class="input" type="number" min="300" max="3000" step="1" value="750" />
-          </label>
+              <label class="field">
+                <span>Rows</span>
+                <input id="gridRows" class="input" type="number" min="1" max="20" step="1" value="5" />
+              </label>
+
+              <label class="field">
+                <span>Grid left (%)</span>
+                <input id="gridLeftPct" class="input" type="number" min="0" max="90" step="0.1" value="13.5" />
+              </label>
+
+              <label class="field">
+                <span>Grid top (%)</span>
+                <input id="gridTopPct" class="input" type="number" min="0" max="90" step="0.1" value="5" />
+              </label>
+
+              <label class="field">
+                <span>Grid width (%)</span>
+                <input id="gridWidthPct" class="input" type="number" min="5" max="100" step="0.1" value="76" />
+              </label>
+
+              <label class="field">
+                <span>Grid height (%)</span>
+                <input id="gridHeightPct" class="input" type="number" min="5" max="100" step="0.1" value="90" />
+              </label>
+
+              <label class="field">
+                <span>Column gap (%)</span>
+                <input id="columnGapPct" class="input" type="number" min="0" max="20" step="0.1" value="1.4" />
+              </label>
+
+              <label class="field">
+                <span>Row gap (%)</span>
+                <input id="rowGapPct" class="input" type="number" min="0" max="20" step="0.1" value="0" />
+              </label>
+            </div>
+          </details>
 
           <div class="button-row field-full">
             <button class="button button-primary" type="submit">Save settings</button>
@@ -985,7 +982,7 @@
     </div>
   </main>
 
-  <div id="toast" class="toast hidden" role="status"></div>
+  <div id="toast" class="toast hidden"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -1017,9 +1014,9 @@
       measurementId: "G-7PBSVEV177"
     };
 
-    const firebaseApp = initializeApp(firebaseConfig);
-    const db = getDatabase(firebaseApp);
-    const auth = getAuth(firebaseApp);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
     const FONT_OPTIONS = [
       "Arial",
@@ -1038,153 +1035,50 @@
     ];
 
     const DEFAULT_SETTINGS = {
-      templatePath: "94207.avif",
-      labelWidth: 4,
-      labelHeight: 3,
-      canvasWidth: 1000,
-      canvasHeight: 750
+      sheetTemplatePath: "94207.avif",
+      boxTemplatePath: "Ok.jpg.png",
+      sheetWidthIn: 8.5,
+      sheetHeightIn: 11,
+      sheetCanvasWidth: 1000,
+      sheetCanvasHeight: 773,
+      presetCanvasWidth: 800,
+      presetCanvasHeight: 300,
+      gridColumns: 2,
+      gridRows: 5,
+      gridLeftPct: 13.5,
+      gridTopPct: 5,
+      gridWidthPct: 76,
+      gridHeightPct: 90,
+      columnGapPct: 1.4,
+      rowGapPct: 0
     };
-
-    const STARTER_LABELS = [
-      {
-        text: "Plain Sourdough",
-        category: "Products",
-        fontFamily: "Georgia",
-        fontSize: 48,
-        color: "#111111",
-        bold: true,
-        italic: false,
-        underline: false,
-        visible: true,
-        sortOrder: 10
-      },
-      {
-        text: "Fresh Baked",
-        category: "Details",
-        fontFamily: "Arial",
-        fontSize: 28,
-        color: "#111111",
-        bold: false,
-        italic: true,
-        underline: false,
-        visible: true,
-        sortOrder: 20
-      },
-      {
-        text: "Net Wt.",
-        category: "Details",
-        fontFamily: "Arial",
-        fontSize: 24,
-        color: "#111111",
-        bold: true,
-        italic: false,
-        underline: false,
-        visible: true,
-        sortOrder: 30
-      }
-    ];
-
-    const LABEL_OBJECT_PROPERTIES = [
-      "id",
-      "sourceLabelId",
-      "fontFamily",
-      "fontSize",
-      "fontWeight",
-      "fontStyle",
-      "underline",
-      "fill",
-      "textAlign"
-    ];
 
     const state = {
-      labels: [],
+      presets: [],
       settings: { ...DEFAULT_SETTINGS },
-      activeCategory: "All",
-      templateImage: null,
-      history: [],
-      historyIndex: -1,
-      restoringHistory: false,
-      initializedHistory: false,
       currentUser: null,
-      userViewActive: true
+      activeCategory: "All",
+      sheetTemplate: null,
+      slotHighlight: null,
+      presetBackground: null,
+      userView: true,
+      sheetHistory: [],
+      sheetHistoryIndex: -1,
+      restoringSheet: false,
+      sheetHistoryReady: false
     };
 
-    const elements = {
-      pageTitle: document.getElementById("pageTitle"),
-      connectionStatus: document.getElementById("connectionStatus"),
-      authStatus: document.getElementById("authStatus"),
-      openUserButton: document.getElementById("openUserButton"),
-      openAdminButton: document.getElementById("openAdminButton"),
-      signOutButton: document.getElementById("signOutButton"),
-      userPage: document.getElementById("userPage"),
-      adminPage: document.getElementById("adminPage"),
-
-      librarySearch: document.getElementById("librarySearch"),
-      categoryFilters: document.getElementById("categoryFilters"),
-      labelLibrary: document.getElementById("labelLibrary"),
-      canvasStage: document.getElementById("canvasStage"),
-      canvasFrame: document.getElementById("canvasFrame"),
-      templateMessage: document.getElementById("templateMessage"),
-      selectionToolbar: document.getElementById("selectionToolbar"),
-      selectedFont: document.getElementById("selectedFont"),
-      selectedSize: document.getElementById("selectedSize"),
-      selectedColor: document.getElementById("selectedColor"),
-      boldButton: document.getElementById("boldButton"),
-      italicButton: document.getElementById("italicButton"),
-      underlineButton: document.getElementById("underlineButton"),
-      duplicateButton: document.getElementById("duplicateButton"),
-      forwardButton: document.getElementById("forwardButton"),
-      backwardButton: document.getElementById("backwardButton"),
-      deleteButton: document.getElementById("deleteButton"),
-      undoButton: document.getElementById("undoButton"),
-      redoButton: document.getElementById("redoButton"),
-      clearButton: document.getElementById("clearButton"),
-      downloadButton: document.getElementById("downloadButton"),
-      printButton: document.getElementById("printButton"),
-
-      loginPanel: document.getElementById("loginPanel"),
-      loginForm: document.getElementById("loginForm"),
-      loginEmail: document.getElementById("loginEmail"),
-      loginPassword: document.getElementById("loginPassword"),
-      resetPasswordButton: document.getElementById("resetPasswordButton"),
-      loginMessage: document.getElementById("loginMessage"),
-      adminWorkspace: document.getElementById("adminWorkspace"),
-      labelForm: document.getElementById("labelForm"),
-      labelFormTitle: document.getElementById("labelFormTitle"),
-      editingId: document.getElementById("editingId"),
-      labelText: document.getElementById("labelText"),
-      labelCategory: document.getElementById("labelCategory"),
-      labelSortOrder: document.getElementById("labelSortOrder"),
-      labelFont: document.getElementById("labelFont"),
-      labelFontSize: document.getElementById("labelFontSize"),
-      labelColor: document.getElementById("labelColor"),
-      labelBold: document.getElementById("labelBold"),
-      labelItalic: document.getElementById("labelItalic"),
-      labelUnderline: document.getElementById("labelUnderline"),
-      labelVisible: document.getElementById("labelVisible"),
-      stylePreview: document.getElementById("stylePreview"),
-      cancelEditButton: document.getElementById("cancelEditButton"),
-      seedButton: document.getElementById("seedButton"),
-      adminSearch: document.getElementById("adminSearch"),
-      adminLabelList: document.getElementById("adminLabelList"),
-      optionCount: document.getElementById("optionCount"),
-      settingsForm: document.getElementById("settingsForm"),
-      templatePath: document.getElementById("templatePath"),
-      labelWidth: document.getElementById("labelWidth"),
-      labelHeight: document.getElementById("labelHeight"),
-      canvasWidth: document.getElementById("canvasWidth"),
-      canvasHeight: document.getElementById("canvasHeight"),
-
-      toast: document.getElementById("toast")
-    };
+    const els = Object.fromEntries(
+      [...document.querySelectorAll("[id]")].map(element => [element.id, element])
+    );
 
     let toastTimer = null;
 
-    function showToast(message) {
-      window.clearTimeout(toastTimer);
-      elements.toast.textContent = message;
-      elements.toast.classList.remove("hidden");
-      toastTimer = window.setTimeout(() => elements.toast.classList.add("hidden"), 2800);
+    function toast(message) {
+      clearTimeout(toastTimer);
+      els.toast.textContent = message;
+      els.toast.classList.remove("hidden");
+      toastTimer = setTimeout(() => els.toast.classList.add("hidden"), 2800);
     }
 
     function escapeHtml(value) {
@@ -1196,508 +1090,459 @@
         .replaceAll("'", "&#039;");
     }
 
-    function normalizeLabel(raw, id) {
+    function normalizePreset(raw, id) {
       return {
         id,
-        text: String(raw?.text ?? ""),
+        name: String(raw?.name ?? "Unnamed preset"),
         category: String(raw?.category ?? "General").trim() || "General",
-        fontFamily: String(raw?.fontFamily ?? "Arial"),
-        fontSize: Number(raw?.fontSize ?? 36),
-        color: String(raw?.color ?? "#111111"),
-        bold: Boolean(raw?.bold),
-        italic: Boolean(raw?.italic),
-        underline: Boolean(raw?.underline),
         visible: raw?.visible !== false,
-        sortOrder: Number(raw?.sortOrder ?? 0)
+        sortOrder: Number(raw?.sortOrder ?? 0),
+        editorWidth: Number(raw?.editorWidth ?? DEFAULT_SETTINGS.presetCanvasWidth),
+        editorHeight: Number(raw?.editorHeight ?? DEFAULT_SETTINGS.presetCanvasHeight),
+        objects: Array.isArray(raw?.objects) ? raw.objects : []
       };
     }
 
-    function sortedLabels() {
-      return [...state.labels].sort((a, b) => {
-        const orderDifference = a.sortOrder - b.sortOrder;
-        return orderDifference || a.text.localeCompare(b.text);
+    function sortedPresets() {
+      return [...state.presets].sort((a, b) => {
+        const order = a.sortOrder - b.sortOrder;
+        return order || a.name.localeCompare(b.name);
       });
     }
 
-    function populateFontMenus() {
+    function populateFonts() {
       const options = FONT_OPTIONS
         .map(font => `<option value="${escapeHtml(font)}">${escapeHtml(font)}</option>`)
         .join("");
-
-      elements.selectedFont.innerHTML = options;
-      elements.labelFont.innerHTML = options;
+      els.presetFont.innerHTML = options;
     }
 
     function showUserPage() {
-      state.userViewActive = true;
-      elements.userPage.classList.remove("hidden");
-      elements.adminPage.classList.add("hidden");
-      elements.openUserButton.classList.add("hidden");
-      elements.openAdminButton.classList.remove("hidden");
-      elements.authStatus.classList.add("hidden");
-      elements.signOutButton.classList.add("hidden");
-      elements.pageTitle.textContent = "Label Maker";
+      state.userView = true;
+      els.userPage.classList.remove("hidden");
+      els.adminPage.classList.add("hidden");
+      els.userPageButton.classList.add("hidden");
+      els.adminPageButton.classList.remove("hidden");
+      els.authStatus.classList.add("hidden");
+      els.signOutButton.classList.add("hidden");
+      els.pageTitle.textContent = "Wire & Equipment Label Maker";
+      setTimeout(() => sheetCanvas.calcOffset(), 0);
       window.scrollTo({ top: 0, behavior: "smooth" });
-      setTimeout(() => canvas.calcOffset(), 0);
     }
 
     function showAdminPage() {
-      state.userViewActive = false;
-      elements.userPage.classList.add("hidden");
-      elements.adminPage.classList.remove("hidden");
-      elements.openUserButton.classList.remove("hidden");
-      elements.openAdminButton.classList.add("hidden");
-      elements.authStatus.classList.remove("hidden");
-      elements.signOutButton.classList.toggle("hidden", !state.currentUser);
-      elements.pageTitle.textContent = "Label Maker Admin";
+      state.userView = false;
+      els.userPage.classList.add("hidden");
+      els.adminPage.classList.remove("hidden");
+      els.userPageButton.classList.remove("hidden");
+      els.adminPageButton.classList.add("hidden");
+      els.authStatus.classList.remove("hidden");
+      els.signOutButton.classList.toggle("hidden", !state.currentUser);
+      els.pageTitle.textContent = "Label Preset Admin";
+      setTimeout(() => presetCanvas.calcOffset(), 0);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    const canvas = new fabric.Canvas("labelCanvas", {
+    /* ---------------- SHEET CANVAS ---------------- */
+
+    const sheetCanvas = new fabric.Canvas("sheetCanvas", {
+      backgroundColor: "#ffffff",
       preserveObjectStacking: true,
-      selection: true,
-      backgroundColor: "#ffffff"
+      selection: false
     });
 
-    canvas.on("selection:created", syncSelectionToolbar);
-    canvas.on("selection:updated", syncSelectionToolbar);
-    canvas.on("selection:cleared", syncSelectionToolbar);
-    canvas.on("object:modified", () => {
-      syncSelectionToolbar();
-      saveHistory();
-    });
-    canvas.on("object:added", event => {
-      if (state.restoringHistory || event.target === state.templateImage) return;
-      saveHistory();
-    });
-    canvas.on("object:removed", event => {
-      if (state.restoringHistory || event.target === state.templateImage) return;
-      saveHistory();
-    });
-
-    function showTemplateMessage(message) {
-      elements.templateMessage.textContent = message;
-      elements.templateMessage.classList.remove("hidden");
+    function resizeSheetCanvas() {
+      sheetCanvas.setWidth(Number(state.settings.sheetCanvasWidth));
+      sheetCanvas.setHeight(Number(state.settings.sheetCanvasHeight));
+      els.sheetCanvasFrame.style.width = `${state.settings.sheetCanvasWidth}px`;
+      els.sheetCanvasFrame.style.height = `${state.settings.sheetCanvasHeight}px`;
+      sheetCanvas.calcOffset();
     }
 
-    function hideTemplateMessage() {
-      elements.templateMessage.classList.add("hidden");
+    function placedGroups() {
+      return sheetCanvas.getObjects().filter(
+        object => object !== state.sheetTemplate && object !== state.slotHighlight
+      );
     }
 
-    function resizeCanvas() {
-      canvas.setWidth(Number(state.settings.canvasWidth));
-      canvas.setHeight(Number(state.settings.canvasHeight));
-      elements.canvasFrame.style.width = `${Number(state.settings.canvasWidth)}px`;
-      elements.canvasFrame.style.height = `${Number(state.settings.canvasHeight)}px`;
-      canvas.calcOffset();
+    function slots() {
+      const s = state.settings;
+      const canvasW = sheetCanvas.getWidth();
+      const canvasH = sheetCanvas.getHeight();
+      const left = canvasW * s.gridLeftPct / 100;
+      const top = canvasH * s.gridTopPct / 100;
+      const totalW = canvasW * s.gridWidthPct / 100;
+      const totalH = canvasH * s.gridHeightPct / 100;
+      const gapX = canvasW * s.columnGapPct / 100;
+      const gapY = canvasH * s.rowGapPct / 100;
+      const slotW = (totalW - gapX * (s.gridColumns - 1)) / s.gridColumns;
+      const slotH = (totalH - gapY * (s.gridRows - 1)) / s.gridRows;
+      const result = [];
+
+      for (let row = 0; row < s.gridRows; row += 1) {
+        for (let col = 0; col < s.gridColumns; col += 1) {
+          result.push({
+            index: row * s.gridColumns + col,
+            left: left + col * (slotW + gapX),
+            top: top + row * (slotH + gapY),
+            width: slotW,
+            height: slotH,
+            centerX: left + col * (slotW + gapX) + slotW / 2,
+            centerY: top + row * (slotH + gapY) + slotH / 2
+          });
+        }
+      }
+
+      return result;
     }
 
-    function removeTemplate() {
-      if (!state.templateImage) return;
-      state.restoringHistory = true;
-      canvas.remove(state.templateImage);
-      state.restoringHistory = false;
-      state.templateImage = null;
+    function nearestSlotIndex(x, y) {
+      const all = slots();
+      let best = 0;
+      let bestDistance = Infinity;
+
+      for (const slot of all) {
+        const distance = Math.hypot(x - slot.centerX, y - slot.centerY);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = slot.index;
+        }
+      }
+
+      return best;
     }
 
-    function loadTemplate() {
-      resizeCanvas();
-      removeTemplate();
-      hideTemplateMessage();
+    function groupAtSlot(slotIndex, except = null) {
+      return placedGroups().find(
+        group => group !== except && Number(group.slotIndex) === Number(slotIndex)
+      ) || null;
+    }
 
-      const templatePath = state.settings.templatePath || "94207.avif";
-      const imageElement = new Image();
-      imageElement.crossOrigin = "anonymous";
+    function centerGroupInSlot(group, slotIndex) {
+      const slot = slots()[slotIndex];
+      if (!slot) return;
+      group.set({
+        left: slot.centerX,
+        top: slot.centerY,
+        originX: "center",
+        originY: "center",
+        slotIndex
+      });
+      group.setCoords();
+    }
 
-      imageElement.onload = () => {
-        const image = new fabric.Image(imageElement, {
+    function createPresetGroup(preset, slotIndex) {
+      const slot = slots()[slotIndex];
+      const ratioX = slot.width / preset.editorWidth;
+      const ratioY = slot.height / preset.editorHeight;
+      const fontRatio = Math.min(ratioX, ratioY);
+      const objects = [
+        new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: slot.width,
+          height: slot.height,
+          originX: "center",
+          originY: "center",
+          fill: "rgba(0,0,0,0)",
+          strokeWidth: 0,
+          selectable: false,
+          evented: false
+        })
+      ];
+
+      for (const saved of preset.objects) {
+        const text = new fabric.IText(String(saved.text ?? ""), {
+          left: (Number(saved.left ?? preset.editorWidth / 2) - preset.editorWidth / 2) * ratioX,
+          top: (Number(saved.top ?? preset.editorHeight / 2) - preset.editorHeight / 2) * ratioY,
+          originX: "center",
+          originY: "center",
+          fontFamily: saved.fontFamily || "Arial",
+          fontSize: Number(saved.fontSize ?? 36) * fontRatio,
+          fill: saved.fill || "#111111",
+          fontWeight: saved.fontWeight || "normal",
+          fontStyle: saved.fontStyle || "normal",
+          underline: Boolean(saved.underline),
+          textAlign: saved.textAlign || "center",
+          angle: Number(saved.angle ?? 0),
+          scaleX: Number(saved.scaleX ?? 1),
+          scaleY: Number(saved.scaleY ?? 1),
+          selectable: false,
+          evented: false
+        });
+        objects.push(text);
+      }
+
+      const group = new fabric.Group(objects, {
+        left: slot.centerX,
+        top: slot.centerY,
+        originX: "center",
+        originY: "center",
+        presetId: preset.id,
+        presetName: preset.name,
+        slotIndex,
+        hasControls: false,
+        lockScalingX: true,
+        lockScalingY: true,
+        lockRotation: true,
+        borderColor: "#2457d6",
+        padding: 2
+      });
+
+      return group;
+    }
+
+    function placePreset(preset, slotIndex, replace = true) {
+      const current = groupAtSlot(slotIndex);
+      if (current && replace) {
+        state.restoringSheet = true;
+        sheetCanvas.remove(current);
+        state.restoringSheet = false;
+      }
+
+      const group = createPresetGroup(preset, slotIndex);
+      sheetCanvas.add(group);
+      sheetCanvas.setActiveObject(group);
+      sheetCanvas.requestRenderAll();
+      syncSheetSelection();
+      return group;
+    }
+
+    function firstOpenSlot() {
+      return slots().find(slot => !groupAtSlot(slot.index))?.index ?? -1;
+    }
+
+    function addPresetToNextSlot(preset) {
+      const index = firstOpenSlot();
+      if (index < 0) {
+        toast("Every label box is already filled.");
+        return;
+      }
+      placePreset(preset, index);
+    }
+
+    function snapMovedGroup(group) {
+      const oldSlot = Number(group.slotIndex);
+      const targetSlot = nearestSlotIndex(group.getCenterPoint().x, group.getCenterPoint().y);
+      const occupant = groupAtSlot(targetSlot, group);
+
+      if (occupant) {
+        centerGroupInSlot(occupant, oldSlot);
+      }
+
+      centerGroupInSlot(group, targetSlot);
+      hideSlotHighlight();
+      sheetCanvas.requestRenderAll();
+    }
+
+    function showSlotHighlight(slotIndex) {
+      const slot = slots()[slotIndex];
+      if (!slot || !state.slotHighlight) return;
+
+      state.slotHighlight.set({
+        left: slot.left,
+        top: slot.top,
+        width: slot.width,
+        height: slot.height,
+        visible: true
+      });
+      state.slotHighlight.setCoords();
+      sheetCanvas.requestRenderAll();
+    }
+
+    function hideSlotHighlight() {
+      if (!state.slotHighlight) return;
+      state.slotHighlight.set({ visible: false });
+      sheetCanvas.requestRenderAll();
+    }
+
+    function loadSheetTemplate() {
+      resizeSheetCanvas();
+
+      if (state.sheetTemplate) sheetCanvas.remove(state.sheetTemplate);
+      if (state.slotHighlight) sheetCanvas.remove(state.slotHighlight);
+
+      els.sheetMessage.classList.add("hidden");
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+
+      image.onload = () => {
+        state.sheetTemplate = new fabric.Image(image, {
           left: 0,
           top: 0,
           originX: "left",
           originY: "top",
+          scaleX: sheetCanvas.getWidth() / image.naturalWidth,
+          scaleY: sheetCanvas.getHeight() / image.naturalHeight,
+          selectable: false,
+          evented: false
+        });
+
+        state.slotHighlight = new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: 10,
+          height: 10,
+          originX: "left",
+          originY: "top",
+          fill: "rgba(36,87,214,0.13)",
+          stroke: "#2457d6",
+          strokeWidth: 2,
           selectable: false,
           evented: false,
-          hoverCursor: "default",
-          lockMovementX: true,
-          lockMovementY: true,
-          excludeFromExport: false
+          visible: false,
+          excludeFromExport: true
         });
 
-        image.scaleX = canvas.getWidth() / imageElement.naturalWidth;
-        image.scaleY = canvas.getHeight() / imageElement.naturalHeight;
-        state.templateImage = image;
+        state.restoringSheet = true;
+        sheetCanvas.add(state.sheetTemplate);
+        sheetCanvas.sendToBack(state.sheetTemplate);
+        sheetCanvas.add(state.slotHighlight);
+        state.restoringSheet = false;
+        sheetCanvas.requestRenderAll();
 
-        state.restoringHistory = true;
-        canvas.add(image);
-        canvas.sendToBack(image);
-        state.restoringHistory = false;
-        canvas.requestRenderAll();
-
-        if (!state.initializedHistory) {
-          resetHistory();
-          state.initializedHistory = true;
+        if (!state.sheetHistoryReady) {
+          resetSheetHistory();
+          state.sheetHistoryReady = true;
+        } else {
+          placedGroups().forEach(group => centerGroupInSlot(group, Number(group.slotIndex)));
         }
       };
 
-      imageElement.onerror = () => {
-        state.templateImage = null;
-        canvas.requestRenderAll();
-        showTemplateMessage(
-          `The template "${templatePath}" could not be loaded. Put it in the same GitHub folder as index.html, or change its path in Admin.`
-        );
-
-        if (!state.initializedHistory) {
-          resetHistory();
-          state.initializedHistory = true;
-        }
+      image.onerror = () => {
+        els.sheetMessage.textContent =
+          `The full template "${state.settings.sheetTemplatePath}" could not be loaded. Put it beside index.html in GitHub.`;
+        els.sheetMessage.classList.remove("hidden");
       };
 
-      imageElement.src = new URL(templatePath, window.location.href).href;
+      image.src = new URL(state.settings.sheetTemplatePath, location.href).href;
     }
 
-    function getTextObjects() {
-      return canvas.getObjects().filter(object => object !== state.templateImage);
-    }
-
-    function serializeDesign() {
+    function serializeSheet() {
       return JSON.stringify(
-        getTextObjects().map(object => object.toObject(LABEL_OBJECT_PROPERTIES))
+        placedGroups().map(group => ({
+          presetId: group.presetId,
+          slotIndex: Number(group.slotIndex)
+        }))
       );
     }
 
-    function resetHistory() {
-      state.history = [serializeDesign()];
-      state.historyIndex = 0;
-      updateHistoryButtons();
+    function resetSheetHistory() {
+      state.sheetHistory = [serializeSheet()];
+      state.sheetHistoryIndex = 0;
+      updateSheetHistoryButtons();
     }
 
-    function saveHistory() {
-      if (state.restoringHistory || !state.initializedHistory) return;
+    function saveSheetHistory() {
+      if (state.restoringSheet || !state.sheetHistoryReady) return;
+      const value = serializeSheet();
+      if (value === state.sheetHistory[state.sheetHistoryIndex]) return;
+      state.sheetHistory = state.sheetHistory.slice(0, state.sheetHistoryIndex + 1);
+      state.sheetHistory.push(value);
+      state.sheetHistoryIndex += 1;
+      if (state.sheetHistory.length > 50) {
+        state.sheetHistory.shift();
+        state.sheetHistoryIndex -= 1;
+      }
+      updateSheetHistoryButtons();
+    }
 
-      const serialized = serializeDesign();
-      if (serialized === state.history[state.historyIndex]) return;
+    function restoreSheetHistory(index) {
+      const value = state.sheetHistory[index];
+      if (value === undefined) return;
 
-      state.history = state.history.slice(0, state.historyIndex + 1);
-      state.history.push(serialized);
+      const placements = JSON.parse(value);
+      state.restoringSheet = true;
+      placedGroups().forEach(group => sheetCanvas.remove(group));
 
-      if (state.history.length > 60) {
-        state.history.shift();
-      } else {
-        state.historyIndex += 1;
+      for (const placement of placements) {
+        const preset = state.presets.find(item => item.id === placement.presetId);
+        if (preset) {
+          const group = createPresetGroup(preset, Number(placement.slotIndex));
+          sheetCanvas.add(group);
+        }
       }
 
-      updateHistoryButtons();
+      state.restoringSheet = false;
+      state.sheetHistoryIndex = index;
+      sheetCanvas.discardActiveObject();
+      sheetCanvas.requestRenderAll();
+      syncSheetSelection();
+      updateSheetHistoryButtons();
     }
 
-    function restoreHistory(index) {
-      const serialized = state.history[index];
-      if (serialized === undefined) return;
-
-      const data = JSON.parse(serialized);
-      state.restoringHistory = true;
-
-      getTextObjects().forEach(object => canvas.remove(object));
-      canvas.discardActiveObject();
-
-      fabric.util.enlivenObjects(data, objects => {
-        objects.forEach(object => canvas.add(object));
-        if (state.templateImage) canvas.sendToBack(state.templateImage);
-        state.restoringHistory = false;
-        state.historyIndex = index;
-        canvas.requestRenderAll();
-        syncSelectionToolbar();
-        updateHistoryButtons();
-      });
+    function updateSheetHistoryButtons() {
+      els.undoButton.disabled = state.sheetHistoryIndex <= 0;
+      els.redoButton.disabled = state.sheetHistoryIndex >= state.sheetHistory.length - 1;
     }
 
-    function updateHistoryButtons() {
-      elements.undoButton.disabled = state.historyIndex <= 0;
-      elements.redoButton.disabled = state.historyIndex >= state.history.length - 1;
+    function syncSheetSelection() {
+      const active = sheetCanvas.getActiveObject();
+      els.sheetSelectionToolbar.classList.toggle("hidden", !active || active === state.sheetTemplate);
     }
 
-    function undo() {
-      if (state.historyIndex > 0) restoreHistory(state.historyIndex - 1);
+    function clearSheet() {
+      if (!placedGroups().length) return;
+      if (!confirm("Remove every premade box from this sheet?")) return;
+      state.restoringSheet = true;
+      placedGroups().forEach(group => sheetCanvas.remove(group));
+      state.restoringSheet = false;
+      sheetCanvas.discardActiveObject();
+      sheetCanvas.requestRenderAll();
+      saveSheetHistory();
+      syncSheetSelection();
     }
 
-    function redo() {
-      if (state.historyIndex < state.history.length - 1) {
-        restoreHistory(state.historyIndex + 1);
-      }
-    }
+    function exportSheetDataUrl() {
+      sheetCanvas.discardActiveObject();
+      hideSlotHighlight();
+      sheetCanvas.requestRenderAll();
 
-    function getActiveText() {
-      const object = canvas.getActiveObject();
-      return object && object.type === "i-text" ? object : null;
-    }
-
-    function syncSelectionToolbar() {
-      const object = getActiveText();
-
-      if (!object) {
-        elements.selectionToolbar.classList.add("hidden");
-        return;
-      }
-
-      elements.selectionToolbar.classList.remove("hidden");
-      elements.selectedFont.value = object.fontFamily || "Arial";
-      elements.selectedSize.value = Math.round(Number(object.fontSize || 36));
-      elements.selectedColor.value = /^#[0-9a-f]{6}$/i.test(String(object.fill))
-        ? object.fill
-        : "#111111";
-
-      elements.boldButton.classList.toggle(
-        "active",
-        object.fontWeight === "bold" || Number(object.fontWeight) >= 700
+      const multiplier = Math.max(
+        1,
+        state.settings.sheetWidthIn * 300 / sheetCanvas.getWidth(),
+        state.settings.sheetHeightIn * 300 / sheetCanvas.getHeight()
       );
-      elements.italicButton.classList.toggle("active", object.fontStyle === "italic");
-      elements.underlineButton.classList.toggle("active", Boolean(object.underline));
-    }
 
-    function updateActiveText(properties, save = true) {
-      const object = getActiveText();
-      if (!object) return;
-
-      object.set(properties);
-      object.setCoords();
-      canvas.requestRenderAll();
-      syncSelectionToolbar();
-      if (save) saveHistory();
-    }
-
-    function addLabelToCanvas(label, position = null) {
-      const textObject = new fabric.IText(label.text, {
-        left: position?.x ?? canvas.getWidth() / 2,
-        top: position?.y ?? canvas.getHeight() / 2,
-        originX: "center",
-        originY: "center",
-        fontFamily: label.fontFamily,
-        fontSize: label.fontSize,
-        fill: label.color,
-        fontWeight: label.bold ? "bold" : "normal",
-        fontStyle: label.italic ? "italic" : "normal",
-        underline: label.underline,
-        editable: true,
-        lockScalingFlip: true,
-        transparentCorners: false,
-        cornerStyle: "circle",
-        cornerColor: "#2457d6",
-        borderColor: "#2457d6",
-        padding: 5,
-        sourceLabelId: label.id
-      });
-
-      canvas.add(textObject);
-      canvas.setActiveObject(textObject);
-      canvas.requestRenderAll();
-      syncSelectionToolbar();
-    }
-
-    function duplicateActive() {
-      const object = getActiveText();
-      if (!object) {
-        showToast("Select text to duplicate.");
-        return;
-      }
-
-      object.clone(clone => {
-        clone.set({
-          left: Number(object.left || 0) + 24,
-          top: Number(object.top || 0) + 24
-        });
-        canvas.add(clone);
-        canvas.setActiveObject(clone);
-        canvas.requestRenderAll();
-      }, LABEL_OBJECT_PROPERTIES);
-    }
-
-    function deleteActive() {
-      const object = getActiveText();
-      if (!object) return;
-      canvas.remove(object);
-      canvas.discardActiveObject();
-      canvas.requestRenderAll();
-      syncSelectionToolbar();
-    }
-
-    function clearDesign() {
-      if (!getTextObjects().length) return;
-      if (!window.confirm("Remove all added text and start over?")) return;
-
-      state.restoringHistory = true;
-      getTextObjects().forEach(object => canvas.remove(object));
-      state.restoringHistory = false;
-      canvas.discardActiveObject();
-      canvas.requestRenderAll();
-      saveHistory();
-      syncSelectionToolbar();
-    }
-
-    function getCategories() {
-      return [
-        "All",
-        ...new Set(
-          state.labels
-            .filter(label => label.visible)
-            .map(label => label.category)
-            .sort((a, b) => a.localeCompare(b))
-        )
-      ];
-    }
-
-    function renderCategories() {
-      const categories = getCategories();
-
-      if (!categories.includes(state.activeCategory)) {
-        state.activeCategory = "All";
-      }
-
-      elements.categoryFilters.innerHTML = categories
-        .map(category => `
-          <button
-            class="category-chip ${category === state.activeCategory ? "active" : ""}"
-            type="button"
-            data-category="${escapeHtml(category)}"
-          >
-            ${escapeHtml(category)}
-          </button>
-        `)
-        .join("");
-
-      elements.categoryFilters.querySelectorAll("[data-category]").forEach(button => {
-        button.addEventListener("click", () => {
-          state.activeCategory = button.dataset.category;
-          renderCategories();
-          renderLibrary();
-        });
-      });
-    }
-
-    function renderLibrary() {
-      const query = elements.librarySearch.value.trim().toLowerCase();
-
-      const visibleLabels = sortedLabels().filter(label => {
-        if (!label.visible) return false;
-        if (state.activeCategory !== "All" && label.category !== state.activeCategory) return false;
-        return (
-          label.text.toLowerCase().includes(query) ||
-          label.category.toLowerCase().includes(query)
-        );
-      });
-
-      if (!visibleLabels.length) {
-        elements.labelLibrary.innerHTML = `
-          <div class="empty-state">
-            No label text matches this search. An admin can add or show options from the Admin page.
-          </div>
-        `;
-        return;
-      }
-
-      elements.labelLibrary.innerHTML = visibleLabels
-        .map(label => `
-          <button
-            class="library-item"
-            type="button"
-            draggable="true"
-            data-label-id="${escapeHtml(label.id)}"
-          >
-            <span
-              class="library-text"
-              style="
-                font-family:${escapeHtml(label.fontFamily)};
-                font-size:${Math.min(label.fontSize, 30)}px;
-                color:${escapeHtml(label.color)};
-                font-weight:${label.bold ? "700" : "400"};
-                font-style:${label.italic ? "italic" : "normal"};
-                text-decoration:${label.underline ? "underline" : "none"};
-              "
-            >
-              ${escapeHtml(label.text)}
-            </span>
-            <span class="library-meta">${escapeHtml(label.category)}</span>
-          </button>
-        `)
-        .join("");
-
-      elements.labelLibrary.querySelectorAll("[data-label-id]").forEach(button => {
-        const labelId = button.dataset.labelId;
-
-        button.addEventListener("click", () => {
-          const label = state.labels.find(item => item.id === labelId);
-          if (label) addLabelToCanvas(label);
-        });
-
-        button.addEventListener("dragstart", event => {
-          event.dataTransfer.effectAllowed = "copy";
-          event.dataTransfer.setData("text/plain", labelId);
-        });
-      });
-    }
-
-    function canvasPointFromDrop(event) {
-      const rectangle = canvas.upperCanvasEl.getBoundingClientRect();
-
-      return {
-        x: (event.clientX - rectangle.left) * (canvas.getWidth() / rectangle.width),
-        y: (event.clientY - rectangle.top) * (canvas.getHeight() / rectangle.height)
-      };
-    }
-
-    function exportMultiplier() {
-      const widthMultiplier = (Number(state.settings.labelWidth) * 300) / canvas.getWidth();
-      const heightMultiplier = (Number(state.settings.labelHeight) * 300) / canvas.getHeight();
-      return Math.max(1, widthMultiplier, heightMultiplier);
-    }
-
-    function createExportDataUrl() {
-      canvas.discardActiveObject();
-      canvas.requestRenderAll();
-
-      return canvas.toDataURL({
+      return sheetCanvas.toDataURL({
         format: "png",
-        multiplier: exportMultiplier(),
+        multiplier,
         enableRetinaScaling: true
       });
     }
 
-    function downloadPng() {
-      const anchor = document.createElement("a");
-      anchor.href = createExportDataUrl();
-      anchor.download = `label-${new Date().toISOString().slice(0, 10)}.png`;
-      anchor.click();
+    function downloadSheet() {
+      const link = document.createElement("a");
+      link.href = exportSheetDataUrl();
+      link.download = `wire-label-sheet-${new Date().toISOString().slice(0, 10)}.png`;
+      link.click();
     }
 
-    function printLabel() {
-      const printWindow = window.open("", "_blank", "width=900,height=700");
+    function printSheet() {
+      const printWindow = window.open("", "_blank", "width=900,height=800");
       if (!printWindow) {
-        showToast("Allow pop-ups so the print window can open.");
+        toast("Allow pop-ups so the print window can open.");
         return;
       }
 
-      const dataUrl = createExportDataUrl();
-      const width = Number(state.settings.labelWidth);
-      const height = Number(state.settings.labelHeight);
+      const dataUrl = exportSheetDataUrl();
+      const width = state.settings.sheetWidthIn;
+      const height = state.settings.sheetHeightIn;
 
       printWindow.document.write(`<!DOCTYPE html>
         <html>
           <head>
-            <title>Print Label</title>
+            <title>Print Label Sheet</title>
             <style>
               html, body { margin: 0; padding: 0; }
               @page { size: ${width}in ${height}in; margin: 0; }
-              img {
-                display: block;
-                width: ${width}in;
-                height: ${height}in;
-                object-fit: fill;
-              }
+              img { display:block; width:${width}in; height:${height}in; object-fit:fill; }
             </style>
           </head>
           <body>
-            <img src="${dataUrl}" alt="Label" />
+            <img src="${dataUrl}" alt="Label sheet">
             <script>
-              const image = document.querySelector("img");
-              image.addEventListener("load", () => {
+              document.querySelector("img").addEventListener("load", () => {
                 window.focus();
                 window.print();
               });
@@ -1708,316 +1553,671 @@
       printWindow.document.close();
     }
 
-    function updateStylePreview() {
-      const text = elements.labelText.value.trim() || "Preview text";
-      elements.stylePreview.textContent = text;
-      elements.stylePreview.style.fontFamily = elements.labelFont.value;
-      elements.stylePreview.style.fontSize = `${Math.min(Number(elements.labelFontSize.value || 36), 72)}px`;
-      elements.stylePreview.style.color = elements.labelColor.value;
-      elements.stylePreview.style.fontWeight = elements.labelBold.checked ? "700" : "400";
-      elements.stylePreview.style.fontStyle = elements.labelItalic.checked ? "italic" : "normal";
-      elements.stylePreview.style.textDecoration = elements.labelUnderline.checked ? "underline" : "none";
+    sheetCanvas.on("selection:created", syncSheetSelection);
+    sheetCanvas.on("selection:updated", syncSheetSelection);
+    sheetCanvas.on("selection:cleared", syncSheetSelection);
+
+    sheetCanvas.on("object:moving", event => {
+      const object = event.target;
+      if (!object || object === state.sheetTemplate || object === state.slotHighlight) return;
+      const center = object.getCenterPoint();
+      showSlotHighlight(nearestSlotIndex(center.x, center.y));
+    });
+
+    sheetCanvas.on("object:modified", event => {
+      const object = event.target;
+      if (!object || object === state.sheetTemplate || object === state.slotHighlight) return;
+      snapMovedGroup(object);
+      saveSheetHistory();
+    });
+
+    sheetCanvas.on("object:added", event => {
+      if (
+        state.restoringSheet ||
+        event.target === state.sheetTemplate ||
+        event.target === state.slotHighlight
+      ) return;
+      saveSheetHistory();
+    });
+
+    sheetCanvas.on("object:removed", event => {
+      if (
+        state.restoringSheet ||
+        event.target === state.sheetTemplate ||
+        event.target === state.slotHighlight
+      ) return;
+      saveSheetHistory();
+    });
+
+    /* ---------------- PRESET EDITOR CANVAS ---------------- */
+
+    const presetCanvas = new fabric.Canvas("presetCanvas", {
+      backgroundColor: "#ffffff",
+      preserveObjectStacking: true
+    });
+
+    function resizePresetCanvas() {
+      presetCanvas.setWidth(state.settings.presetCanvasWidth);
+      presetCanvas.setHeight(state.settings.presetCanvasHeight);
+      presetCanvas.calcOffset();
     }
 
-    function resetLabelForm() {
-      elements.labelForm.reset();
-      elements.editingId.value = "";
-      elements.labelFormTitle.textContent = "Create text option";
-      elements.labelCategory.value = "General";
-      elements.labelSortOrder.value = "0";
-      elements.labelFont.value = "Arial";
-      elements.labelFontSize.value = "36";
-      elements.labelColor.value = "#111111";
-      elements.labelVisible.checked = true;
-      elements.cancelEditButton.classList.add("hidden");
-      updateStylePreview();
+    function presetTextObjects() {
+      return presetCanvas.getObjects().filter(object => object !== state.presetBackground);
     }
 
-    function beginEditing(label) {
-      elements.editingId.value = label.id;
-      elements.labelFormTitle.textContent = "Edit text option";
-      elements.labelText.value = label.text;
-      elements.labelCategory.value = label.category;
-      elements.labelSortOrder.value = String(label.sortOrder);
-      elements.labelFont.value = label.fontFamily;
-      elements.labelFontSize.value = String(label.fontSize);
-      elements.labelColor.value = label.color;
-      elements.labelBold.checked = label.bold;
-      elements.labelItalic.checked = label.italic;
-      elements.labelUnderline.checked = label.underline;
-      elements.labelVisible.checked = label.visible;
-      elements.cancelEditButton.classList.remove("hidden");
-      updateStylePreview();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      elements.labelText.focus();
+    function loadPresetBackground() {
+      resizePresetCanvas();
+      if (state.presetBackground) presetCanvas.remove(state.presetBackground);
+      els.boxImageMessage.classList.add("hidden");
+
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+
+      image.onload = () => {
+        state.presetBackground = new fabric.Image(image, {
+          left: 0,
+          top: 0,
+          originX: "left",
+          originY: "top",
+          scaleX: presetCanvas.getWidth() / image.naturalWidth,
+          scaleY: presetCanvas.getHeight() / image.naturalHeight,
+          selectable: false,
+          evented: false
+        });
+        presetCanvas.add(state.presetBackground);
+        presetCanvas.sendToBack(state.presetBackground);
+        presetCanvas.requestRenderAll();
+        renderLibraries();
+      };
+
+      image.onerror = () => {
+        els.boxImageMessage.textContent =
+          `The example box "${state.settings.boxTemplatePath}" could not be loaded. Put Ok.jpg.png beside index.html in GitHub.`;
+        els.boxImageMessage.classList.remove("hidden");
+      };
+
+      image.src = new URL(state.settings.boxTemplatePath, location.href).href;
     }
 
-    function renderAdminLabels() {
-      const query = elements.adminSearch.value.trim().toLowerCase();
-      const labels = sortedLabels().filter(label =>
-        label.text.toLowerCase().includes(query) ||
-        label.category.toLowerCase().includes(query)
-      );
-
-      elements.optionCount.textContent = `${state.labels.length} option${state.labels.length === 1 ? "" : "s"}`;
-
-      if (!labels.length) {
-        elements.adminLabelList.innerHTML = `
-          <div class="empty-state">
-            ${state.labels.length ? "No options match this search." : "No text options exist yet."}
-          </div>
-        `;
+    function addTextToPreset(text) {
+      const value = String(text || "").trim();
+      if (!value) {
+        toast("Type words to add first.");
         return;
       }
 
-      elements.adminLabelList.innerHTML = labels
-        .map(label => `
-          <article class="admin-item ${label.visible ? "" : "hidden-option"}">
-            <div>
-              <div
-                class="admin-item-text"
-                style="
-                  font-family:${escapeHtml(label.fontFamily)};
-                  color:${escapeHtml(label.color)};
-                  font-weight:${label.bold ? "700" : "400"};
-                  font-style:${label.italic ? "italic" : "normal"};
-                  text-decoration:${label.underline ? "underline" : "none"};
-                "
-              >
-                ${escapeHtml(label.text)}
-              </div>
-              <div class="admin-item-meta">
-                ${escapeHtml(label.category)} · ${escapeHtml(label.fontFamily)} ·
-                ${label.fontSize}px · Order ${label.sortOrder} ·
-                ${label.visible ? "Visible" : "Hidden"}
-              </div>
-            </div>
+      const object = new fabric.IText(value, {
+        left: presetCanvas.getWidth() / 2,
+        top: presetCanvas.getHeight() / 2,
+        originX: "center",
+        originY: "center",
+        fontFamily: els.presetFont.value || "Arial",
+        fontSize: 42,
+        fill: "#111111",
+        fontWeight: "bold",
+        textAlign: "center",
+        transparentCorners: false,
+        cornerStyle: "circle",
+        cornerColor: "#2457d6",
+        borderColor: "#2457d6",
+        padding: 4
+      });
 
-            <div class="admin-item-actions">
-              <button class="small-button" type="button" data-action="toggle" data-id="${escapeHtml(label.id)}">
-                ${label.visible ? "Hide" : "Show"}
-              </button>
-              <button class="small-button" type="button" data-action="edit" data-id="${escapeHtml(label.id)}">
-                Edit
-              </button>
-              <button class="small-button danger" type="button" data-action="delete" data-id="${escapeHtml(label.id)}">
-                Delete
-              </button>
-            </div>
-          </article>
-        `)
-        .join("");
+      presetCanvas.add(object);
+      presetCanvas.setActiveObject(object);
+      presetCanvas.requestRenderAll();
+      els.newTextInput.value = "";
+      syncPresetFormatting();
+    }
 
-      elements.adminLabelList.querySelectorAll("[data-action]").forEach(button => {
-        button.addEventListener("click", () => handleAdminListAction(button.dataset.action, button.dataset.id));
+    function activePresetText() {
+      const object = presetCanvas.getActiveObject();
+      return object && object.type === "i-text" ? object : null;
+    }
+
+    function syncPresetFormatting() {
+      const object = activePresetText();
+      els.presetFormatToolbar.classList.toggle("hidden", !object);
+      if (!object) return;
+
+      els.presetFont.value = object.fontFamily || "Arial";
+      els.presetFontSize.value = Math.round(Number(object.fontSize || 42));
+      els.presetColor.value = /^#[0-9a-f]{6}$/i.test(String(object.fill))
+        ? object.fill
+        : "#111111";
+      els.presetBold.classList.toggle(
+        "active",
+        object.fontWeight === "bold" || Number(object.fontWeight) >= 700
+      );
+      els.presetItalic.classList.toggle("active", object.fontStyle === "italic");
+      els.presetUnderline.classList.toggle("active", Boolean(object.underline));
+    }
+
+    function updateActivePresetText(properties) {
+      const object = activePresetText();
+      if (!object) return;
+      object.set(properties);
+      object.setCoords();
+      presetCanvas.requestRenderAll();
+      syncPresetFormatting();
+    }
+
+    function clearPresetEditor(ask = true) {
+      if (ask && presetTextObjects().length && !confirm("Clear the example box?")) return;
+      presetTextObjects().forEach(object => presetCanvas.remove(object));
+      presetCanvas.discardActiveObject();
+      presetCanvas.requestRenderAll();
+      syncPresetFormatting();
+    }
+
+    function serializePresetObjects() {
+      return presetTextObjects().map(object => ({
+        text: object.text,
+        left: Number(object.left),
+        top: Number(object.top),
+        fontFamily: object.fontFamily,
+        fontSize: Number(object.fontSize),
+        fill: object.fill,
+        fontWeight: object.fontWeight,
+        fontStyle: object.fontStyle,
+        underline: Boolean(object.underline),
+        textAlign: object.textAlign || "center",
+        angle: Number(object.angle || 0),
+        scaleX: Number(object.scaleX || 1),
+        scaleY: Number(object.scaleY || 1)
+      }));
+    }
+
+    function loadPresetIntoEditor(preset) {
+      clearPresetEditor(false);
+
+      for (const saved of preset.objects) {
+        const object = new fabric.IText(String(saved.text ?? ""), {
+          left: Number(saved.left ?? preset.editorWidth / 2) *
+            presetCanvas.getWidth() / preset.editorWidth,
+          top: Number(saved.top ?? preset.editorHeight / 2) *
+            presetCanvas.getHeight() / preset.editorHeight,
+          originX: "center",
+          originY: "center",
+          fontFamily: saved.fontFamily || "Arial",
+          fontSize: Number(saved.fontSize ?? 42) *
+            presetCanvas.getHeight() / preset.editorHeight,
+          fill: saved.fill || "#111111",
+          fontWeight: saved.fontWeight || "normal",
+          fontStyle: saved.fontStyle || "normal",
+          underline: Boolean(saved.underline),
+          textAlign: saved.textAlign || "center",
+          angle: Number(saved.angle ?? 0),
+          scaleX: Number(saved.scaleX ?? 1),
+          scaleY: Number(saved.scaleY ?? 1),
+          transparentCorners: false,
+          cornerStyle: "circle",
+          cornerColor: "#2457d6",
+          borderColor: "#2457d6",
+          padding: 4
+        });
+        presetCanvas.add(object);
+      }
+
+      presetCanvas.requestRenderAll();
+    }
+
+    presetCanvas.on("selection:created", syncPresetFormatting);
+    presetCanvas.on("selection:updated", syncPresetFormatting);
+    presetCanvas.on("selection:cleared", syncPresetFormatting);
+    presetCanvas.on("object:modified", syncPresetFormatting);
+
+    /* ---------------- PRESET LIBRARIES ---------------- */
+
+    function presetPreviewHtml(preset) {
+      const texts = preset.objects.map(object => {
+        const left = Number(object.left ?? preset.editorWidth / 2) / preset.editorWidth * 100;
+        const top = Number(object.top ?? preset.editorHeight / 2) / preset.editorHeight * 100;
+        const size = Number(object.fontSize ?? 42) / preset.editorHeight * 100;
+        const scaleX = Number(object.scaleX ?? 1);
+        const scaleY = Number(object.scaleY ?? 1);
+        const angle = Number(object.angle ?? 0);
+
+        return `<span
+          class="preset-preview-text"
+          style="
+            left:${left}%;
+            top:${top}%;
+            font-family:${escapeHtml(object.fontFamily || "Arial")};
+            font-size:${size}%;
+            color:${escapeHtml(object.fill || "#111111")};
+            font-weight:${object.fontWeight === "bold" || Number(object.fontWeight) >= 700 ? "700" : "400"};
+            font-style:${object.fontStyle === "italic" ? "italic" : "normal"};
+            text-decoration:${object.underline ? "underline" : "none"};
+            transform:translate(-50%,-50%) rotate(${angle}deg) scale(${scaleX},${scaleY});
+          "
+        >${escapeHtml(object.text)}</span>`;
+      }).join("");
+
+      return `<div
+        class="preset-preview"
+        style="background-image:url('${escapeHtml(state.settings.boxTemplatePath)}')"
+      >${texts}</div>`;
+    }
+
+    function categories() {
+      return [
+        "All",
+        ...new Set(
+          state.presets
+            .filter(preset => preset.visible)
+            .map(preset => preset.category)
+            .sort((a, b) => a.localeCompare(b))
+        )
+      ];
+    }
+
+    function renderCategoryFilters() {
+      const list = categories();
+      if (!list.includes(state.activeCategory)) state.activeCategory = "All";
+
+      els.categoryFilters.innerHTML = list.map(category => `
+        <button
+          class="category-chip ${category === state.activeCategory ? "active" : ""}"
+          type="button"
+          data-category="${escapeHtml(category)}"
+        >${escapeHtml(category)}</button>
+      `).join("");
+
+      els.categoryFilters.querySelectorAll("[data-category]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.activeCategory = button.dataset.category;
+          renderCategoryFilters();
+          renderUserPresetLibrary();
+        });
       });
     }
 
-    async function handleAdminListAction(action, id) {
-      const label = state.labels.find(item => item.id === id);
-      if (!label) return;
+    function renderUserPresetLibrary() {
+      const query = els.presetSearch.value.trim().toLowerCase();
+      const presets = sortedPresets().filter(preset => {
+        if (!preset.visible) return false;
+        if (state.activeCategory !== "All" && preset.category !== state.activeCategory) return false;
+        return preset.name.toLowerCase().includes(query) ||
+          preset.category.toLowerCase().includes(query);
+      });
+
+      if (!presets.length) {
+        els.presetLibrary.innerHTML = `
+          <div class="empty-state">
+            No premade label boxes match. An administrator can create them on the Admin page.
+          </div>`;
+        return;
+      }
+
+      els.presetLibrary.innerHTML = presets.map(preset => `
+        <button
+          class="preset-card"
+          type="button"
+          draggable="true"
+          data-preset-id="${escapeHtml(preset.id)}"
+        >
+          ${presetPreviewHtml(preset)}
+          <span class="preset-card-title">
+            <span>${escapeHtml(preset.name)}</span>
+            <span class="preset-card-category">${escapeHtml(preset.category)}</span>
+          </span>
+        </button>
+      `).join("");
+
+      els.presetLibrary.querySelectorAll("[data-preset-id]").forEach(card => {
+        const presetId = card.dataset.presetId;
+        card.addEventListener("click", () => {
+          const preset = state.presets.find(item => item.id === presetId);
+          if (preset) addPresetToNextSlot(preset);
+        });
+        card.addEventListener("dragstart", event => {
+          event.dataTransfer.effectAllowed = "copy";
+          event.dataTransfer.setData("text/plain", presetId);
+        });
+      });
+    }
+
+    function renderAdminPresetList() {
+      const query = els.adminPresetSearch.value.trim().toLowerCase();
+      const presets = sortedPresets().filter(preset =>
+        preset.name.toLowerCase().includes(query) ||
+        preset.category.toLowerCase().includes(query)
+      );
+
+      els.presetCount.textContent =
+        `${state.presets.length} preset${state.presets.length === 1 ? "" : "s"}`;
+
+      if (!presets.length) {
+        els.adminPresetList.innerHTML = `
+          <div class="empty-state">
+            ${state.presets.length ? "No premade boxes match this search." : "No premade boxes exist yet."}
+          </div>`;
+        return;
+      }
+
+      els.adminPresetList.innerHTML = presets.map(preset => `
+        <article class="admin-item ${preset.visible ? "" : "hidden-option"}">
+          <div>
+            <div class="admin-item-name">${escapeHtml(preset.name)}</div>
+            <div class="admin-item-meta">
+              ${escapeHtml(preset.category)} · ${preset.objects.length} text element${preset.objects.length === 1 ? "" : "s"} ·
+              ${preset.visible ? "Visible" : "Hidden"} · Order ${preset.sortOrder}
+            </div>
+          </div>
+          <div class="admin-item-actions">
+            <button class="small-button" type="button" data-action="toggle" data-id="${preset.id}">
+              ${preset.visible ? "Hide" : "Show"}
+            </button>
+            <button class="small-button" type="button" data-action="edit" data-id="${preset.id}">Edit</button>
+            <button class="small-button danger" type="button" data-action="delete" data-id="${preset.id}">Delete</button>
+          </div>
+        </article>
+      `).join("");
+
+      els.adminPresetList.querySelectorAll("[data-action]").forEach(button => {
+        button.addEventListener("click", () =>
+          handlePresetListAction(button.dataset.action, button.dataset.id)
+        );
+      });
+    }
+
+    function renderLibraries() {
+      renderCategoryFilters();
+      renderUserPresetLibrary();
+      renderAdminPresetList();
+    }
+
+    /* ---------------- ADMIN DATA ACTIONS ---------------- */
+
+    function resetPresetForm() {
+      els.presetForm.reset();
+      els.editingPresetId.value = "";
+      els.presetFormTitle.textContent = "Create premade label box";
+      els.presetCategory.value = "General";
+      els.presetSortOrder.value = "0";
+      els.presetVisible.checked = true;
+      els.cancelPresetEditButton.classList.add("hidden");
+      clearPresetEditor(false);
+    }
+
+    function beginPresetEdit(preset) {
+      els.editingPresetId.value = preset.id;
+      els.presetFormTitle.textContent = "Edit premade label box";
+      els.presetName.value = preset.name;
+      els.presetCategory.value = preset.category;
+      els.presetSortOrder.value = preset.sortOrder;
+      els.presetVisible.checked = preset.visible;
+      els.cancelPresetEditButton.classList.remove("hidden");
+      loadPresetIntoEditor(preset);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function handlePresetListAction(action, id) {
+      const preset = state.presets.find(item => item.id === id);
+      if (!preset) return;
 
       try {
         if (action === "toggle") {
-          await update(ref(db, `labelMaker/labels/${id}`), {
-            visible: !label.visible,
+          await update(ref(db, `labelMaker/presets/${id}`), {
+            visible: !preset.visible,
             updatedAt: Date.now()
           });
-          showToast(label.visible ? "Option hidden." : "Option shown.");
+          toast(preset.visible ? "Preset hidden." : "Preset shown.");
         } else if (action === "edit") {
-          beginEditing(label);
+          beginPresetEdit(preset);
         } else if (action === "delete") {
-          if (!window.confirm(`Delete "${label.text}"?`)) return;
-          await remove(ref(db, `labelMaker/labels/${id}`));
-          if (elements.editingId.value === id) resetLabelForm();
-          showToast("Option deleted.");
+          if (!confirm(`Delete "${preset.name}"?`)) return;
+          await remove(ref(db, `labelMaker/presets/${id}`));
+          if (els.editingPresetId.value === id) resetPresetForm();
+          toast("Preset deleted.");
         }
       } catch (error) {
         console.error(error);
-        showToast("The change could not be saved.");
+        toast("The change could not be saved.");
+      }
+    }
+
+    async function savePreset(event) {
+      event.preventDefault();
+      const objects = serializePresetObjects();
+      const name = els.presetName.value.trim();
+
+      if (!name) {
+        toast("Enter a preset name.");
+        return;
+      }
+
+      if (!objects.length) {
+        toast("Add at least one text element to the example box.");
+        return;
+      }
+
+      const record = {
+        name,
+        category: els.presetCategory.value.trim() || "General",
+        visible: els.presetVisible.checked,
+        sortOrder: Number(els.presetSortOrder.value || 0),
+        editorWidth: presetCanvas.getWidth(),
+        editorHeight: presetCanvas.getHeight(),
+        objects,
+        updatedAt: Date.now()
+      };
+
+      try {
+        const id = els.editingPresetId.value;
+        if (id) {
+          await update(ref(db, `labelMaker/presets/${id}`), record);
+          toast("Premade box updated.");
+        } else {
+          record.createdAt = Date.now();
+          await set(push(ref(db, "labelMaker/presets")), record);
+          toast("Premade box created.");
+        }
+        resetPresetForm();
+      } catch (error) {
+        console.error(error);
+        toast("The premade box could not be saved.");
+      }
+    }
+
+    function samplePresetRecord(name, category, lines, order) {
+      const width = state.settings.presetCanvasWidth;
+      const height = state.settings.presetCanvasHeight;
+
+      return {
+        name,
+        category,
+        visible: true,
+        sortOrder: order,
+        editorWidth: width,
+        editorHeight: height,
+        objects: lines.map((line, index) => ({
+          text: line.text,
+          left: width * (line.x ?? 0.5),
+          top: height * (line.y ?? (0.38 + index * 0.25)),
+          fontFamily: line.fontFamily ?? "Arial",
+          fontSize: line.fontSize ?? (index === 0 ? 54 : 36),
+          fill: "#111111",
+          fontWeight: line.bold === false ? "normal" : "bold",
+          fontStyle: "normal",
+          underline: false,
+          textAlign: "center",
+          angle: 0,
+          scaleX: 1,
+          scaleY: 1
+        })),
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+    }
+
+    async function addSampleTechPresets() {
+      if (state.presets.length && !confirm("Add sample technology presets in addition to the current presets?")) {
+        return;
+      }
+
+      const samples = [
+        samplePresetRecord("Rack A – Switch 01 Port 24", "Network", [
+          { text: "RACK A", y: 0.36, fontSize: 54 },
+          { text: "SW-01  •  PORT 24", y: 0.65, fontSize: 34 }
+        ], 10),
+        samplePresetRecord("Camera 03 – North Hall", "Cameras", [
+          { text: "CAMERA 03", y: 0.36, fontSize: 50 },
+          { text: "POE  •  NORTH HALL", y: 0.65, fontSize: 32 }
+        ], 20),
+        samplePresetRecord("Conference TV HDMI", "AV", [
+          { text: "TO: CONFERENCE TV", y: 0.36, fontSize: 44 },
+          { text: "HDMI-01", y: 0.66, fontSize: 38 }
+        ], 30),
+        samplePresetRecord("24V DC Power", "Power", [
+          { text: "24V DC POWER", y: 0.40, fontSize: 50 },
+          { text: "DEVICE 07", y: 0.68, fontSize: 34 }
+        ], 40)
+      ];
+
+      try {
+        for (const sample of samples) {
+          await set(push(ref(db, "labelMaker/presets")), sample);
+        }
+        toast("Sample technology presets added.");
+      } catch (error) {
+        console.error(error);
+        toast("Sample presets could not be added.");
       }
     }
 
     function fillSettingsForm() {
-      elements.templatePath.value = state.settings.templatePath;
-      elements.labelWidth.value = state.settings.labelWidth;
-      elements.labelHeight.value = state.settings.labelHeight;
-      elements.canvasWidth.value = state.settings.canvasWidth;
-      elements.canvasHeight.value = state.settings.canvasHeight;
+      const s = state.settings;
+      els.sheetTemplatePath.value = s.sheetTemplatePath;
+      els.boxTemplatePath.value = s.boxTemplatePath;
+      els.sheetWidthIn.value = s.sheetWidthIn;
+      els.sheetHeightIn.value = s.sheetHeightIn;
+      els.gridColumns.value = s.gridColumns;
+      els.gridRows.value = s.gridRows;
+      els.gridLeftPct.value = s.gridLeftPct;
+      els.gridTopPct.value = s.gridTopPct;
+      els.gridWidthPct.value = s.gridWidthPct;
+      els.gridHeightPct.value = s.gridHeightPct;
+      els.columnGapPct.value = s.columnGapPct;
+      els.rowGapPct.value = s.rowGapPct;
     }
 
-    async function handleLogin(event) {
+    async function saveSettings(event) {
       event.preventDefault();
-      elements.loginMessage.classList.add("hidden");
+
+      const settings = {
+        ...state.settings,
+        sheetTemplatePath: els.sheetTemplatePath.value.trim() || "94207.avif",
+        boxTemplatePath: els.boxTemplatePath.value.trim() || "Ok.jpg.png",
+        sheetWidthIn: Number(els.sheetWidthIn.value),
+        sheetHeightIn: Number(els.sheetHeightIn.value),
+        gridColumns: Number(els.gridColumns.value),
+        gridRows: Number(els.gridRows.value),
+        gridLeftPct: Number(els.gridLeftPct.value),
+        gridTopPct: Number(els.gridTopPct.value),
+        gridWidthPct: Number(els.gridWidthPct.value),
+        gridHeightPct: Number(els.gridHeightPct.value),
+        columnGapPct: Number(els.columnGapPct.value),
+        rowGapPct: Number(els.rowGapPct.value),
+        updatedAt: Date.now()
+      };
+
+      if (
+        settings.sheetWidthIn <= 0 ||
+        settings.sheetHeightIn <= 0 ||
+        settings.gridColumns < 1 ||
+        settings.gridRows < 1
+      ) {
+        toast("Enter valid sheet and grid settings.");
+        return;
+      }
+
+      try {
+        await set(ref(db, "labelMaker/sheetSettings"), settings);
+        toast("Sheet and snapping settings saved.");
+      } catch (error) {
+        console.error(error);
+        toast("Settings could not be saved.");
+      }
+    }
+
+    /* ---------------- AUTH + FIREBASE ---------------- */
+
+    async function login(event) {
+      event.preventDefault();
+      els.loginMessage.classList.add("hidden");
 
       try {
         await signInWithEmailAndPassword(
           auth,
-          elements.loginEmail.value.trim(),
-          elements.loginPassword.value
+          els.loginEmail.value.trim(),
+          els.loginPassword.value
         );
-        elements.loginForm.reset();
+        els.loginForm.reset();
       } catch (error) {
         console.error(error);
-        elements.loginMessage.textContent =
+        els.loginMessage.textContent =
           "Sign-in failed. Check the email/password and confirm Email/Password is enabled in Firebase Authentication.";
-        elements.loginMessage.classList.remove("hidden");
+        els.loginMessage.classList.remove("hidden");
       }
     }
 
-    async function handlePasswordReset() {
-      const email = elements.loginEmail.value.trim();
-
+    async function resetPassword() {
+      const email = els.loginEmail.value.trim();
       if (!email) {
-        elements.loginMessage.textContent = "Enter your admin email first.";
-        elements.loginMessage.classList.remove("hidden");
-        elements.loginEmail.focus();
+        els.loginMessage.textContent = "Enter the admin email first.";
+        els.loginMessage.classList.remove("hidden");
         return;
       }
 
       try {
         await sendPasswordResetEmail(auth, email);
-        elements.loginMessage.textContent = "A password-reset email was sent.";
-        elements.loginMessage.classList.remove("hidden");
+        els.loginMessage.textContent = "A password-reset email was sent.";
+        els.loginMessage.classList.remove("hidden");
       } catch (error) {
         console.error(error);
-        elements.loginMessage.textContent = "The reset email could not be sent.";
-        elements.loginMessage.classList.remove("hidden");
+        els.loginMessage.textContent = "The reset email could not be sent.";
+        els.loginMessage.classList.remove("hidden");
       }
     }
 
-    async function handleLabelSubmit(event) {
-      event.preventDefault();
-
-      const id = elements.editingId.value;
-      const record = {
-        text: elements.labelText.value.trim(),
-        category: elements.labelCategory.value.trim() || "General",
-        sortOrder: Number(elements.labelSortOrder.value || 0),
-        fontFamily: elements.labelFont.value,
-        fontSize: Number(elements.labelFontSize.value || 36),
-        color: elements.labelColor.value,
-        bold: elements.labelBold.checked,
-        italic: elements.labelItalic.checked,
-        underline: elements.labelUnderline.checked,
-        visible: elements.labelVisible.checked,
-        updatedAt: Date.now()
-      };
-
-      if (!record.text) {
-        showToast("Enter text for the option.");
-        return;
-      }
-
-      try {
-        if (id) {
-          await update(ref(db, `labelMaker/labels/${id}`), record);
-          showToast("Option updated.");
-        } else {
-          record.createdAt = Date.now();
-          const newReference = push(ref(db, "labelMaker/labels"));
-          await set(newReference, record);
-          showToast("Option created.");
-        }
-
-        resetLabelForm();
-      } catch (error) {
-        console.error(error);
-        showToast("The option could not be saved.");
-      }
-    }
-
-    async function seedStarterLabels() {
-      if (
-        state.labels.length &&
-        !window.confirm("Add the starter options in addition to the current options?")
-      ) {
-        return;
-      }
-
-      try {
-        for (const label of STARTER_LABELS) {
-          const newReference = push(ref(db, "labelMaker/labels"));
-          await set(newReference, {
-            ...label,
-            createdAt: Date.now(),
-            updatedAt: Date.now()
-          });
-        }
-        showToast("Starter options added.");
-      } catch (error) {
-        console.error(error);
-        showToast("Starter options could not be added.");
-      }
-    }
-
-    async function handleSettingsSubmit(event) {
-      event.preventDefault();
-
-      const settings = {
-        templatePath: elements.templatePath.value.trim() || "94207.avif",
-        labelWidth: Number(elements.labelWidth.value),
-        labelHeight: Number(elements.labelHeight.value),
-        canvasWidth: Number(elements.canvasWidth.value),
-        canvasHeight: Number(elements.canvasHeight.value),
-        updatedAt: Date.now()
-      };
-
-      if (
-        settings.labelWidth <= 0 ||
-        settings.labelHeight <= 0 ||
-        settings.canvasWidth < 300 ||
-        settings.canvasHeight < 300
-      ) {
-        showToast("Enter valid template and print dimensions.");
-        return;
-      }
-
-      try {
-        await set(ref(db, "labelMaker/settings"), settings);
-        showToast("Template settings saved.");
-      } catch (error) {
-        console.error(error);
-        showToast("Settings could not be saved.");
-      }
-    }
-
-    function subscribeToFirebase() {
+    function subscribeFirebase() {
       onValue(
-        ref(db, "labelMaker/labels"),
+        ref(db, "labelMaker/presets"),
         snapshot => {
           const raw = snapshot.val() || {};
-          state.labels = Object.entries(raw).map(([id, value]) => normalizeLabel(value, id));
-          renderCategories();
-          renderLibrary();
-          renderAdminLabels();
-          elements.connectionStatus.textContent = "Live data connected";
-          elements.connectionStatus.className = "status-badge online";
+          state.presets = Object.entries(raw).map(([id, value]) => normalizePreset(value, id));
+          renderLibraries();
+          els.connectionStatus.textContent = "Live data connected";
+          els.connectionStatus.className = "status online";
         },
         error => {
           console.error(error);
-          elements.connectionStatus.textContent = "Database unavailable";
-          elements.connectionStatus.className = "status-badge error";
-          elements.labelLibrary.innerHTML = `
-            <div class="empty-state">
-              The label options could not be loaded. Check Firebase Realtime Database rules.
-            </div>
-          `;
+          els.connectionStatus.textContent = "Database unavailable";
+          els.connectionStatus.className = "status error";
+          toast("Firebase data could not be loaded. Check Realtime Database rules.");
         }
       );
 
       onValue(
-        ref(db, "labelMaker/settings"),
+        ref(db, "labelMaker/sheetSettings"),
         snapshot => {
-          state.settings = { ...DEFAULT_SETTINGS, ...(snapshot.val() || {}) };
+          state.settings = {
+            ...DEFAULT_SETTINGS,
+            ...(snapshot.val() || {})
+          };
           fillSettingsForm();
-          loadTemplate();
+          loadSheetTemplate();
+          loadPresetBackground();
         },
         error => {
           console.error(error);
           state.settings = { ...DEFAULT_SETTINGS };
           fillSettingsForm();
-          loadTemplate();
+          loadSheetTemplate();
+          loadPresetBackground();
         }
       );
 
@@ -2025,161 +2225,211 @@
         state.currentUser = user;
 
         if (user) {
-          elements.authStatus.textContent = user.email || "Admin signed in";
-          elements.authStatus.className = "status-badge online";
-          elements.loginPanel.classList.add("hidden");
-          elements.adminWorkspace.classList.remove("hidden");
-          elements.signOutButton.classList.toggle("hidden", state.userViewActive);
+          els.authStatus.textContent = user.email || "Admin signed in";
+          els.authStatus.className = "status online";
+          els.loginPanel.classList.add("hidden");
+          els.adminWorkspace.classList.remove("hidden");
+          els.signOutButton.classList.toggle("hidden", state.userView);
         } else {
-          elements.authStatus.textContent = "Signed out";
-          elements.authStatus.className = "status-badge";
-          elements.loginPanel.classList.remove("hidden");
-          elements.adminWorkspace.classList.add("hidden");
-          elements.signOutButton.classList.add("hidden");
+          els.authStatus.textContent = "Signed out";
+          els.authStatus.className = "status";
+          els.loginPanel.classList.remove("hidden");
+          els.adminWorkspace.classList.add("hidden");
+          els.signOutButton.classList.add("hidden");
         }
       });
     }
 
+    /* ---------------- EVENTS ---------------- */
+
     function attachEvents() {
-      elements.openUserButton.addEventListener("click", showUserPage);
-      elements.openAdminButton.addEventListener("click", showAdminPage);
-      elements.signOutButton.addEventListener("click", () => signOut(auth));
+      els.userPageButton.addEventListener("click", showUserPage);
+      els.adminPageButton.addEventListener("click", showAdminPage);
+      els.signOutButton.addEventListener("click", () => signOut(auth));
 
-      elements.librarySearch.addEventListener("input", renderLibrary);
+      els.presetSearch.addEventListener("input", renderUserPresetLibrary);
+      els.adminPresetSearch.addEventListener("input", renderAdminPresetList);
 
-      elements.canvasStage.addEventListener("dragover", event => {
+      els.sheetStage.addEventListener("dragover", event => {
         event.preventDefault();
         event.dataTransfer.dropEffect = "copy";
-        elements.canvasStage.classList.add("drag-active");
+        els.sheetStage.classList.add("drag-active");
+        const rect = sheetCanvas.upperCanvasEl.getBoundingClientRect();
+        const x = (event.clientX - rect.left) * sheetCanvas.getWidth() / rect.width;
+        const y = (event.clientY - rect.top) * sheetCanvas.getHeight() / rect.height;
+        showSlotHighlight(nearestSlotIndex(x, y));
       });
 
-      elements.canvasStage.addEventListener("dragleave", event => {
-        if (!elements.canvasStage.contains(event.relatedTarget)) {
-          elements.canvasStage.classList.remove("drag-active");
+      els.sheetStage.addEventListener("dragleave", event => {
+        if (!els.sheetStage.contains(event.relatedTarget)) {
+          els.sheetStage.classList.remove("drag-active");
+          hideSlotHighlight();
         }
       });
 
-      elements.canvasStage.addEventListener("drop", event => {
+      els.sheetStage.addEventListener("drop", event => {
         event.preventDefault();
-        elements.canvasStage.classList.remove("drag-active");
+        els.sheetStage.classList.remove("drag-active");
 
-        const labelId = event.dataTransfer.getData("text/plain");
-        const label = state.labels.find(item => item.id === labelId);
-        if (label) addLabelToCanvas(label, canvasPointFromDrop(event));
+        const id = event.dataTransfer.getData("text/plain");
+        const preset = state.presets.find(item => item.id === id);
+        if (!preset) return;
+
+        const rect = sheetCanvas.upperCanvasEl.getBoundingClientRect();
+        const x = (event.clientX - rect.left) * sheetCanvas.getWidth() / rect.width;
+        const y = (event.clientY - rect.top) * sheetCanvas.getHeight() / rect.height;
+        const slotIndex = nearestSlotIndex(x, y);
+
+        placePreset(preset, slotIndex, true);
+        hideSlotHighlight();
       });
 
-      elements.selectedFont.addEventListener("change", () => {
-        updateActiveText({ fontFamily: elements.selectedFont.value });
+      els.undoButton.addEventListener("click", () => {
+        if (state.sheetHistoryIndex > 0) restoreSheetHistory(state.sheetHistoryIndex - 1);
       });
 
-      elements.selectedSize.addEventListener("change", () => {
-        updateActiveText({ fontSize: Number(elements.selectedSize.value) });
+      els.redoButton.addEventListener("click", () => {
+        if (state.sheetHistoryIndex < state.sheetHistory.length - 1) {
+          restoreSheetHistory(state.sheetHistoryIndex + 1);
+        }
       });
 
-      elements.selectedColor.addEventListener("input", () => {
-        updateActiveText({ fill: elements.selectedColor.value }, false);
-      });
-      elements.selectedColor.addEventListener("change", saveHistory);
+      els.clearSheetButton.addEventListener("click", clearSheet);
+      els.downloadSheetButton.addEventListener("click", downloadSheet);
+      els.printSheetButton.addEventListener("click", printSheet);
 
-      elements.boldButton.addEventListener("click", () => {
-        const object = getActiveText();
+      els.deleteBoxButton.addEventListener("click", () => {
+        const active = sheetCanvas.getActiveObject();
+        if (!active || active === state.sheetTemplate) return;
+        sheetCanvas.remove(active);
+        sheetCanvas.discardActiveObject();
+        sheetCanvas.requestRenderAll();
+        syncSheetSelection();
+      });
+
+      els.duplicateBoxButton.addEventListener("click", () => {
+        const active = sheetCanvas.getActiveObject();
+        if (!active) return;
+        const preset = state.presets.find(item => item.id === active.presetId);
+        if (preset) addPresetToNextSlot(preset);
+      });
+
+      els.addTextButton.addEventListener("click", () => addTextToPreset(els.newTextInput.value));
+      els.newTextInput.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          addTextToPreset(els.newTextInput.value);
+        }
+      });
+
+      els.presetFont.addEventListener("change", () =>
+        updateActivePresetText({ fontFamily: els.presetFont.value })
+      );
+      els.presetFontSize.addEventListener("change", () =>
+        updateActivePresetText({ fontSize: Number(els.presetFontSize.value) })
+      );
+      els.presetColor.addEventListener("input", () =>
+        updateActivePresetText({ fill: els.presetColor.value })
+      );
+
+      els.presetBold.addEventListener("click", () => {
+        const object = activePresetText();
         if (!object) return;
-        const isBold = object.fontWeight === "bold" || Number(object.fontWeight) >= 700;
-        updateActiveText({ fontWeight: isBold ? "normal" : "bold" });
+        const bold = object.fontWeight === "bold" || Number(object.fontWeight) >= 700;
+        updateActivePresetText({ fontWeight: bold ? "normal" : "bold" });
       });
 
-      elements.italicButton.addEventListener("click", () => {
-        const object = getActiveText();
+      els.presetItalic.addEventListener("click", () => {
+        const object = activePresetText();
         if (!object) return;
-        updateActiveText({ fontStyle: object.fontStyle === "italic" ? "normal" : "italic" });
+        updateActivePresetText({
+          fontStyle: object.fontStyle === "italic" ? "normal" : "italic"
+        });
       });
 
-      elements.underlineButton.addEventListener("click", () => {
-        const object = getActiveText();
+      els.presetUnderline.addEventListener("click", () => {
+        const object = activePresetText();
         if (!object) return;
-        updateActiveText({ underline: !object.underline });
+        updateActivePresetText({ underline: !object.underline });
       });
 
-      elements.duplicateButton.addEventListener("click", duplicateActive);
-      elements.deleteButton.addEventListener("click", deleteActive);
-
-      elements.forwardButton.addEventListener("click", () => {
-        const object = getActiveText();
+      els.presetDuplicateText.addEventListener("click", () => {
+        const object = activePresetText();
         if (!object) return;
-        canvas.bringForward(object);
-        if (state.templateImage) canvas.sendToBack(state.templateImage);
-        canvas.requestRenderAll();
-        saveHistory();
+        object.clone(clone => {
+          clone.set({
+            left: Number(object.left) + 20,
+            top: Number(object.top) + 20
+          });
+          presetCanvas.add(clone);
+          presetCanvas.setActiveObject(clone);
+          presetCanvas.requestRenderAll();
+        });
       });
 
-      elements.backwardButton.addEventListener("click", () => {
-        const object = getActiveText();
+      els.presetDeleteText.addEventListener("click", () => {
+        const object = activePresetText();
         if (!object) return;
-        canvas.sendBackwards(object);
-        if (state.templateImage) canvas.sendToBack(state.templateImage);
-        canvas.requestRenderAll();
-        saveHistory();
+        presetCanvas.remove(object);
+        presetCanvas.discardActiveObject();
+        presetCanvas.requestRenderAll();
+        syncPresetFormatting();
       });
 
-      elements.undoButton.addEventListener("click", undo);
-      elements.redoButton.addEventListener("click", redo);
-      elements.clearButton.addEventListener("click", clearDesign);
-      elements.downloadButton.addEventListener("click", downloadPng);
-      elements.printButton.addEventListener("click", printLabel);
+      els.presetForm.addEventListener("submit", savePreset);
+      els.cancelPresetEditButton.addEventListener("click", resetPresetForm);
+      els.clearPresetEditorButton.addEventListener("click", () => clearPresetEditor(true));
+      els.sampleTechPresetsButton.addEventListener("click", addSampleTechPresets);
+      els.settingsForm.addEventListener("submit", saveSettings);
 
-      elements.loginForm.addEventListener("submit", handleLogin);
-      elements.resetPasswordButton.addEventListener("click", handlePasswordReset);
-      elements.labelForm.addEventListener("submit", handleLabelSubmit);
-      elements.cancelEditButton.addEventListener("click", resetLabelForm);
-      elements.seedButton.addEventListener("click", seedStarterLabels);
-      elements.adminSearch.addEventListener("input", renderAdminLabels);
-      elements.settingsForm.addEventListener("submit", handleSettingsSubmit);
-
-      [
-        elements.labelText,
-        elements.labelFont,
-        elements.labelFontSize,
-        elements.labelColor,
-        elements.labelBold,
-        elements.labelItalic,
-        elements.labelUnderline
-      ].forEach(element => {
-        element.addEventListener("input", updateStylePreview);
-        element.addEventListener("change", updateStylePreview);
-      });
+      els.loginForm.addEventListener("submit", login);
+      els.resetPasswordButton.addEventListener("click", resetPassword);
 
       document.addEventListener("keydown", event => {
-        const activeElement = document.activeElement;
-        const editingCanvasText = getActiveText()?.isEditing;
-        const typingInForm = ["INPUT", "TEXTAREA", "SELECT"].includes(activeElement?.tagName);
+        const tag = document.activeElement?.tagName;
+        const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(tag);
 
-        if (editingCanvasText || typingInForm || !state.userViewActive) return;
+        if (typing) return;
 
-        const commandKey = event.ctrlKey || event.metaKey;
-        const key = event.key.toLowerCase();
+        if (state.userView) {
+          const active = sheetCanvas.getActiveObject();
+          if ((event.key === "Delete" || event.key === "Backspace") && active) {
+            sheetCanvas.remove(active);
+            sheetCanvas.discardActiveObject();
+            sheetCanvas.requestRenderAll();
+            syncSheetSelection();
+          }
 
-        if (commandKey && key === "z") {
-          event.preventDefault();
-          event.shiftKey ? redo() : undo();
-        } else if (commandKey && key === "y") {
-          event.preventDefault();
-          redo();
-        } else if (commandKey && key === "d") {
-          event.preventDefault();
-          duplicateActive();
-        } else if (event.key === "Delete" || event.key === "Backspace") {
-          event.preventDefault();
-          deleteActive();
+          const command = event.ctrlKey || event.metaKey;
+          if (command && event.key.toLowerCase() === "z") {
+            event.preventDefault();
+            if (event.shiftKey) {
+              if (state.sheetHistoryIndex < state.sheetHistory.length - 1) {
+                restoreSheetHistory(state.sheetHistoryIndex + 1);
+              }
+            } else if (state.sheetHistoryIndex > 0) {
+              restoreSheetHistory(state.sheetHistoryIndex - 1);
+            }
+          }
+        } else {
+          const active = activePresetText();
+          if ((event.key === "Delete" || event.key === "Backspace") && active && !active.isEditing) {
+            presetCanvas.remove(active);
+            presetCanvas.discardActiveObject();
+            presetCanvas.requestRenderAll();
+            syncPresetFormatting();
+          }
         }
       });
     }
 
     function start() {
-      populateFontMenus();
-      resetLabelForm();
+      populateFonts();
+      resizeSheetCanvas();
+      resizePresetCanvas();
       attachEvents();
-      resizeCanvas();
-      subscribeToFirebase();
+      resetPresetForm();
+      subscribeFirebase();
       showUserPage();
     }
 
@@ -2187,3 +2437,8 @@
   </script>
 </body>
 </html>
+'''
+
+path = Path("/mnt/data/ABE-Wire-Label-Maker-index.html")
+path.write_text(html, encoding="utf-8")
+print(f"Created {path} ({path.stat().st_size:,} bytes)")
