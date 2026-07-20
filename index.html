@@ -1,0 +1,42 @@
+from pathlib import Path
+
+path = Path("/mnt/data/index.html")
+if not path.exists():
+    raise FileNotFoundError("The previous index.html is not available in this session.")
+
+text = path.read_text(encoding="utf-8")
+
+old = '''    const firebaseConfig = {
+      apiKey: "",
+      authDomain: "",
+      databaseURL: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };'''
+
+new = '''    const firebaseConfig = {
+      apiKey: "AIzaSyBEvmh29koHesrtrTr2xUPeQmomGTz0wYE",
+      authDomain: "abe-label-making.firebaseapp.com",
+      databaseURL: "https://abe-label-making-default-rtdb.firebaseio.com",
+      projectId: "abe-label-making",
+      storageBucket: "abe-label-making.firebasestorage.app",
+      messagingSenderId: "117215817446",
+      appId: "1:117215817446:web:f9c82dc0049881ea881527",
+      measurementId: "G-7PBSVEV177"
+    };'''
+
+if old not in text:
+    raise ValueError("Could not find the Firebase configuration block to replace.")
+
+text = text.replace(old, new)
+
+# Set a clearer temporary admin password marker without inventing a real secret.
+text = text.replace(
+    'const ADMIN_PASSWORD = "change-this-password";',
+    'const ADMIN_PASSWORD = "CHANGE-ME-NOW";'
+)
+
+path.write_text(text, encoding="utf-8")
+print(f"Updated {path} with Firebase configuration.")
