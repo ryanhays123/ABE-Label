@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ABE label maker with Firebase-powered admin controls." />
+  <title>ABE Label Maker</title>
+
+  <!-- Drag, resize, rotate, and edit label text -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+
+  <style>
+    :root {
+      --background: #f4f6f8;
+      --surface: #ffffff;
+      --surface-alt: #f8fafc;
+      --text: #18202a;
+      --muted: #687384;
+      --border: #dce2e8;
+      --primary: #2457d6;
+      --primary-hover: #1945b6;
+      --danger: #b42318;
+      --danger-bg: #fff4f2;
+      --success: #18794e;
+      --warning: #765d12;
+      --warning-bg: #fff9e7;
+      --shadow: 0 12px 34px rgba(27, 35, 46, 0.09);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .site-header {
+      min-height: 74px;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.96);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+    }
+
+    .site-header h1 {
+      margin: 0;
+      font-size: 1.28rem;
+      letter-spacing: -0.02em;
+    }
+
+    .eyebrow {
+      margin: 0 0 2px;
+      color: var(--primary);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+    }
+
+    .header-actions,
+    .button-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .status-badge.online {
+      border-color: #b6dfca;
+      background: #f1fbf6;
+      color: var(--success);
+    }
+
+    .status-badge.error {
+      border-color: #efc2bd;
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .button {
+      min-height: 38px;
+      padding: 8px 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      font-weight: 750;
+      line-height: 1;
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+
+    .button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(26, 35, 48, 0.1);
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .button-primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+
+    .button-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .button-secondary {
+      border-color: var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .button-danger {
+      border-color: #efc2bd;
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .text-button {
+      padding: 4px;
+      border: 0;
+      background: transparent;
+      color: var(--primary);
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .designer-layout {
+      width: min(1600px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+      display: grid;
+      grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .library-panel {
+      max-height: calc(100vh - 118px);
+      padding: 18px;
+      align-self: start;
+      position: sticky;
+      top: 94px;
+      overflow-y: auto;
+    }
+
+    .panel-heading,
+    .editor-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 15px;
+    }
+
+    .panel-heading h2,
+    .editor-heading h2 {
+      margin-bottom: 4px;
+      font-size: 1.05rem;
+    }
+
+    .panel-heading p,
+    .editor-heading p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .input {
+      width: 100%;
+      min-height: 41px;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      outline: none;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .input:focus {
+      border-color: #7b9ce9;
+      box-shadow: 0 0 0 3px rgba(36, 87, 214, 0.12);
+    }
+
+    .input-compact {
+      min-height: 36px;
+      padding: 6px 8px;
+    }
+
+    .number-input {
+      width: 78px;
+    }
+
+    .textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .category-filters {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+
+    .category-chip {
+      padding: 6px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 750;
+    }
+
+    .category-chip.active {
+      border-color: var(--primary);
+      background: #eef3ff;
+      color: var(--primary);
+    }
+
+    .label-library {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .library-item {
+      width: 100%;
+      min-height: 55px;
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      text-align: left;
+      cursor: grab;
+    }
+
+    .library-item:hover {
+      border-color: #91abea;
+      background: #f8faff;
+    }
+
+    .library-item:active {
+      cursor: grabbing;
+    }
+
+    .library-text {
+      display: block;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .library-meta {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-family: Inter, ui-sans-serif, sans-serif;
+      font-size: 0.71rem;
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      padding: 22px 14px;
+      border: 1px dashed var(--border);
+      border-radius: 11px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .editor-panel {
+      min-width: 0;
+      padding: 18px;
+    }
+
+    .canvas-stage {
+      min-height: 570px;
+      padding: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background-color: #e9edf2;
+      background-image:
+        linear-gradient(45deg, #dfe4e9 25%, transparent 25%),
+        linear-gradient(-45deg, #dfe4e9 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #dfe4e9 75%),
+        linear-gradient(-45deg, transparent 75%, #dfe4e9 75%);
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+      background-size: 24px 24px;
+    }
+
+    .canvas-stage.drag-active {
+      outline: 3px solid rgba(36, 87, 214, 0.3);
+      outline-offset: -3px;
+    }
+
+    .canvas-frame {
+      flex: 0 0 auto;
+      background: white;
+      box-shadow: 0 16px 45px rgba(23, 31, 42, 0.23);
+    }
+
+    .canvas-container {
+      display: block;
+    }
+
+    .selection-toolbar {
+      margin-top: 14px;
+      padding: 13px;
+      display: flex;
+      align-items: end;
+      gap: 9px;
+      flex-wrap: wrap;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: var(--surface-alt);
+    }
+
+    .toolbar-title {
+      align-self: center;
+      margin-right: 3px;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .compact-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 750;
+    }
+
+    .color-input {
+      width: 48px;
+      height: 36px;
+      padding: 3px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .segmented-buttons {
+      display: flex;
+    }
+
+    .icon-button {
+      width: 38px;
+      height: 36px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .icon-button:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    .icon-button:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
+    .icon-button + .icon-button {
+      margin-left: -1px;
+    }
+
+    .icon-button.active {
+      border-color: var(--primary);
+      background: #eaf0ff;
+      color: var(--primary);
+      position: relative;
+      z-index: 1;
+    }
+
+    .editor-footer {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .keyboard-help {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .notice {
+      margin-top: 12px;
+      padding: 11px 13px;
+      border: 1px solid #e8d598;
+      border-radius: 10px;
+      background: var(--warning-bg);
+      color: var(--warning);
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    .toast {
+      max-width: min(390px, calc(100vw - 32px));
+      padding: 11px 14px;
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 100;
+      border-radius: 10px;
+      background: #1e2732;
+      color: white;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+      font-size: 0.86rem;
+    }
+
+    .admin-main {
+      width: min(1400px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .login-panel {
+      width: min(470px, 100%);
+      margin: 40px auto;
+      padding: 24px;
+    }
+
+    .login-panel h2 {
+      margin-bottom: 8px;
+    }
+
+    .login-panel > p {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .stack-form {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: minmax(330px, 0.82fr) minmax(440px, 1.18fr);
+      gap: 20px;
+    }
+
+    .admin-card {
+      padding: 20px;
+      align-self: start;
+    }
+
+    .settings-card {
+      grid-column: 1 / -1;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 13px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field > span {
+      color: #404a58;
+      font-size: 0.79rem;
+      font-weight: 800;
+    }
+
+    .field-full {
+      grid-column: 1 / -1;
+    }
+
+    .check-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.87rem;
+      font-weight: 700;
+    }
+
+    .check-row {
+      min-height: 41px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+    }
+
+    .check-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.82rem;
+    }
+
+    .admin-color-input {
+      width: 100%;
+      height: 41px;
+    }
+
+    .style-preview {
+      min-height: 82px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px dashed var(--border);
+      border-radius: 11px;
+      background: var(--surface-alt);
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .admin-list {
+      margin-top: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .admin-item {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+    }
+
+    .admin-item.hidden-option {
+      opacity: 0.56;
+      background: var(--surface-alt);
+    }
+
+    .admin-item-text {
+      overflow-wrap: anywhere;
+      line-height: 1.3;
+    }
+
+    .admin-item-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-family: Inter, ui-sans-serif, sans-serif;
+      font-size: 0.72rem;
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    .admin-item-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .small-button {
+      min-height: 32px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      font-size: 0.75rem;
+      font-weight: 750;
+    }
+
+    .small-button.danger {
+      border-color: #efc2bd;
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    @media (max-width: 1050px) {
+      .designer-layout,
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .library-panel {
+        max-height: none;
+        position: static;
+      }
+
+      .settings-card {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .site-header {
+        padding: 12px 14px;
+        align-items: flex-start;
+      }
+
+      .designer-layout,
+      .admin-main {
+        padding: 12px;
+      }
+
+      .editor-panel,
+      .library-panel,
+      .admin-card {
+        padding: 14px;
+      }
+
+      .canvas-stage {
+        min-height: 420px;
+        padding: 18px;
+        justify-content: flex-start;
+      }
+
+      .editor-heading,
+      .editor-footer,
+      .panel-heading {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field-full {
+        grid-column: auto;
+      }
+
+      .admin-item {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-item-actions {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">ABE</p>
+      <h1 id="pageTitle">Label Maker</h1>
+    </div>
+
+    <div class="header-actions">
+      <span id="connectionStatus" class="status-badge">Connecting…</span>
+      <span id="authStatus" class="status-badge hidden">Signed out</span>
+      <button id="openUserButton" class="button button-secondary hidden" type="button">Label Maker</button>
+      <button id="openAdminButton" class="button button-secondary" type="button">Admin</button>
+      <button id="signOutButton" class="button button-secondary hidden" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <!-- USER PAGE -->
+  <main id="userPage" class="designer-layout">
+    <aside class="panel library-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>Label text</h2>
+          <p>Click an option or drag it onto the template.</p>
+        </div>
+      </div>
+
+      <label class="sr-only" for="librarySearch">Search label text</label>
+      <input id="librarySearch" class="input" type="search" placeholder="Search options…" />
+
+      <div id="categoryFilters" class="category-filters" aria-label="Label categories"></div>
+      <div id="labelLibrary" class="label-library" aria-live="polite"></div>
+    </aside>
+
+    <section class="panel editor-panel">
+      <div class="editor-heading">
+        <div>
+          <h2>Design label</h2>
+          <p>A clean label starts every time this page opens.</p>
+        </div>
+
+        <div class="button-row">
+          <button id="undoButton" class="button button-secondary" type="button" disabled>Undo</button>
+          <button id="redoButton" class="button button-secondary" type="button" disabled>Redo</button>
+          <button id="clearButton" class="button button-secondary" type="button">Start over</button>
+        </div>
+      </div>
+
+      <div id="canvasStage" class="canvas-stage" aria-label="Label design area">
+        <div id="canvasFrame" class="canvas-frame">
+          <canvas id="labelCanvas"></canvas>
+        </div>
+      </div>
+
+      <div id="templateMessage" class="notice hidden" role="status"></div>
+
+      <div id="selectionToolbar" class="selection-toolbar hidden">
+        <div class="toolbar-title">Selected text</div>
+
+        <label class="compact-field">
+          <span>Font</span>
+          <select id="selectedFont" class="input input-compact"></select>
+        </label>
+
+        <label class="compact-field">
+          <span>Size</span>
+          <input id="selectedSize" class="input input-compact number-input" type="number" min="6" max="240" />
+        </label>
+
+        <label class="compact-field">
+          <span>Color</span>
+          <input id="selectedColor" class="color-input" type="color" />
+        </label>
+
+        <div class="segmented-buttons" aria-label="Text formatting">
+          <button id="boldButton" class="icon-button" type="button" title="Bold"><strong>B</strong></button>
+          <button id="italicButton" class="icon-button" type="button" title="Italic"><em>I</em></button>
+          <button id="underlineButton" class="icon-button" type="button" title="Underline"><u>U</u></button>
+        </div>
+
+        <button id="duplicateButton" class="button button-secondary" type="button">Duplicate</button>
+        <button id="forwardButton" class="button button-secondary" type="button">Forward</button>
+        <button id="backwardButton" class="button button-secondary" type="button">Backward</button>
+        <button id="deleteButton" class="button button-danger" type="button">Delete</button>
+      </div>
+
+      <div class="editor-footer">
+        <p class="keyboard-help">
+          Double-click text to edit it. Delete removes it. Ctrl/Cmd+D duplicates. Ctrl/Cmd+Z undoes.
+        </p>
+
+        <div class="button-row">
+          <button id="downloadButton" class="button button-secondary" type="button">Download PNG</button>
+          <button id="printButton" class="button button-primary" type="button">Print label</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ADMIN PAGE -->
+  <main id="adminPage" class="admin-main hidden">
+    <section id="loginPanel" class="panel login-panel">
+      <h2>Admin sign-in</h2>
+      <p>Sign in with the email/password account created in Firebase Authentication.</p>
+
+      <form id="loginForm" class="stack-form">
+        <label class="field">
+          <span>Email</span>
+          <input id="loginEmail" class="input" type="email" autocomplete="username" required />
+        </label>
+
+        <label class="field">
+          <span>Password</span>
+          <input id="loginPassword" class="input" type="password" autocomplete="current-password" required />
+        </label>
+
+        <button class="button button-primary" type="submit">Sign in</button>
+        <button id="resetPasswordButton" class="text-button" type="button">Send password-reset email</button>
+      </form>
+
+      <div id="loginMessage" class="notice hidden" role="alert"></div>
+    </section>
+
+    <div id="adminWorkspace" class="admin-grid hidden">
+      <section class="panel admin-card">
+        <div class="panel-heading">
+          <div>
+            <h2 id="labelFormTitle">Create text option</h2>
+            <p>Control the default appearance users receive.</p>
+          </div>
+        </div>
+
+        <form id="labelForm" class="form-grid">
+          <input id="editingId" type="hidden" />
+
+          <label class="field field-full">
+            <span>Text</span>
+            <textarea
+              id="labelText"
+              class="input textarea"
+              required
+              placeholder="Example: Plain Sourdough"
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span>Category</span>
+            <input id="labelCategory" class="input" type="text" value="General" placeholder="General" />
+          </label>
+
+          <label class="field">
+            <span>Display order</span>
+            <input id="labelSortOrder" class="input" type="number" value="0" step="1" />
+          </label>
+
+          <label class="field">
+            <span>Font</span>
+            <select id="labelFont" class="input"></select>
+          </label>
+
+          <label class="field">
+            <span>Font size</span>
+            <input id="labelFontSize" class="input" type="number" min="6" max="240" value="36" />
+          </label>
+
+          <label class="field">
+            <span>Color</span>
+            <input id="labelColor" class="color-input admin-color-input" type="color" value="#111111" />
+          </label>
+
+          <div class="field">
+            <span>Formatting</span>
+            <div class="check-row">
+              <label><input id="labelBold" type="checkbox" /> Bold</label>
+              <label><input id="labelItalic" type="checkbox" /> Italic</label>
+              <label><input id="labelUnderline" type="checkbox" /> Underline</label>
+            </div>
+          </div>
+
+          <label class="check-field field-full">
+            <input id="labelVisible" type="checkbox" checked />
+            <span>Visible on the user page</span>
+          </label>
+
+          <div id="stylePreview" class="style-preview field-full">Preview text</div>
+
+          <div class="button-row field-full">
+            <button class="button button-primary" type="submit">Save option</button>
+            <button id="cancelEditButton" class="button button-secondary hidden" type="button">Cancel edit</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel admin-card">
+        <div class="panel-heading">
+          <div>
+            <h2>Manage text options</h2>
+            <p id="optionCount">0 options</p>
+          </div>
+
+          <button id="seedButton" class="button button-secondary" type="button">Add starter options</button>
+        </div>
+
+        <label class="sr-only" for="adminSearch">Search text options</label>
+        <input id="adminSearch" class="input" type="search" placeholder="Search options…" />
+        <div id="adminLabelList" class="admin-list"></div>
+      </section>
+
+      <section class="panel admin-card settings-card">
+        <div class="panel-heading">
+          <div>
+            <h2>Template and printing</h2>
+            <p>Keep 94207.avif in the same GitHub folder as this index.html.</p>
+          </div>
+        </div>
+
+        <form id="settingsForm" class="form-grid">
+          <label class="field field-full">
+            <span>Template image path</span>
+            <input id="templatePath" class="input" type="text" value="94207.avif" />
+          </label>
+
+          <label class="field">
+            <span>Printed width (inches)</span>
+            <input id="labelWidth" class="input" type="number" min="0.25" max="30" step="0.01" value="4" />
+          </label>
+
+          <label class="field">
+            <span>Printed height (inches)</span>
+            <input id="labelHeight" class="input" type="number" min="0.25" max="30" step="0.01" value="3" />
+          </label>
+
+          <label class="field">
+            <span>Editor width (pixels)</span>
+            <input id="canvasWidth" class="input" type="number" min="300" max="3000" step="1" value="1000" />
+          </label>
+
+          <label class="field">
+            <span>Editor height (pixels)</span>
+            <input id="canvasHeight" class="input" type="number" min="300" max="3000" step="1" value="750" />
+          </label>
+
+          <div class="button-row field-full">
+            <button class="button button-primary" type="submit">Save settings</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      set,
+      update,
+      remove,
+      push
+    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      signOut,
+      sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBEvmh29koHesrtrTr2xUPeQmomGTz0wYE",
+      authDomain: "abe-label-making.firebaseapp.com",
+      databaseURL: "https://abe-label-making-default-rtdb.firebaseio.com",
+      projectId: "abe-label-making",
+      storageBucket: "abe-label-making.firebasestorage.app",
+      messagingSenderId: "117215817446",
+      appId: "1:117215817446:web:f9c82dc0049881ea881527",
+      measurementId: "G-7PBSVEV177"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const db = getDatabase(firebaseApp);
+    const auth = getAuth(firebaseApp);
+
+    const FONT_OPTIONS = [
+      "Arial",
+      "Arial Black",
+      "Avenir",
+      "Baskerville",
+      "Courier New",
+      "Georgia",
+      "Helvetica",
+      "Impact",
+      "Palatino",
+      "Tahoma",
+      "Times New Roman",
+      "Trebuchet MS",
+      "Verdana"
+    ];
+
+    const DEFAULT_SETTINGS = {
+      templatePath: "94207.avif",
+      labelWidth: 4,
+      labelHeight: 3,
+      canvasWidth: 1000,
+      canvasHeight: 750
+    };
+
+    const STARTER_LABELS = [
+      {
+        text: "Plain Sourdough",
+        category: "Products",
+        fontFamily: "Georgia",
+        fontSize: 48,
+        color: "#111111",
+        bold: true,
+        italic: false,
+        underline: false,
+        visible: true,
+        sortOrder: 10
+      },
+      {
+        text: "Fresh Baked",
+        category: "Details",
+        fontFamily: "Arial",
+        fontSize: 28,
+        color: "#111111",
+        bold: false,
+        italic: true,
+        underline: false,
+        visible: true,
+        sortOrder: 20
+      },
+      {
+        text: "Net Wt.",
+        category: "Details",
+        fontFamily: "Arial",
+        fontSize: 24,
+        color: "#111111",
+        bold: true,
+        italic: false,
+        underline: false,
+        visible: true,
+        sortOrder: 30
+      }
+    ];
+
+    const LABEL_OBJECT_PROPERTIES = [
+      "id",
+      "sourceLabelId",
+      "fontFamily",
+      "fontSize",
+      "fontWeight",
+      "fontStyle",
+      "underline",
+      "fill",
+      "textAlign"
+    ];
+
+    const state = {
+      labels: [],
+      settings: { ...DEFAULT_SETTINGS },
+      activeCategory: "All",
+      templateImage: null,
+      history: [],
+      historyIndex: -1,
+      restoringHistory: false,
+      initializedHistory: false,
+      currentUser: null,
+      userViewActive: true
+    };
+
+    const elements = {
+      pageTitle: document.getElementById("pageTitle"),
+      connectionStatus: document.getElementById("connectionStatus"),
+      authStatus: document.getElementById("authStatus"),
+      openUserButton: document.getElementById("openUserButton"),
+      openAdminButton: document.getElementById("openAdminButton"),
+      signOutButton: document.getElementById("signOutButton"),
+      userPage: document.getElementById("userPage"),
+      adminPage: document.getElementById("adminPage"),
+
+      librarySearch: document.getElementById("librarySearch"),
+      categoryFilters: document.getElementById("categoryFilters"),
+      labelLibrary: document.getElementById("labelLibrary"),
+      canvasStage: document.getElementById("canvasStage"),
+      canvasFrame: document.getElementById("canvasFrame"),
+      templateMessage: document.getElementById("templateMessage"),
+      selectionToolbar: document.getElementById("selectionToolbar"),
+      selectedFont: document.getElementById("selectedFont"),
+      selectedSize: document.getElementById("selectedSize"),
+      selectedColor: document.getElementById("selectedColor"),
+      boldButton: document.getElementById("boldButton"),
+      italicButton: document.getElementById("italicButton"),
+      underlineButton: document.getElementById("underlineButton"),
+      duplicateButton: document.getElementById("duplicateButton"),
+      forwardButton: document.getElementById("forwardButton"),
+      backwardButton: document.getElementById("backwardButton"),
+      deleteButton: document.getElementById("deleteButton"),
+      undoButton: document.getElementById("undoButton"),
+      redoButton: document.getElementById("redoButton"),
+      clearButton: document.getElementById("clearButton"),
+      downloadButton: document.getElementById("downloadButton"),
+      printButton: document.getElementById("printButton"),
+
+      loginPanel: document.getElementById("loginPanel"),
+      loginForm: document.getElementById("loginForm"),
+      loginEmail: document.getElementById("loginEmail"),
+      loginPassword: document.getElementById("loginPassword"),
+      resetPasswordButton: document.getElementById("resetPasswordButton"),
+      loginMessage: document.getElementById("loginMessage"),
+      adminWorkspace: document.getElementById("adminWorkspace"),
+      labelForm: document.getElementById("labelForm"),
+      labelFormTitle: document.getElementById("labelFormTitle"),
+      editingId: document.getElementById("editingId"),
+      labelText: document.getElementById("labelText"),
+      labelCategory: document.getElementById("labelCategory"),
+      labelSortOrder: document.getElementById("labelSortOrder"),
+      labelFont: document.getElementById("labelFont"),
+      labelFontSize: document.getElementById("labelFontSize"),
+      labelColor: document.getElementById("labelColor"),
+      labelBold: document.getElementById("labelBold"),
+      labelItalic: document.getElementById("labelItalic"),
+      labelUnderline: document.getElementById("labelUnderline"),
+      labelVisible: document.getElementById("labelVisible"),
+      stylePreview: document.getElementById("stylePreview"),
+      cancelEditButton: document.getElementById("cancelEditButton"),
+      seedButton: document.getElementById("seedButton"),
+      adminSearch: document.getElementById("adminSearch"),
+      adminLabelList: document.getElementById("adminLabelList"),
+      optionCount: document.getElementById("optionCount"),
+      settingsForm: document.getElementById("settingsForm"),
+      templatePath: document.getElementById("templatePath"),
+      labelWidth: document.getElementById("labelWidth"),
+      labelHeight: document.getElementById("labelHeight"),
+      canvasWidth: document.getElementById("canvasWidth"),
+      canvasHeight: document.getElementById("canvasHeight"),
+
+      toast: document.getElementById("toast")
+    };
+
+    let toastTimer = null;
+
+    function showToast(message) {
+      window.clearTimeout(toastTimer);
+      elements.toast.textContent = message;
+      elements.toast.classList.remove("hidden");
+      toastTimer = window.setTimeout(() => elements.toast.classList.add("hidden"), 2800);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeLabel(raw, id) {
+      return {
+        id,
+        text: String(raw?.text ?? ""),
+        category: String(raw?.category ?? "General").trim() || "General",
+        fontFamily: String(raw?.fontFamily ?? "Arial"),
+        fontSize: Number(raw?.fontSize ?? 36),
+        color: String(raw?.color ?? "#111111"),
+        bold: Boolean(raw?.bold),
+        italic: Boolean(raw?.italic),
+        underline: Boolean(raw?.underline),
+        visible: raw?.visible !== false,
+        sortOrder: Number(raw?.sortOrder ?? 0)
+      };
+    }
+
+    function sortedLabels() {
+      return [...state.labels].sort((a, b) => {
+        const orderDifference = a.sortOrder - b.sortOrder;
+        return orderDifference || a.text.localeCompare(b.text);
+      });
+    }
+
+    function populateFontMenus() {
+      const options = FONT_OPTIONS
+        .map(font => `<option value="${escapeHtml(font)}">${escapeHtml(font)}</option>`)
+        .join("");
+
+      elements.selectedFont.innerHTML = options;
+      elements.labelFont.innerHTML = options;
+    }
+
+    function showUserPage() {
+      state.userViewActive = true;
+      elements.userPage.classList.remove("hidden");
+      elements.adminPage.classList.add("hidden");
+      elements.openUserButton.classList.add("hidden");
+      elements.openAdminButton.classList.remove("hidden");
+      elements.authStatus.classList.add("hidden");
+      elements.signOutButton.classList.add("hidden");
+      elements.pageTitle.textContent = "Label Maker";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => canvas.calcOffset(), 0);
+    }
+
+    function showAdminPage() {
+      state.userViewActive = false;
+      elements.userPage.classList.add("hidden");
+      elements.adminPage.classList.remove("hidden");
+      elements.openUserButton.classList.remove("hidden");
+      elements.openAdminButton.classList.add("hidden");
+      elements.authStatus.classList.remove("hidden");
+      elements.signOutButton.classList.toggle("hidden", !state.currentUser);
+      elements.pageTitle.textContent = "Label Maker Admin";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    const canvas = new fabric.Canvas("labelCanvas", {
+      preserveObjectStacking: true,
+      selection: true,
+      backgroundColor: "#ffffff"
+    });
+
+    canvas.on("selection:created", syncSelectionToolbar);
+    canvas.on("selection:updated", syncSelectionToolbar);
+    canvas.on("selection:cleared", syncSelectionToolbar);
+    canvas.on("object:modified", () => {
+      syncSelectionToolbar();
+      saveHistory();
+    });
+    canvas.on("object:added", event => {
+      if (state.restoringHistory || event.target === state.templateImage) return;
+      saveHistory();
+    });
+    canvas.on("object:removed", event => {
+      if (state.restoringHistory || event.target === state.templateImage) return;
+      saveHistory();
+    });
+
+    function showTemplateMessage(message) {
+      elements.templateMessage.textContent = message;
+      elements.templateMessage.classList.remove("hidden");
+    }
+
+    function hideTemplateMessage() {
+      elements.templateMessage.classList.add("hidden");
+    }
+
+    function resizeCanvas() {
+      canvas.setWidth(Number(state.settings.canvasWidth));
+      canvas.setHeight(Number(state.settings.canvasHeight));
+      elements.canvasFrame.style.width = `${Number(state.settings.canvasWidth)}px`;
+      elements.canvasFrame.style.height = `${Number(state.settings.canvasHeight)}px`;
+      canvas.calcOffset();
+    }
+
+    function removeTemplate() {
+      if (!state.templateImage) return;
+      state.restoringHistory = true;
+      canvas.remove(state.templateImage);
+      state.restoringHistory = false;
+      state.templateImage = null;
+    }
+
+    function loadTemplate() {
+      resizeCanvas();
+      removeTemplate();
+      hideTemplateMessage();
+
+      const templatePath = state.settings.templatePath || "94207.avif";
+      const imageElement = new Image();
+      imageElement.crossOrigin = "anonymous";
+
+      imageElement.onload = () => {
+        const image = new fabric.Image(imageElement, {
+          left: 0,
+          top: 0,
+          originX: "left",
+          originY: "top",
+          selectable: false,
+          evented: false,
+          hoverCursor: "default",
+          lockMovementX: true,
+          lockMovementY: true,
+          excludeFromExport: false
+        });
+
+        image.scaleX = canvas.getWidth() / imageElement.naturalWidth;
+        image.scaleY = canvas.getHeight() / imageElement.naturalHeight;
+        state.templateImage = image;
+
+        state.restoringHistory = true;
+        canvas.add(image);
+        canvas.sendToBack(image);
+        state.restoringHistory = false;
+        canvas.requestRenderAll();
+
+        if (!state.initializedHistory) {
+          resetHistory();
+          state.initializedHistory = true;
+        }
+      };
+
+      imageElement.onerror = () => {
+        state.templateImage = null;
+        canvas.requestRenderAll();
+        showTemplateMessage(
+          `The template "${templatePath}" could not be loaded. Put it in the same GitHub folder as index.html, or change its path in Admin.`
+        );
+
+        if (!state.initializedHistory) {
+          resetHistory();
+          state.initializedHistory = true;
+        }
+      };
+
+      imageElement.src = new URL(templatePath, window.location.href).href;
+    }
+
+    function getTextObjects() {
+      return canvas.getObjects().filter(object => object !== state.templateImage);
+    }
+
+    function serializeDesign() {
+      return JSON.stringify(
+        getTextObjects().map(object => object.toObject(LABEL_OBJECT_PROPERTIES))
+      );
+    }
+
+    function resetHistory() {
+      state.history = [serializeDesign()];
+      state.historyIndex = 0;
+      updateHistoryButtons();
+    }
+
+    function saveHistory() {
+      if (state.restoringHistory || !state.initializedHistory) return;
+
+      const serialized = serializeDesign();
+      if (serialized === state.history[state.historyIndex]) return;
+
+      state.history = state.history.slice(0, state.historyIndex + 1);
+      state.history.push(serialized);
+
+      if (state.history.length > 60) {
+        state.history.shift();
+      } else {
+        state.historyIndex += 1;
+      }
+
+      updateHistoryButtons();
+    }
+
+    function restoreHistory(index) {
+      const serialized = state.history[index];
+      if (serialized === undefined) return;
+
+      const data = JSON.parse(serialized);
+      state.restoringHistory = true;
+
+      getTextObjects().forEach(object => canvas.remove(object));
+      canvas.discardActiveObject();
+
+      fabric.util.enlivenObjects(data, objects => {
+        objects.forEach(object => canvas.add(object));
+        if (state.templateImage) canvas.sendToBack(state.templateImage);
+        state.restoringHistory = false;
+        state.historyIndex = index;
+        canvas.requestRenderAll();
+        syncSelectionToolbar();
+        updateHistoryButtons();
+      });
+    }
+
+    function updateHistoryButtons() {
+      elements.undoButton.disabled = state.historyIndex <= 0;
+      elements.redoButton.disabled = state.historyIndex >= state.history.length - 1;
+    }
+
+    function undo() {
+      if (state.historyIndex > 0) restoreHistory(state.historyIndex - 1);
+    }
+
+    function redo() {
+      if (state.historyIndex < state.history.length - 1) {
+        restoreHistory(state.historyIndex + 1);
+      }
+    }
+
+    function getActiveText() {
+      const object = canvas.getActiveObject();
+      return object && object.type === "i-text" ? object : null;
+    }
+
+    function syncSelectionToolbar() {
+      const object = getActiveText();
+
+      if (!object) {
+        elements.selectionToolbar.classList.add("hidden");
+        return;
+      }
+
+      elements.selectionToolbar.classList.remove("hidden");
+      elements.selectedFont.value = object.fontFamily || "Arial";
+      elements.selectedSize.value = Math.round(Number(object.fontSize || 36));
+      elements.selectedColor.value = /^#[0-9a-f]{6}$/i.test(String(object.fill))
+        ? object.fill
+        : "#111111";
+
+      elements.boldButton.classList.toggle(
+        "active",
+        object.fontWeight === "bold" || Number(object.fontWeight) >= 700
+      );
+      elements.italicButton.classList.toggle("active", object.fontStyle === "italic");
+      elements.underlineButton.classList.toggle("active", Boolean(object.underline));
+    }
+
+    function updateActiveText(properties, save = true) {
+      const object = getActiveText();
+      if (!object) return;
+
+      object.set(properties);
+      object.setCoords();
+      canvas.requestRenderAll();
+      syncSelectionToolbar();
+      if (save) saveHistory();
+    }
+
+    function addLabelToCanvas(label, position = null) {
+      const textObject = new fabric.IText(label.text, {
+        left: position?.x ?? canvas.getWidth() / 2,
+        top: position?.y ?? canvas.getHeight() / 2,
+        originX: "center",
+        originY: "center",
+        fontFamily: label.fontFamily,
+        fontSize: label.fontSize,
+        fill: label.color,
+        fontWeight: label.bold ? "bold" : "normal",
+        fontStyle: label.italic ? "italic" : "normal",
+        underline: label.underline,
+        editable: true,
+        lockScalingFlip: true,
+        transparentCorners: false,
+        cornerStyle: "circle",
+        cornerColor: "#2457d6",
+        borderColor: "#2457d6",
+        padding: 5,
+        sourceLabelId: label.id
+      });
+
+      canvas.add(textObject);
+      canvas.setActiveObject(textObject);
+      canvas.requestRenderAll();
+      syncSelectionToolbar();
+    }
+
+    function duplicateActive() {
+      const object = getActiveText();
+      if (!object) {
+        showToast("Select text to duplicate.");
+        return;
+      }
+
+      object.clone(clone => {
+        clone.set({
+          left: Number(object.left || 0) + 24,
+          top: Number(object.top || 0) + 24
+        });
+        canvas.add(clone);
+        canvas.setActiveObject(clone);
+        canvas.requestRenderAll();
+      }, LABEL_OBJECT_PROPERTIES);
+    }
+
+    function deleteActive() {
+      const object = getActiveText();
+      if (!object) return;
+      canvas.remove(object);
+      canvas.discardActiveObject();
+      canvas.requestRenderAll();
+      syncSelectionToolbar();
+    }
+
+    function clearDesign() {
+      if (!getTextObjects().length) return;
+      if (!window.confirm("Remove all added text and start over?")) return;
+
+      state.restoringHistory = true;
+      getTextObjects().forEach(object => canvas.remove(object));
+      state.restoringHistory = false;
+      canvas.discardActiveObject();
+      canvas.requestRenderAll();
+      saveHistory();
+      syncSelectionToolbar();
+    }
+
+    function getCategories() {
+      return [
+        "All",
+        ...new Set(
+          state.labels
+            .filter(label => label.visible)
+            .map(label => label.category)
+            .sort((a, b) => a.localeCompare(b))
+        )
+      ];
+    }
+
+    function renderCategories() {
+      const categories = getCategories();
+
+      if (!categories.includes(state.activeCategory)) {
+        state.activeCategory = "All";
+      }
+
+      elements.categoryFilters.innerHTML = categories
+        .map(category => `
+          <button
+            class="category-chip ${category === state.activeCategory ? "active" : ""}"
+            type="button"
+            data-category="${escapeHtml(category)}"
+          >
+            ${escapeHtml(category)}
+          </button>
+        `)
+        .join("");
+
+      elements.categoryFilters.querySelectorAll("[data-category]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.activeCategory = button.dataset.category;
+          renderCategories();
+          renderLibrary();
+        });
+      });
+    }
+
+    function renderLibrary() {
+      const query = elements.librarySearch.value.trim().toLowerCase();
+
+      const visibleLabels = sortedLabels().filter(label => {
+        if (!label.visible) return false;
+        if (state.activeCategory !== "All" && label.category !== state.activeCategory) return false;
+        return (
+          label.text.toLowerCase().includes(query) ||
+          label.category.toLowerCase().includes(query)
+        );
+      });
+
+      if (!visibleLabels.length) {
+        elements.labelLibrary.innerHTML = `
+          <div class="empty-state">
+            No label text matches this search. An admin can add or show options from the Admin page.
+          </div>
+        `;
+        return;
+      }
+
+      elements.labelLibrary.innerHTML = visibleLabels
+        .map(label => `
+          <button
+            class="library-item"
+            type="button"
+            draggable="true"
+            data-label-id="${escapeHtml(label.id)}"
+          >
+            <span
+              class="library-text"
+              style="
+                font-family:${escapeHtml(label.fontFamily)};
+                font-size:${Math.min(label.fontSize, 30)}px;
+                color:${escapeHtml(label.color)};
+                font-weight:${label.bold ? "700" : "400"};
+                font-style:${label.italic ? "italic" : "normal"};
+                text-decoration:${label.underline ? "underline" : "none"};
+              "
+            >
+              ${escapeHtml(label.text)}
+            </span>
+            <span class="library-meta">${escapeHtml(label.category)}</span>
+          </button>
+        `)
+        .join("");
+
+      elements.labelLibrary.querySelectorAll("[data-label-id]").forEach(button => {
+        const labelId = button.dataset.labelId;
+
+        button.addEventListener("click", () => {
+          const label = state.labels.find(item => item.id === labelId);
+          if (label) addLabelToCanvas(label);
+        });
+
+        button.addEventListener("dragstart", event => {
+          event.dataTransfer.effectAllowed = "copy";
+          event.dataTransfer.setData("text/plain", labelId);
+        });
+      });
+    }
+
+    function canvasPointFromDrop(event) {
+      const rectangle = canvas.upperCanvasEl.getBoundingClientRect();
+
+      return {
+        x: (event.clientX - rectangle.left) * (canvas.getWidth() / rectangle.width),
+        y: (event.clientY - rectangle.top) * (canvas.getHeight() / rectangle.height)
+      };
+    }
+
+    function exportMultiplier() {
+      const widthMultiplier = (Number(state.settings.labelWidth) * 300) / canvas.getWidth();
+      const heightMultiplier = (Number(state.settings.labelHeight) * 300) / canvas.getHeight();
+      return Math.max(1, widthMultiplier, heightMultiplier);
+    }
+
+    function createExportDataUrl() {
+      canvas.discardActiveObject();
+      canvas.requestRenderAll();
+
+      return canvas.toDataURL({
+        format: "png",
+        multiplier: exportMultiplier(),
+        enableRetinaScaling: true
+      });
+    }
+
+    function downloadPng() {
+      const anchor = document.createElement("a");
+      anchor.href = createExportDataUrl();
+      anchor.download = `label-${new Date().toISOString().slice(0, 10)}.png`;
+      anchor.click();
+    }
+
+    function printLabel() {
+      const printWindow = window.open("", "_blank", "width=900,height=700");
+      if (!printWindow) {
+        showToast("Allow pop-ups so the print window can open.");
+        return;
+      }
+
+      const dataUrl = createExportDataUrl();
+      const width = Number(state.settings.labelWidth);
+      const height = Number(state.settings.labelHeight);
+
+      printWindow.document.write(`<!DOCTYPE html>
+        <html>
+          <head>
+            <title>Print Label</title>
+            <style>
+              html, body { margin: 0; padding: 0; }
+              @page { size: ${width}in ${height}in; margin: 0; }
+              img {
+                display: block;
+                width: ${width}in;
+                height: ${height}in;
+                object-fit: fill;
+              }
+            </style>
+          </head>
+          <body>
+            <img src="${dataUrl}" alt="Label" />
+            <script>
+              const image = document.querySelector("img");
+              image.addEventListener("load", () => {
+                window.focus();
+                window.print();
+              });
+              window.addEventListener("afterprint", () => window.close());
+            <\/script>
+          </body>
+        </html>`);
+      printWindow.document.close();
+    }
+
+    function updateStylePreview() {
+      const text = elements.labelText.value.trim() || "Preview text";
+      elements.stylePreview.textContent = text;
+      elements.stylePreview.style.fontFamily = elements.labelFont.value;
+      elements.stylePreview.style.fontSize = `${Math.min(Number(elements.labelFontSize.value || 36), 72)}px`;
+      elements.stylePreview.style.color = elements.labelColor.value;
+      elements.stylePreview.style.fontWeight = elements.labelBold.checked ? "700" : "400";
+      elements.stylePreview.style.fontStyle = elements.labelItalic.checked ? "italic" : "normal";
+      elements.stylePreview.style.textDecoration = elements.labelUnderline.checked ? "underline" : "none";
+    }
+
+    function resetLabelForm() {
+      elements.labelForm.reset();
+      elements.editingId.value = "";
+      elements.labelFormTitle.textContent = "Create text option";
+      elements.labelCategory.value = "General";
+      elements.labelSortOrder.value = "0";
+      elements.labelFont.value = "Arial";
+      elements.labelFontSize.value = "36";
+      elements.labelColor.value = "#111111";
+      elements.labelVisible.checked = true;
+      elements.cancelEditButton.classList.add("hidden");
+      updateStylePreview();
+    }
+
+    function beginEditing(label) {
+      elements.editingId.value = label.id;
+      elements.labelFormTitle.textContent = "Edit text option";
+      elements.labelText.value = label.text;
+      elements.labelCategory.value = label.category;
+      elements.labelSortOrder.value = String(label.sortOrder);
+      elements.labelFont.value = label.fontFamily;
+      elements.labelFontSize.value = String(label.fontSize);
+      elements.labelColor.value = label.color;
+      elements.labelBold.checked = label.bold;
+      elements.labelItalic.checked = label.italic;
+      elements.labelUnderline.checked = label.underline;
+      elements.labelVisible.checked = label.visible;
+      elements.cancelEditButton.classList.remove("hidden");
+      updateStylePreview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      elements.labelText.focus();
+    }
+
+    function renderAdminLabels() {
+      const query = elements.adminSearch.value.trim().toLowerCase();
+      const labels = sortedLabels().filter(label =>
+        label.text.toLowerCase().includes(query) ||
+        label.category.toLowerCase().includes(query)
+      );
+
+      elements.optionCount.textContent = `${state.labels.length} option${state.labels.length === 1 ? "" : "s"}`;
+
+      if (!labels.length) {
+        elements.adminLabelList.innerHTML = `
+          <div class="empty-state">
+            ${state.labels.length ? "No options match this search." : "No text options exist yet."}
+          </div>
+        `;
+        return;
+      }
+
+      elements.adminLabelList.innerHTML = labels
+        .map(label => `
+          <article class="admin-item ${label.visible ? "" : "hidden-option"}">
+            <div>
+              <div
+                class="admin-item-text"
+                style="
+                  font-family:${escapeHtml(label.fontFamily)};
+                  color:${escapeHtml(label.color)};
+                  font-weight:${label.bold ? "700" : "400"};
+                  font-style:${label.italic ? "italic" : "normal"};
+                  text-decoration:${label.underline ? "underline" : "none"};
+                "
+              >
+                ${escapeHtml(label.text)}
+              </div>
+              <div class="admin-item-meta">
+                ${escapeHtml(label.category)} · ${escapeHtml(label.fontFamily)} ·
+                ${label.fontSize}px · Order ${label.sortOrder} ·
+                ${label.visible ? "Visible" : "Hidden"}
+              </div>
+            </div>
+
+            <div class="admin-item-actions">
+              <button class="small-button" type="button" data-action="toggle" data-id="${escapeHtml(label.id)}">
+                ${label.visible ? "Hide" : "Show"}
+              </button>
+              <button class="small-button" type="button" data-action="edit" data-id="${escapeHtml(label.id)}">
+                Edit
+              </button>
+              <button class="small-button danger" type="button" data-action="delete" data-id="${escapeHtml(label.id)}">
+                Delete
+              </button>
+            </div>
+          </article>
+        `)
+        .join("");
+
+      elements.adminLabelList.querySelectorAll("[data-action]").forEach(button => {
+        button.addEventListener("click", () => handleAdminListAction(button.dataset.action, button.dataset.id));
+      });
+    }
+
+    async function handleAdminListAction(action, id) {
+      const label = state.labels.find(item => item.id === id);
+      if (!label) return;
+
+      try {
+        if (action === "toggle") {
+          await update(ref(db, `labelMaker/labels/${id}`), {
+            visible: !label.visible,
+            updatedAt: Date.now()
+          });
+          showToast(label.visible ? "Option hidden." : "Option shown.");
+        } else if (action === "edit") {
+          beginEditing(label);
+        } else if (action === "delete") {
+          if (!window.confirm(`Delete "${label.text}"?`)) return;
+          await remove(ref(db, `labelMaker/labels/${id}`));
+          if (elements.editingId.value === id) resetLabelForm();
+          showToast("Option deleted.");
+        }
+      } catch (error) {
+        console.error(error);
+        showToast("The change could not be saved.");
+      }
+    }
+
+    function fillSettingsForm() {
+      elements.templatePath.value = state.settings.templatePath;
+      elements.labelWidth.value = state.settings.labelWidth;
+      elements.labelHeight.value = state.settings.labelHeight;
+      elements.canvasWidth.value = state.settings.canvasWidth;
+      elements.canvasHeight.value = state.settings.canvasHeight;
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      elements.loginMessage.classList.add("hidden");
+
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          elements.loginEmail.value.trim(),
+          elements.loginPassword.value
+        );
+        elements.loginForm.reset();
+      } catch (error) {
+        console.error(error);
+        elements.loginMessage.textContent =
+          "Sign-in failed. Check the email/password and confirm Email/Password is enabled in Firebase Authentication.";
+        elements.loginMessage.classList.remove("hidden");
+      }
+    }
+
+    async function handlePasswordReset() {
+      const email = elements.loginEmail.value.trim();
+
+      if (!email) {
+        elements.loginMessage.textContent = "Enter your admin email first.";
+        elements.loginMessage.classList.remove("hidden");
+        elements.loginEmail.focus();
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        elements.loginMessage.textContent = "A password-reset email was sent.";
+        elements.loginMessage.classList.remove("hidden");
+      } catch (error) {
+        console.error(error);
+        elements.loginMessage.textContent = "The reset email could not be sent.";
+        elements.loginMessage.classList.remove("hidden");
+      }
+    }
+
+    async function handleLabelSubmit(event) {
+      event.preventDefault();
+
+      const id = elements.editingId.value;
+      const record = {
+        text: elements.labelText.value.trim(),
+        category: elements.labelCategory.value.trim() || "General",
+        sortOrder: Number(elements.labelSortOrder.value || 0),
+        fontFamily: elements.labelFont.value,
+        fontSize: Number(elements.labelFontSize.value || 36),
+        color: elements.labelColor.value,
+        bold: elements.labelBold.checked,
+        italic: elements.labelItalic.checked,
+        underline: elements.labelUnderline.checked,
+        visible: elements.labelVisible.checked,
+        updatedAt: Date.now()
+      };
+
+      if (!record.text) {
+        showToast("Enter text for the option.");
+        return;
+      }
+
+      try {
+        if (id) {
+          await update(ref(db, `labelMaker/labels/${id}`), record);
+          showToast("Option updated.");
+        } else {
+          record.createdAt = Date.now();
+          const newReference = push(ref(db, "labelMaker/labels"));
+          await set(newReference, record);
+          showToast("Option created.");
+        }
+
+        resetLabelForm();
+      } catch (error) {
+        console.error(error);
+        showToast("The option could not be saved.");
+      }
+    }
+
+    async function seedStarterLabels() {
+      if (
+        state.labels.length &&
+        !window.confirm("Add the starter options in addition to the current options?")
+      ) {
+        return;
+      }
+
+      try {
+        for (const label of STARTER_LABELS) {
+          const newReference = push(ref(db, "labelMaker/labels"));
+          await set(newReference, {
+            ...label,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          });
+        }
+        showToast("Starter options added.");
+      } catch (error) {
+        console.error(error);
+        showToast("Starter options could not be added.");
+      }
+    }
+
+    async function handleSettingsSubmit(event) {
+      event.preventDefault();
+
+      const settings = {
+        templatePath: elements.templatePath.value.trim() || "94207.avif",
+        labelWidth: Number(elements.labelWidth.value),
+        labelHeight: Number(elements.labelHeight.value),
+        canvasWidth: Number(elements.canvasWidth.value),
+        canvasHeight: Number(elements.canvasHeight.value),
+        updatedAt: Date.now()
+      };
+
+      if (
+        settings.labelWidth <= 0 ||
+        settings.labelHeight <= 0 ||
+        settings.canvasWidth < 300 ||
+        settings.canvasHeight < 300
+      ) {
+        showToast("Enter valid template and print dimensions.");
+        return;
+      }
+
+      try {
+        await set(ref(db, "labelMaker/settings"), settings);
+        showToast("Template settings saved.");
+      } catch (error) {
+        console.error(error);
+        showToast("Settings could not be saved.");
+      }
+    }
+
+    function subscribeToFirebase() {
+      onValue(
+        ref(db, "labelMaker/labels"),
+        snapshot => {
+          const raw = snapshot.val() || {};
+          state.labels = Object.entries(raw).map(([id, value]) => normalizeLabel(value, id));
+          renderCategories();
+          renderLibrary();
+          renderAdminLabels();
+          elements.connectionStatus.textContent = "Live data connected";
+          elements.connectionStatus.className = "status-badge online";
+        },
+        error => {
+          console.error(error);
+          elements.connectionStatus.textContent = "Database unavailable";
+          elements.connectionStatus.className = "status-badge error";
+          elements.labelLibrary.innerHTML = `
+            <div class="empty-state">
+              The label options could not be loaded. Check Firebase Realtime Database rules.
+            </div>
+          `;
+        }
+      );
+
+      onValue(
+        ref(db, "labelMaker/settings"),
+        snapshot => {
+          state.settings = { ...DEFAULT_SETTINGS, ...(snapshot.val() || {}) };
+          fillSettingsForm();
+          loadTemplate();
+        },
+        error => {
+          console.error(error);
+          state.settings = { ...DEFAULT_SETTINGS };
+          fillSettingsForm();
+          loadTemplate();
+        }
+      );
+
+      onAuthStateChanged(auth, user => {
+        state.currentUser = user;
+
+        if (user) {
+          elements.authStatus.textContent = user.email || "Admin signed in";
+          elements.authStatus.className = "status-badge online";
+          elements.loginPanel.classList.add("hidden");
+          elements.adminWorkspace.classList.remove("hidden");
+          elements.signOutButton.classList.toggle("hidden", state.userViewActive);
+        } else {
+          elements.authStatus.textContent = "Signed out";
+          elements.authStatus.className = "status-badge";
+          elements.loginPanel.classList.remove("hidden");
+          elements.adminWorkspace.classList.add("hidden");
+          elements.signOutButton.classList.add("hidden");
+        }
+      });
+    }
+
+    function attachEvents() {
+      elements.openUserButton.addEventListener("click", showUserPage);
+      elements.openAdminButton.addEventListener("click", showAdminPage);
+      elements.signOutButton.addEventListener("click", () => signOut(auth));
+
+      elements.librarySearch.addEventListener("input", renderLibrary);
+
+      elements.canvasStage.addEventListener("dragover", event => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+        elements.canvasStage.classList.add("drag-active");
+      });
+
+      elements.canvasStage.addEventListener("dragleave", event => {
+        if (!elements.canvasStage.contains(event.relatedTarget)) {
+          elements.canvasStage.classList.remove("drag-active");
+        }
+      });
+
+      elements.canvasStage.addEventListener("drop", event => {
+        event.preventDefault();
+        elements.canvasStage.classList.remove("drag-active");
+
+        const labelId = event.dataTransfer.getData("text/plain");
+        const label = state.labels.find(item => item.id === labelId);
+        if (label) addLabelToCanvas(label, canvasPointFromDrop(event));
+      });
+
+      elements.selectedFont.addEventListener("change", () => {
+        updateActiveText({ fontFamily: elements.selectedFont.value });
+      });
+
+      elements.selectedSize.addEventListener("change", () => {
+        updateActiveText({ fontSize: Number(elements.selectedSize.value) });
+      });
+
+      elements.selectedColor.addEventListener("input", () => {
+        updateActiveText({ fill: elements.selectedColor.value }, false);
+      });
+      elements.selectedColor.addEventListener("change", saveHistory);
+
+      elements.boldButton.addEventListener("click", () => {
+        const object = getActiveText();
+        if (!object) return;
+        const isBold = object.fontWeight === "bold" || Number(object.fontWeight) >= 700;
+        updateActiveText({ fontWeight: isBold ? "normal" : "bold" });
+      });
+
+      elements.italicButton.addEventListener("click", () => {
+        const object = getActiveText();
+        if (!object) return;
+        updateActiveText({ fontStyle: object.fontStyle === "italic" ? "normal" : "italic" });
+      });
+
+      elements.underlineButton.addEventListener("click", () => {
+        const object = getActiveText();
+        if (!object) return;
+        updateActiveText({ underline: !object.underline });
+      });
+
+      elements.duplicateButton.addEventListener("click", duplicateActive);
+      elements.deleteButton.addEventListener("click", deleteActive);
+
+      elements.forwardButton.addEventListener("click", () => {
+        const object = getActiveText();
+        if (!object) return;
+        canvas.bringForward(object);
+        if (state.templateImage) canvas.sendToBack(state.templateImage);
+        canvas.requestRenderAll();
+        saveHistory();
+      });
+
+      elements.backwardButton.addEventListener("click", () => {
+        const object = getActiveText();
+        if (!object) return;
+        canvas.sendBackwards(object);
+        if (state.templateImage) canvas.sendToBack(state.templateImage);
+        canvas.requestRenderAll();
+        saveHistory();
+      });
+
+      elements.undoButton.addEventListener("click", undo);
+      elements.redoButton.addEventListener("click", redo);
+      elements.clearButton.addEventListener("click", clearDesign);
+      elements.downloadButton.addEventListener("click", downloadPng);
+      elements.printButton.addEventListener("click", printLabel);
+
+      elements.loginForm.addEventListener("submit", handleLogin);
+      elements.resetPasswordButton.addEventListener("click", handlePasswordReset);
+      elements.labelForm.addEventListener("submit", handleLabelSubmit);
+      elements.cancelEditButton.addEventListener("click", resetLabelForm);
+      elements.seedButton.addEventListener("click", seedStarterLabels);
+      elements.adminSearch.addEventListener("input", renderAdminLabels);
+      elements.settingsForm.addEventListener("submit", handleSettingsSubmit);
+
+      [
+        elements.labelText,
+        elements.labelFont,
+        elements.labelFontSize,
+        elements.labelColor,
+        elements.labelBold,
+        elements.labelItalic,
+        elements.labelUnderline
+      ].forEach(element => {
+        element.addEventListener("input", updateStylePreview);
+        element.addEventListener("change", updateStylePreview);
+      });
+
+      document.addEventListener("keydown", event => {
+        const activeElement = document.activeElement;
+        const editingCanvasText = getActiveText()?.isEditing;
+        const typingInForm = ["INPUT", "TEXTAREA", "SELECT"].includes(activeElement?.tagName);
+
+        if (editingCanvasText || typingInForm || !state.userViewActive) return;
+
+        const commandKey = event.ctrlKey || event.metaKey;
+        const key = event.key.toLowerCase();
+
+        if (commandKey && key === "z") {
+          event.preventDefault();
+          event.shiftKey ? redo() : undo();
+        } else if (commandKey && key === "y") {
+          event.preventDefault();
+          redo();
+        } else if (commandKey && key === "d") {
+          event.preventDefault();
+          duplicateActive();
+        } else if (event.key === "Delete" || event.key === "Backspace") {
+          event.preventDefault();
+          deleteActive();
+        }
+      });
+    }
+
+    function start() {
+      populateFontMenus();
+      resetLabelForm();
+      attachEvents();
+      resizeCanvas();
+      subscribeToFirebase();
+      showUserPage();
+    }
+
+    start();
+  </script>
+</body>
+</html>
