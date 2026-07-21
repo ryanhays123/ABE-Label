@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Create and print wire, cable, equipment, and technology labels.">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Create and print wire, cable, equipment, and technology labels." />
   <title>ABE Wire & Equipment Label Maker</title>
 
   <script
@@ -32,9 +32,7 @@
     }
 
     * { box-sizing: border-box; }
-
     html { min-height: 100%; }
-
     body {
       min-height: 100vh;
       margin: 0;
@@ -46,7 +44,6 @@
     button, input, select, textarea { font: inherit; }
     button { cursor: pointer; }
     h1, h2, h3, p { margin-top: 0; }
-
     .hidden { display: none !important; }
 
     .sr-only {
@@ -90,8 +87,7 @@
       letter-spacing: 0.14em;
     }
 
-    .header-actions,
-    .button-row {
+    .header-actions, .button-row {
       display: flex;
       align-items: center;
       gap: 9px;
@@ -141,30 +137,11 @@
       box-shadow: 0 5px 14px rgba(26,35,48,0.1);
     }
 
-    .button:disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-    }
-
-    .button-primary {
-      border-color: var(--primary);
-      background: var(--primary);
-      color: #fff;
-    }
-
+    .button:disabled { cursor: not-allowed; opacity: 0.45; }
+    .button-primary { border-color: var(--primary); background: var(--primary); color: #fff; }
     .button-primary:hover:not(:disabled) { background: var(--primary-dark); }
-
-    .button-secondary {
-      border-color: var(--line);
-      background: var(--panel);
-      color: var(--text);
-    }
-
-    .button-danger {
-      border-color: #efc2bd;
-      background: var(--danger-bg);
-      color: var(--danger);
-    }
+    .button-secondary { border-color: var(--line); background: var(--panel); color: var(--text); }
+    .button-danger { border-color: #efc2bd; background: var(--danger-bg); color: var(--danger); }
 
     .small-button {
       min-height: 32px;
@@ -177,20 +154,8 @@
       font-weight: 760;
     }
 
-    .small-button.danger {
-      border-color: #efc2bd;
-      background: var(--danger-bg);
-      color: var(--danger);
-    }
-
-    .text-button {
-      padding: 4px;
-      border: 0;
-      background: transparent;
-      color: var(--primary);
-      font-weight: 750;
-      text-align: left;
-    }
+    .small-button.danger { border-color: #efc2bd; background: var(--danger-bg); color: var(--danger); }
+    .text-button { padding: 4px; border: 0; background: transparent; color: var(--primary); font-weight: 750; text-align: left; }
 
     .panel {
       border: 1px solid var(--line);
@@ -210,35 +175,11 @@
       color: var(--text);
     }
 
-    .input:focus {
-      border-color: #7b9ce9;
-      box-shadow: 0 0 0 3px rgba(36,87,214,0.12);
-    }
-
-    .textarea {
-      min-height: 88px;
-      resize: vertical;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .field > span {
-      color: #404a58;
-      font-size: 0.79rem;
-      font-weight: 800;
-    }
-
+    .input:focus { border-color: #7b9ce9; box-shadow: 0 0 0 3px rgba(36,87,214,0.12); }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field > span { color: #404a58; font-size: 0.79rem; font-weight: 800; }
     .field-full { grid-column: 1 / -1; }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 13px;
-    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
 
     .check-row {
       min-height: 41px;
@@ -251,12 +192,7 @@
       border-radius: 9px;
     }
 
-    .check-row label {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.82rem;
-    }
+    .check-row label { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; }
 
     .notice {
       margin-top: 12px;
@@ -302,8 +238,7 @@
       overflow-y: auto;
     }
 
-    .panel-heading,
-    .editor-heading {
+    .panel-heading, .editor-heading {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
@@ -311,26 +246,10 @@
       margin-bottom: 15px;
     }
 
-    .panel-heading h2,
-    .editor-heading h2 {
-      margin-bottom: 4px;
-      font-size: 1.05rem;
-    }
+    .panel-heading h2, .editor-heading h2 { margin-bottom: 4px; font-size: 1.05rem; }
+    .panel-heading p, .editor-heading p { margin-bottom: 0; color: var(--muted); font-size: 0.86rem; line-height: 1.45; }
 
-    .panel-heading p,
-    .editor-heading p {
-      margin-bottom: 0;
-      color: var(--muted);
-      font-size: 0.86rem;
-      line-height: 1.45;
-    }
-
-    .category-filters {
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
-      margin: 12px 0;
-    }
+    .category-filters { display: flex; gap: 7px; flex-wrap: wrap; margin: 12px 0; }
 
     .category-chip {
       padding: 6px 9px;
@@ -342,17 +261,8 @@
       font-weight: 760;
     }
 
-    .category-chip.active {
-      border-color: var(--primary);
-      background: #eef3ff;
-      color: var(--primary);
-    }
-
-    .preset-library {
-      display: flex;
-      flex-direction: column;
-      gap: 11px;
-    }
+    .category-chip.active { border-color: var(--primary); background: #eef3ff; color: var(--primary); }
+    .preset-library { display: flex; flex-direction: column; gap: 11px; }
 
     .preset-card {
       width: 100%;
@@ -364,12 +274,19 @@
       cursor: grab;
     }
 
-    .preset-card:hover {
-      border-color: #91abea;
-      background: #f8faff;
+    .preset-card:hover { border-color: #91abea; background: #f8faff; }
+    .preset-card:active { cursor: grabbing; }
+
+    .preset-preview {
+      width: 100%;
+      aspect-ratio: 2.675 / 1;
+      overflow: hidden;
+      border: 1px solid #eef1f4;
+      border-radius: 8px;
+      background: #fff;
     }
 
-    .preset-card:active { cursor: grabbing; }
+    .preset-preview canvas { display: block; width: 100%; height: 100%; }
 
     .preset-card-title {
       margin-top: 8px;
@@ -381,29 +298,7 @@
       font-weight: 800;
     }
 
-    .preset-card-category {
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 650;
-    }
-
-    .preset-preview {
-      width: 100%;
-      aspect-ratio: 2.675 / 1;
-      position: relative;
-      container-type: size;
-      overflow: hidden;
-      border-radius: 8px;
-      background: #fff center / 100% 100% no-repeat;
-    }
-
-    .preset-preview-text {
-      position: absolute;
-      transform-origin: center;
-      white-space: pre;
-      line-height: 1.05;
-      pointer-events: none;
-    }
+    .preset-card-category { color: var(--muted); font-size: 0.7rem; font-weight: 650; }
 
     .empty-state {
       padding: 22px 14px;
@@ -415,10 +310,7 @@
       line-height: 1.5;
     }
 
-    .sheet-panel {
-      min-width: 0;
-      padding: 18px;
-    }
+    .sheet-panel { min-width: 0; padding: 18px; }
 
     .sheet-stage {
       min-height: 650px;
@@ -439,74 +331,19 @@
       background-size: 24px 24px;
     }
 
-    .sheet-stage.drag-active {
-      outline: 3px solid rgba(36,87,214,0.3);
-      outline-offset: -3px;
-    }
-
-    .canvas-frame {
-      flex: 0 0 auto;
-      background: #fff;
-      box-shadow: 0 16px 45px rgba(23,31,42,0.23);
-    }
-
-    .canvas-container { display: block; }
-
-    .sheet-toolbar {
-      margin-top: 14px;
-      padding: 12px;
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      flex-wrap: wrap;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      background: var(--panel-2);
-    }
-
-    .sheet-help {
-      margin: 14px 0 0;
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.45;
-    }
+    .sheet-stage.drag-active { outline: 3px solid rgba(36,87,214,0.3); outline-offset: -3px; }
+    .canvas-frame { flex: 0 0 auto; background: #fff; box-shadow: 0 16px 45px rgba(23,31,42,0.23); }
+    .sheet-toolbar { margin-top: 14px; padding: 12px; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-2); }
+    .sheet-help { margin: 14px 0 0; color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
 
     /* ADMIN PAGE */
-    .admin-main {
-      width: min(1550px, 100%);
-      margin: 0 auto;
-      padding: 22px;
-    }
-
-    .login-panel {
-      width: min(470px, 100%);
-      margin: 40px auto;
-      padding: 24px;
-    }
-
-    .login-panel > p {
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .stack-form {
-      display: flex;
-      flex-direction: column;
-      gap: 13px;
-    }
-
-    .admin-grid {
-      display: grid;
-      grid-template-columns: minmax(440px, 1.12fr) minmax(360px, 0.88fr);
-      gap: 20px;
-    }
-
-    .admin-card {
-      padding: 20px;
-      align-self: start;
-    }
-
-    .settings-card { grid-column: 1 / -1; }
+    .admin-main { width: min(1550px, 100%); margin: 0 auto; padding: 22px; }
+    .login-panel { width: min(470px, 100%); margin: 40px auto; padding: 24px; }
+    .login-panel > p { color: var(--muted); line-height: 1.5; }
+    .stack-form { display: flex; flex-direction: column; gap: 13px; }
+    .admin-grid { display: grid; grid-template-columns: minmax(440px, 1.12fr) minmax(360px, 0.88fr); gap: 20px; }
+    .admin-card { padding: 20px; align-self: start; }
+    .settings-card, .admin-users-card { grid-column: 1 / -1; }
 
     .preset-editor-stage {
       min-height: 350px;
@@ -520,20 +357,8 @@
       background: #e9edf2;
     }
 
-    .preset-canvas-frame {
-      width: 800px;
-      height: 300px;
-      flex: 0 0 auto;
-      background: #fff;
-      box-shadow: 0 12px 30px rgba(23,31,42,0.2);
-    }
-
-    .text-add-row {
-      margin: 14px 0;
-      display: grid;
-      grid-template-columns: minmax(0,1fr) auto;
-      gap: 9px;
-    }
+    .preset-canvas-frame { width: 800px; height: 300px; flex: 0 0 auto; background: #fff; box-shadow: 0 12px 30px rgba(23,31,42,0.2); }
+    .text-add-row { margin: 14px 0; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 9px; }
 
     .format-toolbar {
       margin: 12px 0;
@@ -547,65 +372,21 @@
       background: var(--panel-2);
     }
 
-    .compact-field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 760;
-    }
-
-    .compact-field select,
-    .compact-field input[type="number"] {
-      min-height: 36px;
-      padding: 6px 8px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-    }
-
+    .compact-field { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 0.7rem; font-weight: 760; }
+    .compact-field select, .compact-field input[type="number"] { min-height: 36px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
     .compact-field select { min-width: 145px; }
     .compact-field input[type="number"] { width: 78px; }
-
-    .color-input {
-      width: 50px;
-      height: 36px;
-      padding: 3px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-    }
-
+    .color-input { width: 50px; height: 36px; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
     .icon-group { display: flex; }
-
-    .icon-button {
-      width: 38px;
-      height: 36px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-    }
-
+    .icon-button { width: 38px; height: 36px; border: 1px solid var(--line); background: var(--panel); }
     .icon-button:first-child { border-radius: 8px 0 0 8px; }
     .icon-button:last-child { border-radius: 0 8px 8px 0; }
     .icon-button + .icon-button { margin-left: -1px; }
+    .icon-button.active { position: relative; z-index: 1; border-color: var(--primary); background: #eaf0ff; color: var(--primary); }
 
-    .icon-button.active {
-      position: relative;
-      z-index: 1;
-      border-color: var(--primary);
-      background: #eaf0ff;
-      color: var(--primary);
-    }
+    .admin-list, .admin-user-list { margin-top: 13px; display: flex; flex-direction: column; gap: 10px; }
 
-    .admin-list {
-      margin-top: 13px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .admin-item {
+    .admin-item, .admin-user-item {
       padding: 11px;
       display: grid;
       grid-template-columns: minmax(0,1fr) auto;
@@ -613,69 +394,15 @@
       align-items: center;
       border: 1px solid var(--line);
       border-radius: 11px;
+      background: var(--panel);
     }
 
-    .admin-item.hidden-option {
-      opacity: 0.56;
-      background: var(--panel-2);
-    }
-
-    .admin-item-name {
-      font-size: 0.88rem;
-      font-weight: 820;
-      overflow-wrap: anywhere;
-    }
-
-    .admin-item-meta {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 0.72rem;
-    }
-
-    .admin-item-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .advanced-grid {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--line);
-    }
-
-    details summary {
-      cursor: pointer;
-      color: var(--primary);
-      font-size: 0.84rem;
-      font-weight: 780;
-    }
-
-
-    .brand-footer {
-      width: min(1550px, calc(100% - 44px));
-      margin: 4px auto 26px;
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-top: 1px solid var(--line);
-    }
-
-    .brand-footer img {
-      display: block;
-      width: min(230px, 62vw);
-      height: auto;
-      max-height: 92px;
-      object-fit: contain;
-      opacity: 0.92;
-    }
-
-
-    .admin-users-card {
-      grid-column: 1 / -1;
-    }
+    .admin-item.hidden-option, .admin-user-item.inactive { opacity: 0.58; background: var(--panel-2); }
+    .admin-item-name, .admin-user-name { font-size: 0.88rem; font-weight: 820; overflow-wrap: anywhere; }
+    .admin-item-meta, .admin-user-email { margin-top: 4px; color: var(--muted); font-size: 0.72rem; overflow-wrap: anywhere; }
+    .admin-item-actions, .admin-user-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .advanced-grid { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+    details summary { cursor: pointer; color: var(--primary); font-size: 0.84rem; font-weight: 780; }
 
     .role-banner {
       margin-bottom: 14px;
@@ -707,135 +434,55 @@
       white-space: nowrap;
     }
 
-    .role-pill.super {
-      border-color: #c9b8f2;
-      background: #f7f3ff;
-      color: #5d35a3;
-    }
+    .role-pill.super { border-color: #c9b8f2; background: #f7f3ff; color: #5d35a3; }
+    .role-pill.ultimate { border-color: #e6c967; background: #fff9df; color: #705700; }
+    .role-pill.inactive { border-color: #efc2bd; background: var(--danger-bg); color: var(--danger); }
 
-    .role-pill.ultimate {
-      border-color: #e6c967;
-      background: #fff9df;
-      color: #705700;
-    }
-
-    .role-pill.inactive {
-      border-color: #efc2bd;
-      background: var(--danger-bg);
-      color: var(--danger);
-    }
-
-    .admin-user-list {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .admin-user-item {
-      padding: 12px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
-      align-items: center;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      background: var(--panel);
-    }
-
-    .admin-user-item.inactive {
-      opacity: 0.62;
-      background: var(--panel-2);
-    }
-
-    .admin-user-name {
-      font-size: 0.9rem;
-      font-weight: 830;
-      overflow-wrap: anywhere;
-    }
-
-    .admin-user-email {
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      overflow-wrap: anywhere;
-    }
-
-    .admin-user-meta {
-      margin-top: 5px;
+    .brand-footer {
+      width: min(1550px, calc(100% - 44px));
+      margin: 4px auto 26px;
+      padding: 18px;
       display: flex;
       align-items: center;
-      gap: 7px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 0.69rem;
+      justify-content: center;
+      border-top: 1px solid var(--line);
     }
 
-    .admin-user-actions {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
+    .brand-footer img { display: block; width: min(230px, 62vw); height: auto; max-height: 92px; object-fit: contain; opacity: 0.92; }
 
     @media (max-width: 1100px) {
-      .designer-layout,
-      .admin-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .library-panel {
-        max-height: none;
-        position: static;
-      }
-
-      .settings-card { grid-column: auto; }
+      .designer-layout, .admin-grid { grid-template-columns: 1fr; }
+      .library-panel { max-height: none; position: static; }
+      .settings-card, .admin-users-card { grid-column: auto; }
     }
 
     @media (max-width: 680px) {
-      .site-header {
-        padding: 12px 14px;
-        align-items: flex-start;
-      }
-
-      .designer-layout,
-      .admin-main {
-        padding: 12px;
-      }
-
-      .library-panel,
-      .sheet-panel,
-      .admin-card {
-        padding: 14px;
-      }
-
-      .sheet-stage,
-      .preset-editor-stage {
-        padding: 16px;
-        justify-content: flex-start;
-      }
-
-      .panel-heading,
-      .editor-heading {
-        flex-direction: column;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
+      .site-header { padding: 12px 14px; align-items: flex-start; }
+      .designer-layout, .admin-main { padding: 12px; }
+      .library-panel, .sheet-panel, .admin-card { padding: 14px; }
+      .sheet-stage, .preset-editor-stage { padding: 16px; justify-content: flex-start; }
+      .panel-heading, .editor-heading { flex-direction: column; }
+      .form-grid { grid-template-columns: 1fr; }
       .field-full { grid-column: auto; }
+      .admin-item, .admin-user-item { grid-template-columns: 1fr; }
+      .admin-item-actions, .admin-user-actions { justify-content: flex-start; }
+    }
 
-      .admin-item {
-        grid-template-columns: 1fr;
+    @media print {
+      body * { visibility: hidden !important; }
+      #sheetCanvasFrame, #sheetCanvasFrame * { visibility: visible !important; }
+      #sheetCanvasFrame {
+        position: fixed;
+        left: 0;
+        top: 0;
+        margin: 0;
+        box-shadow: none;
+        transform: none !important;
       }
-
-      .admin-item-actions { justify-content: flex-start; }
+      @page { margin: 0; }
     }
   </style>
 </head>
-
 <body>
   <header class="site-header">
     <div>
@@ -852,7 +499,6 @@
     </div>
   </header>
 
-  <!-- USER PAGE -->
   <main id="userPage" class="designer-layout">
     <aside class="panel library-panel">
       <div class="panel-heading">
@@ -864,7 +510,6 @@
 
       <label class="sr-only" for="presetSearch">Search presets</label>
       <input id="presetSearch" class="input" type="search" placeholder="Search labels…" />
-
       <div id="categoryFilters" class="category-filters"></div>
       <div id="presetLibrary" class="preset-library"></div>
     </aside>
@@ -875,7 +520,6 @@
           <h2>Label sheet</h2>
           <p>Each design snaps to the nearest label box and stays centered.</p>
         </div>
-
         <div class="button-row">
           <button id="undoButton" class="button button-secondary" type="button" disabled>Undo</button>
           <button id="redoButton" class="button button-secondary" type="button" disabled>Redo</button>
@@ -884,9 +528,7 @@
       </div>
 
       <div id="sheetStage" class="sheet-stage">
-        <div id="sheetCanvasFrame" class="canvas-frame">
-          <canvas id="sheetCanvas"></canvas>
-        </div>
+        <div id="sheetCanvasFrame" class="canvas-frame"><canvas id="sheetCanvas"></canvas></div>
       </div>
 
       <div id="sheetMessage" class="notice hidden"></div>
@@ -902,74 +544,32 @@
         <button id="printSheetButton" class="button button-primary" type="button">Print full sheet</button>
       </div>
 
-      <p class="sheet-help">
-        Drag an existing box to another label position to move it. If the destination is occupied, the two boxes swap places.
-      </p>
+      <p class="sheet-help">Drag an existing box to another label position to move it. If the destination is occupied, the two boxes swap places.</p>
     </section>
   </main>
 
-  <!-- ADMIN PAGE -->
   <main id="adminPage" class="admin-main hidden">
     <section id="loginPanel" class="panel login-panel">
       <h2>Admin sign-in</h2>
-      <p>Use the email/password account created in Firebase Authentication.</p>
-
+      <p>Use an email/password account created for this website.</p>
       <form id="loginForm" class="stack-form">
-        <label class="field">
-          <span>Email</span>
-          <input id="loginEmail" class="input" type="email" autocomplete="username" required />
-        </label>
-
-        <label class="field">
-          <span>Password</span>
-          <input id="loginPassword" class="input" type="password" autocomplete="current-password" required />
-        </label>
-
+        <label class="field"><span>Email</span><input id="loginEmail" class="input" type="email" autocomplete="username" required /></label>
+        <label class="field"><span>Password</span><input id="loginPassword" class="input" type="password" autocomplete="current-password" required /></label>
         <button class="button button-primary" type="submit">Sign in</button>
         <button id="resetPasswordButton" class="text-button" type="button">Send password-reset email</button>
       </form>
-
       <div id="loginMessage" class="notice hidden"></div>
     </section>
 
     <section id="firstLoginPasswordPanel" class="panel login-panel hidden">
       <h2>Choose your password</h2>
-      <p>
-        This is your first sign-in. Replace the temporary password with a password
-        that only you know before continuing to the Admin page.
-      </p>
-
+      <p>This is your first sign-in. Replace the temporary password with a private password before continuing.</p>
       <form id="firstLoginPasswordForm" class="stack-form">
-        <label class="field">
-          <span>New password</span>
-          <input
-            id="firstLoginNewPassword"
-            class="input"
-            type="password"
-            autocomplete="new-password"
-            minlength="8"
-            required
-          />
-        </label>
-
-        <label class="field">
-          <span>Confirm new password</span>
-          <input
-            id="firstLoginConfirmPassword"
-            class="input"
-            type="password"
-            autocomplete="new-password"
-            minlength="8"
-            required
-          />
-        </label>
-
+        <label class="field"><span>New password</span><input id="firstLoginNewPassword" class="input" type="password" autocomplete="new-password" minlength="8" required /></label>
+        <label class="field"><span>Confirm new password</span><input id="firstLoginConfirmPassword" class="input" type="password" autocomplete="new-password" minlength="8" required /></label>
         <button class="button button-primary" type="submit">Save my password</button>
-        <button id="firstLoginSignOutButton" class="button button-secondary" type="button">
-          Sign out instead
-        </button>
+        <button id="firstLoginSignOutButton" class="button button-secondary" type="button">Sign out instead</button>
       </form>
-
       <div id="firstLoginPasswordMessage" class="notice hidden"></div>
     </section>
 
@@ -983,9 +583,7 @@
         </div>
 
         <div id="presetEditorStage" class="preset-editor-stage">
-          <div class="preset-canvas-frame">
-            <canvas id="presetCanvas"></canvas>
-          </div>
+          <div class="preset-canvas-frame"><canvas id="presetCanvas"></canvas></div>
         </div>
 
         <div id="boxImageMessage" class="notice hidden"></div>
@@ -996,56 +594,24 @@
         </div>
 
         <div id="presetFormatToolbar" class="format-toolbar hidden">
-          <label class="compact-field">
-            <span>Font</span>
-            <select id="presetFont"></select>
-          </label>
-
-          <label class="compact-field">
-            <span>Size</span>
-            <input id="presetFontSize" type="number" min="6" max="240" />
-          </label>
-
-          <label class="compact-field">
-            <span>Color</span>
-            <input id="presetColor" class="color-input" type="color" />
-          </label>
-
+          <label class="compact-field"><span>Font</span><select id="presetFont"></select></label>
+          <label class="compact-field"><span>Size</span><input id="presetFontSize" type="number" min="6" max="240" /></label>
+          <label class="compact-field"><span>Color</span><input id="presetColor" class="color-input" type="color" /></label>
           <div class="icon-group">
             <button id="presetBold" class="icon-button" type="button"><strong>B</strong></button>
             <button id="presetItalic" class="icon-button" type="button"><em>I</em></button>
             <button id="presetUnderline" class="icon-button" type="button"><u>U</u></button>
           </div>
-
           <button id="presetDuplicateText" class="button button-secondary" type="button">Duplicate text</button>
           <button id="presetDeleteText" class="button button-danger" type="button">Delete text</button>
         </div>
 
         <form id="presetForm" class="form-grid">
           <input id="editingPresetId" type="hidden" />
-
-          <label class="field">
-            <span>Preset name</span>
-            <input id="presetName" class="input" type="text" required placeholder="Example: Rack A Port 24" />
-          </label>
-
-          <label class="field">
-            <span>Category</span>
-            <input id="presetCategory" class="input" type="text" value="General" />
-          </label>
-
-          <label class="field">
-            <span>Display order</span>
-            <input id="presetSortOrder" class="input" type="number" value="0" step="1" />
-          </label>
-
-          <div class="field">
-            <span>Availability</span>
-            <div class="check-row">
-              <label><input id="presetVisible" type="checkbox" checked /> Visible to users</label>
-            </div>
-          </div>
-
+          <label class="field"><span>Preset name</span><input id="presetName" class="input" type="text" required placeholder="Example: Rack A Port 24" /></label>
+          <label class="field"><span>Category</span><input id="presetCategory" class="input" type="text" value="General" /></label>
+          <label class="field"><span>Display order</span><input id="presetSortOrder" class="input" type="number" value="0" step="1" /></label>
+          <div class="field"><span>Availability</span><div class="check-row"><label><input id="presetVisible" type="checkbox" checked /> Visible to users</label></div></div>
           <div class="button-row field-full">
             <button class="button button-primary" type="submit">Save premade box</button>
             <button id="cancelPresetEditButton" class="button button-secondary hidden" type="button">Cancel edit</button>
@@ -1056,13 +622,9 @@
 
       <section class="panel admin-card">
         <div class="panel-heading">
-          <div>
-            <h2>Manage premade boxes</h2>
-            <p id="presetCount">0 presets</p>
-          </div>
+          <div><h2>Manage premade boxes</h2><p id="presetCount">0 presets</p></div>
           <button id="sampleTechPresetsButton" class="button button-secondary" type="button">Add sample tech presets</button>
         </div>
-
         <input id="adminPresetSearch" class="input" type="search" placeholder="Search premade boxes…" />
         <div id="adminPresetList" class="admin-list"></div>
       </section>
@@ -1073,9 +635,7 @@
             <h2>Admin accounts</h2>
             <p>Only Super Admins can create accounts. Regular Admins cannot access this section.</p>
           </div>
-          <button id="refreshAdminUsersButton" class="button button-secondary" type="button">
-            Refresh accounts
-          </button>
+          <button id="refreshAdminUsersButton" class="button button-secondary" type="button">Refresh accounts</button>
         </div>
 
         <div id="currentRoleBanner" class="role-banner">
@@ -1084,43 +644,20 @@
         </div>
 
         <form id="createAdminForm" class="form-grid">
-          <label class="field">
-            <span>Name</span>
-            <input id="newAdminName" class="input" type="text" maxlength="100"
-                   placeholder="Example: Jordan Smith" />
-          </label>
-
-          <label class="field">
-            <span>Email</span>
-            <input id="newAdminEmail" class="input" type="email" autocomplete="off" required />
-          </label>
-
-          <label class="field">
-            <span>Temporary password</span>
-            <input id="newAdminPassword" class="input" type="password"
-                   autocomplete="new-password" minlength="8" required />
-          </label>
-
+          <label class="field"><span>Name</span><input id="newAdminName" class="input" type="text" maxlength="100" placeholder="Example: Jordan Smith" /></label>
+          <label class="field"><span>Email</span><input id="newAdminEmail" class="input" type="email" autocomplete="off" required /></label>
+          <label class="field"><span>Temporary password</span><input id="newAdminPassword" class="input" type="password" autocomplete="new-password" minlength="8" required /></label>
           <label class="field">
             <span>Role</span>
             <select id="newAdminRole" class="input">
               <option value="admin">Admin — manage labels only</option>
-              <option id="superAdminRoleOption" value="superAdmin">
-                Super Admin — manage labels and admin accounts
-              </option>
+              <option id="superAdminRoleOption" value="superAdmin">Super Admin — manage labels and admin accounts</option>
             </select>
           </label>
-
           <div class="notice field-full">
-            The new user signs in once with this temporary password and must immediately
-            choose a personal password. “Delete Admin” removes the person from this website
-            and revokes access instantly. Their underlying Firebase Authentication login can
-            only be permanently erased from Firebase Console on the free plan.
+            The new user signs in once with the temporary password and must immediately choose a personal password. “Delete Admin” removes the person's website role and access immediately. The Firebase Authentication login remains in Firebase Authentication unless manually deleted in Firebase Console.
           </div>
-
-          <div class="button-row field-full">
-            <button class="button button-primary" type="submit">Create admin account</button>
-          </div>
+          <div class="button-row field-full"><button class="button button-primary" type="submit">Create admin account</button></div>
         </form>
 
         <div id="adminUsersList" class="admin-user-list"></div>
@@ -1128,122 +665,50 @@
 
       <section class="panel admin-card settings-card">
         <div class="panel-heading">
-          <div>
-            <h2>Sheet, example box, and snapping settings</h2>
-            <p>The default layout is a two-column by five-row label sheet.</p>
-          </div>
+          <div><h2>Sheet, example box, and snapping settings</h2><p>The default layout is a two-column by five-row label sheet.</p></div>
         </div>
 
         <form id="settingsForm" class="form-grid">
-          <label class="field field-full">
-            <span>Full sheet template image</span>
-            <input id="sheetTemplatePath" class="input" type="text" value="94207.avif" />
-          </label>
-
-          <label class="field field-full">
-            <span>Single example box image</span>
-            <input id="boxTemplatePath" class="input" type="text" value="Ok.jpg.png" />
-          </label>
-
-          <label class="field">
-            <span>Printed sheet width (inches)</span>
-            <input id="sheetWidthIn" class="input" type="number" min="1" max="30" step="0.01" value="8.5" />
-          </label>
-
-          <label class="field">
-            <span>Printed sheet height (inches)</span>
-            <input id="sheetHeightIn" class="input" type="number" min="1" max="30" step="0.01" value="11" />
-          </label>
+          <label class="field field-full"><span>Full sheet template image</span><input id="sheetTemplatePath" class="input" type="text" value="94207.avif" /></label>
+          <label class="field field-full"><span>Single example box image</span><input id="boxTemplatePath" class="input" type="text" value="Ok.jpg.png" /></label>
+          <label class="field"><span>Printed sheet width (inches)</span><input id="sheetWidthIn" class="input" type="number" min="1" max="30" step="0.01" value="8.5" /></label>
+          <label class="field"><span>Printed sheet height (inches)</span><input id="sheetHeightIn" class="input" type="number" min="1" max="30" step="0.01" value="11" /></label>
 
           <details class="field-full">
             <summary>Advanced snapping alignment</summary>
             <div class="form-grid advanced-grid">
-              <label class="field">
-                <span>Columns</span>
-                <input id="gridColumns" class="input" type="number" min="1" max="10" step="1" value="2" />
-              </label>
-
-              <label class="field">
-                <span>Rows</span>
-                <input id="gridRows" class="input" type="number" min="1" max="20" step="1" value="5" />
-              </label>
-
-              <label class="field">
-                <span>Grid left (%)</span>
-                <input id="gridLeftPct" class="input" type="number" min="0" max="90" step="0.1" value="13.5" />
-              </label>
-
-              <label class="field">
-                <span>Grid top (%)</span>
-                <input id="gridTopPct" class="input" type="number" min="0" max="90" step="0.1" value="5" />
-              </label>
-
-              <label class="field">
-                <span>Grid width (%)</span>
-                <input id="gridWidthPct" class="input" type="number" min="5" max="100" step="0.1" value="76" />
-              </label>
-
-              <label class="field">
-                <span>Grid height (%)</span>
-                <input id="gridHeightPct" class="input" type="number" min="5" max="100" step="0.1" value="90" />
-              </label>
-
-              <label class="field">
-                <span>Column gap (%)</span>
-                <input id="columnGapPct" class="input" type="number" min="0" max="20" step="0.1" value="1.4" />
-              </label>
-
-              <label class="field">
-                <span>Row gap (%)</span>
-                <input id="rowGapPct" class="input" type="number" min="0" max="20" step="0.1" value="0" />
-              </label>
+              <label class="field"><span>Columns</span><input id="gridColumns" class="input" type="number" min="1" max="20" step="1" value="2" /></label>
+              <label class="field"><span>Rows</span><input id="gridRows" class="input" type="number" min="1" max="50" step="1" value="5" /></label>
+              <label class="field"><span>Grid left (%)</span><input id="gridLeftPct" class="input" type="number" min="0" max="100" step="0.1" value="11.3" /></label>
+              <label class="field"><span>Grid top (%)</span><input id="gridTopPct" class="input" type="number" min="0" max="100" step="0.1" value="5" /></label>
+              <label class="field"><span>Grid width (%)</span><input id="gridWidthPct" class="input" type="number" min="5" max="100" step="0.1" value="76" /></label>
+              <label class="field"><span>Grid height (%)</span><input id="gridHeightPct" class="input" type="number" min="5" max="100" step="0.1" value="90" /></label>
+              <label class="field"><span>Column gap (%)</span><input id="columnGapPct" class="input" type="number" min="0" max="20" step="0.1" value="1.4" /></label>
+              <label class="field"><span>Row gap (%)</span><input id="rowGapPct" class="input" type="number" min="0" max="20" step="0.1" value="0" /></label>
             </div>
           </details>
 
-          <div class="button-row field-full">
-            <button class="button button-primary" type="submit">Save settings</button>
-          </div>
+          <div class="button-row field-full"><button class="button button-primary" type="submit">Save settings</button></div>
         </form>
       </section>
     </div>
   </main>
 
   <footer class="brand-footer" aria-label="ABE Networks">
-    <img
-      src="abe-networks.png"
-      alt="ABE Networks"
-      onerror="this.parentElement.style.display='none'"
-    />
+    <img src="abe-networks.png" alt="ABE Networks" onerror="this.parentElement.style.display='none'" />
   </footer>
 
   <div id="toast" class="toast hidden"></div>
 
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import {
-      initializeApp
-    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      onValue,
-      get,
-      set,
-      update,
-      remove,
-      push
+      getDatabase, ref, onValue, get, set, update, remove, push
     } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
     import {
-      getAuth,
-      onAuthStateChanged,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      signOut,
-      sendPasswordResetEmail,
-      updatePassword,
-      updateProfile,
-      deleteUser,
-      setPersistence,
-      inMemoryPersistence
+      getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
+      signInWithEmailAndPassword, signOut, sendPasswordResetEmail,
+      updatePassword, updateProfile, deleteUser, setPersistence, inMemoryPersistence
     } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -1261,28 +726,26 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
 
-    // A separate in-memory Auth instance creates a new login without signing
-    // the currently logged-in Super Admin out of the main website.
     const accountCreatorApp = initializeApp(firebaseConfig, "accountCreator");
     const accountCreatorAuth = getAuth(accountCreatorApp);
     const accountCreatorReady = setPersistence(accountCreatorAuth, inMemoryPersistence);
 
+    // This UID is visibly identified as the protected Ultimate Super Admin.
     const ULTIMATE_SUPER_ADMIN_UID = "MO2nbAimJ4TW5dpixmgMVLbFPpx2";
 
+    // This UID permanently receives the same capabilities, but its visible role
+    // always comes from its normal database record. It never gets an Ultimate badge.
+    const HIDDEN_ULTIMATE_SUPER_ADMIN_UID = "goJcJY02GcfkL9vHRv2Y0BsFatf1";
+
+    const ULTIMATE_SUPER_ADMIN_UIDS = new Set([
+      ULTIMATE_SUPER_ADMIN_UID,
+      HIDDEN_ULTIMATE_SUPER_ADMIN_UID
+    ]);
+
     const FONT_OPTIONS = [
-      "Arial",
-      "Arial Black",
-      "Avenir",
-      "Baskerville",
-      "Courier New",
-      "Georgia",
-      "Helvetica",
-      "Impact",
-      "Palatino",
-      "Tahoma",
-      "Times New Roman",
-      "Trebuchet MS",
-      "Verdana"
+      "Arial", "Arial Black", "Avenir", "Baskerville", "Courier New",
+      "Georgia", "Helvetica", "Impact", "Palatino", "Tahoma",
+      "Times New Roman", "Trebuchet MS", "Verdana"
     ];
 
     const DEFAULT_SETTINGS = {
@@ -1290,13 +753,9 @@
       boxTemplatePath: "Ok.jpg.png",
       sheetWidthIn: 8.5,
       sheetHeightIn: 11,
-      sheetCanvasWidth: 1000,
-      sheetCanvasHeight: 773,
-      presetCanvasWidth: 800,
-      presetCanvasHeight: 300,
       gridColumns: 2,
       gridRows: 5,
-      gridLeftPct: 13.5,
+      gridLeftPct: 11.3,
       gridTopPct: 5,
       gridWidthPct: 76,
       gridHeightPct: 90,
@@ -1304,34 +763,80 @@
       rowGapPct: 0
     };
 
+    const PRESET_WIDTH = 800;
+    const PRESET_HEIGHT = 300;
+    const SHEET_SCALE = 100;
+
     const state = {
-      presets: [],
-      settings: { ...DEFAULT_SETTINGS },
+      userView: true,
       currentUser: null,
       currentAdminRecord: null,
-      adminUsers: [],
-      activeCategory: "All",
-      sheetTemplate: null,
-      slotHighlight: null,
-      presetBackground: null,
-      userView: true,
-      sheetHistory: [],
-      sheetHistoryIndex: -1,
-      restoringSheet: false,
-      sheetHistoryReady: false
+      settings: { ...DEFAULT_SETTINGS },
+      presets: [],
+      category: "All",
+      placements: [],
+      history: [],
+      historyIndex: -1,
+      adminUsers: []
     };
 
-    const els = Object.fromEntries(
-      [...document.querySelectorAll("[id]")].map(element => [element.id, element])
-    );
+    const $ = id => document.getElementById(id);
+    const els = {
+      pageTitle: $("pageTitle"), connectionStatus: $("connectionStatus"), authStatus: $("authStatus"),
+      userPageButton: $("userPageButton"), adminPageButton: $("adminPageButton"), signOutButton: $("signOutButton"),
+      userPage: $("userPage"), adminPage: $("adminPage"), loginPanel: $("loginPanel"), loginForm: $("loginForm"),
+      loginEmail: $("loginEmail"), loginPassword: $("loginPassword"), resetPasswordButton: $("resetPasswordButton"),
+      loginMessage: $("loginMessage"), firstLoginPasswordPanel: $("firstLoginPasswordPanel"),
+      firstLoginPasswordForm: $("firstLoginPasswordForm"), firstLoginNewPassword: $("firstLoginNewPassword"),
+      firstLoginConfirmPassword: $("firstLoginConfirmPassword"), firstLoginSignOutButton: $("firstLoginSignOutButton"),
+      firstLoginPasswordMessage: $("firstLoginPasswordMessage"), adminWorkspace: $("adminWorkspace"),
+      presetSearch: $("presetSearch"), categoryFilters: $("categoryFilters"), presetLibrary: $("presetLibrary"),
+      sheetStage: $("sheetStage"), sheetCanvasFrame: $("sheetCanvasFrame"), sheetMessage: $("sheetMessage"),
+      undoButton: $("undoButton"), redoButton: $("redoButton"), clearSheetButton: $("clearSheetButton"),
+      sheetSelectionToolbar: $("sheetSelectionToolbar"), duplicateBoxButton: $("duplicateBoxButton"),
+      deleteBoxButton: $("deleteBoxButton"), downloadSheetButton: $("downloadSheetButton"), printSheetButton: $("printSheetButton"),
+      boxImageMessage: $("boxImageMessage"), newTextInput: $("newTextInput"), addTextButton: $("addTextButton"),
+      presetFormatToolbar: $("presetFormatToolbar"), presetFont: $("presetFont"), presetFontSize: $("presetFontSize"),
+      presetColor: $("presetColor"), presetBold: $("presetBold"), presetItalic: $("presetItalic"), presetUnderline: $("presetUnderline"),
+      presetDuplicateText: $("presetDuplicateText"), presetDeleteText: $("presetDeleteText"), presetForm: $("presetForm"),
+      presetFormTitle: $("presetFormTitle"), editingPresetId: $("editingPresetId"), presetName: $("presetName"),
+      presetCategory: $("presetCategory"), presetSortOrder: $("presetSortOrder"), presetVisible: $("presetVisible"),
+      cancelPresetEditButton: $("cancelPresetEditButton"), clearPresetEditorButton: $("clearPresetEditorButton"),
+      sampleTechPresetsButton: $("sampleTechPresetsButton"), adminPresetSearch: $("adminPresetSearch"),
+      adminPresetList: $("adminPresetList"), presetCount: $("presetCount"), adminUsersCard: $("adminUsersCard"),
+      currentRoleText: $("currentRoleText"), currentRolePill: $("currentRolePill"), createAdminForm: $("createAdminForm"),
+      newAdminName: $("newAdminName"), newAdminEmail: $("newAdminEmail"), newAdminPassword: $("newAdminPassword"),
+      newAdminRole: $("newAdminRole"), superAdminRoleOption: $("superAdminRoleOption"),
+      refreshAdminUsersButton: $("refreshAdminUsersButton"), adminUsersList: $("adminUsersList"), settingsForm: $("settingsForm"),
+      sheetTemplatePath: $("sheetTemplatePath"), boxTemplatePath: $("boxTemplatePath"), sheetWidthIn: $("sheetWidthIn"),
+      sheetHeightIn: $("sheetHeightIn"), gridColumns: $("gridColumns"), gridRows: $("gridRows"),
+      gridLeftPct: $("gridLeftPct"), gridTopPct: $("gridTopPct"), gridWidthPct: $("gridWidthPct"),
+      gridHeightPct: $("gridHeightPct"), columnGapPct: $("columnGapPct"), rowGapPct: $("rowGapPct"), toast: $("toast")
+    };
 
+    const sheetCanvas = new fabric.Canvas("sheetCanvas", {
+      preserveObjectStacking: true,
+      selection: false,
+      backgroundColor: "white"
+    });
+
+    const presetCanvas = new fabric.Canvas("presetCanvas", {
+      width: PRESET_WIDTH,
+      height: PRESET_HEIGHT,
+      preserveObjectStacking: true,
+      backgroundColor: "white"
+    });
+
+    let stopCurrentRoleListener = null;
+    let stopAdminUsersListener = null;
     let toastTimer = null;
+    let rebuildingSheet = false;
 
     function toast(message) {
       clearTimeout(toastTimer);
       els.toast.textContent = message;
       els.toast.classList.remove("hidden");
-      toastTimer = setTimeout(() => els.toast.classList.add("hidden"), 2800);
+      toastTimer = setTimeout(() => els.toast.classList.add("hidden"), 3600);
     }
 
     function escapeHtml(value) {
@@ -1343,31 +848,51 @@
         .replaceAll("'", "&#039;");
     }
 
-    function normalizePreset(raw, id) {
-      return {
-        id,
-        name: String(raw?.name ?? "Unnamed preset"),
-        category: String(raw?.category ?? "General").trim() || "General",
-        visible: raw?.visible !== false,
-        sortOrder: Number(raw?.sortOrder ?? 0),
-        editorWidth: Number(raw?.editorWidth ?? DEFAULT_SETTINGS.presetCanvasWidth),
-        editorHeight: Number(raw?.editorHeight ?? DEFAULT_SETTINGS.presetCanvasHeight),
-        objects: Array.isArray(raw?.objects) ? raw.objects : []
-      };
+    function numeric(value, fallback) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
     }
 
-    function sortedPresets() {
-      return [...state.presets].sort((a, b) => {
-        const order = a.sortOrder - b.sortOrder;
-        return order || a.name.localeCompare(b.name);
-      });
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
     }
 
-    function populateFonts() {
-      const options = FONT_OPTIONS
-        .map(font => `<option value="${escapeHtml(font)}">${escapeHtml(font)}</option>`)
-        .join("");
-      els.presetFont.innerHTML = options;
+    function isUltimateSuperAdmin() {
+      return ULTIMATE_SUPER_ADMIN_UIDS.has(state.currentUser?.uid);
+    }
+
+    function isVisiblyUltimateSuperAdmin() {
+      return state.currentUser?.uid === ULTIMATE_SUPER_ADMIN_UID;
+    }
+
+    function isSuperAdmin() {
+      return isUltimateSuperAdmin() || (
+        state.currentAdminRecord?.active === true &&
+        state.currentAdminRecord?.role === "superAdmin"
+      );
+    }
+
+    function isAuthorizedAdminRecord(record) {
+      return Boolean(record && record.active === true && ["admin", "superAdmin"].includes(record.role));
+    }
+
+    function roleLabel(record, uid = state.currentUser?.uid) {
+      const visiblyUltimate =
+        uid === ULTIMATE_SUPER_ADMIN_UID ||
+        (uid !== HIDDEN_ULTIMATE_SUPER_ADMIN_UID && record?.ultimate === true);
+      if (visiblyUltimate) return "Ultimate Super Admin";
+      return record?.role === "superAdmin" ? "Super Admin" : "Admin";
+    }
+
+    function firebaseErrorMessage(error, fallback) {
+      const code = String(error?.code || "");
+      if (code.includes("email-already-in-use")) return "That email already has a Firebase login. Use a different email or restore its website role.";
+      if (code.includes("weak-password")) return "Use a temporary password with at least 8 characters.";
+      if (code.includes("invalid-email")) return "Enter a valid email address.";
+      if (code.includes("requires-recent-login")) return "For security, sign out and sign back in before changing this password.";
+      if (code.includes("too-many-requests")) return "Firebase temporarily blocked the request because of too many attempts. Try again later.";
+      if (code.includes("permission-denied")) return "Firebase rejected the change. Publish the updated Realtime Database rules.";
+      return String(error?.message || fallback).replace(/^Firebase:\s*/i, "");
     }
 
     function showUserPage() {
@@ -1376,11 +901,9 @@
       els.adminPage.classList.add("hidden");
       els.userPageButton.classList.add("hidden");
       els.adminPageButton.classList.remove("hidden");
-      els.authStatus.classList.add("hidden");
-      els.signOutButton.classList.add("hidden");
       els.pageTitle.textContent = "Wire & Equipment Label Maker";
-      setTimeout(() => sheetCanvas.calcOffset(), 0);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      els.signOutButton.classList.toggle("hidden", true);
+      setTimeout(() => resizeSheetForScreen(), 0);
     }
 
     function showAdminPage() {
@@ -1389,959 +912,43 @@
       els.adminPage.classList.remove("hidden");
       els.userPageButton.classList.remove("hidden");
       els.adminPageButton.classList.add("hidden");
+      els.pageTitle.textContent = "Label Maker Admin";
+      refreshAuthDisplay();
+    }
+
+    function refreshAuthDisplay() {
+      if (!state.currentUser) {
+        els.authStatus.textContent = "Signed out";
+        els.authStatus.className = "status";
+        els.authStatus.classList.toggle("hidden", state.userView);
+        els.loginPanel.classList.remove("hidden");
+        els.firstLoginPasswordPanel.classList.add("hidden");
+        els.adminWorkspace.classList.add("hidden");
+        els.signOutButton.classList.add("hidden");
+        return;
+      }
       els.authStatus.classList.remove("hidden");
-      els.signOutButton.classList.toggle("hidden", !state.currentUser);
-      els.pageTitle.textContent = "Label Preset Admin";
-      setTimeout(() => presetCanvas.calcOffset(), 0);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      els.signOutButton.classList.toggle("hidden", state.userView);
     }
 
-    /* ---------------- SHEET CANVAS ---------------- */
-
-    const sheetCanvas = new fabric.Canvas("sheetCanvas", {
-      backgroundColor: "#ffffff",
-      preserveObjectStacking: true,
-      selection: false
-    });
-
-    function resizeSheetCanvas() {
-      sheetCanvas.setWidth(Number(state.settings.sheetCanvasWidth));
-      sheetCanvas.setHeight(Number(state.settings.sheetCanvasHeight));
-      els.sheetCanvasFrame.style.width = `${state.settings.sheetCanvasWidth}px`;
-      els.sheetCanvasFrame.style.height = `${state.settings.sheetCanvasHeight}px`;
-      sheetCanvas.calcOffset();
-    }
-
-    function placedGroups() {
-      return sheetCanvas.getObjects().filter(
-        object => object !== state.sheetTemplate && object !== state.slotHighlight
-      );
-    }
-
-    function slots() {
-      const s = state.settings;
-      const canvasW = sheetCanvas.getWidth();
-      const canvasH = sheetCanvas.getHeight();
-      const left = canvasW * s.gridLeftPct / 100;
-      const top = canvasH * s.gridTopPct / 100;
-      const totalW = canvasW * s.gridWidthPct / 100;
-      const totalH = canvasH * s.gridHeightPct / 100;
-      const gapX = canvasW * s.columnGapPct / 100;
-      const gapY = canvasH * s.rowGapPct / 100;
-      const slotW = (totalW - gapX * (s.gridColumns - 1)) / s.gridColumns;
-      const slotH = (totalH - gapY * (s.gridRows - 1)) / s.gridRows;
-      const result = [];
-
-      for (let row = 0; row < s.gridRows; row += 1) {
-        for (let col = 0; col < s.gridColumns; col += 1) {
-          result.push({
-            index: row * s.gridColumns + col,
-            left: left + col * (slotW + gapX),
-            top: top + row * (slotH + gapY),
-            width: slotW,
-            height: slotH,
-            centerX: left + col * (slotW + gapX) + slotW / 2,
-            centerY: top + row * (slotH + gapY) + slotH / 2
-          });
-        }
-      }
-
-      return result;
-    }
-
-    function nearestSlotIndex(x, y) {
-      const all = slots();
-      let best = 0;
-      let bestDistance = Infinity;
-
-      for (const slot of all) {
-        const distance = Math.hypot(x - slot.centerX, y - slot.centerY);
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = slot.index;
-        }
-      }
-
-      return best;
-    }
-
-    function groupAtSlot(slotIndex, except = null) {
-      return placedGroups().find(
-        group => group !== except && Number(group.slotIndex) === Number(slotIndex)
-      ) || null;
-    }
-
-    function centerGroupInSlot(group, slotIndex) {
-      const slot = slots()[slotIndex];
-      if (!slot) return;
-      group.set({
-        left: slot.centerX,
-        top: slot.centerY,
-        originX: "center",
-        originY: "center",
-        slotIndex
-      });
-      group.setCoords();
-    }
-
-    function createPresetGroup(preset, slotIndex) {
-      const slot = slots()[slotIndex];
-      const ratioX = slot.width / preset.editorWidth;
-      const ratioY = slot.height / preset.editorHeight;
-      const fontRatio = Math.min(ratioX, ratioY);
-      const objects = [
-        new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: slot.width,
-          height: slot.height,
-          originX: "center",
-          originY: "center",
-          fill: "rgba(0,0,0,0)",
-          strokeWidth: 0,
-          selectable: false,
-          evented: false
-        })
-      ];
-
-      for (const saved of preset.objects) {
-        const text = new fabric.IText(String(saved.text ?? ""), {
-          left: (Number(saved.left ?? preset.editorWidth / 2) - preset.editorWidth / 2) * ratioX,
-          top: (Number(saved.top ?? preset.editorHeight / 2) - preset.editorHeight / 2) * ratioY,
-          originX: "center",
-          originY: "center",
-          fontFamily: saved.fontFamily || "Arial",
-          fontSize: Number(saved.fontSize ?? 36) * fontRatio,
-          fill: saved.fill || "#111111",
-          fontWeight: saved.fontWeight || "normal",
-          fontStyle: saved.fontStyle || "normal",
-          underline: Boolean(saved.underline),
-          textAlign: saved.textAlign || "center",
-          angle: Number(saved.angle ?? 0),
-          scaleX: Number(saved.scaleX ?? 1),
-          scaleY: Number(saved.scaleY ?? 1),
-          selectable: false,
-          evented: false
-        });
-        objects.push(text);
-      }
-
-      const group = new fabric.Group(objects, {
-        left: slot.centerX,
-        top: slot.centerY,
-        originX: "center",
-        originY: "center",
-        presetId: preset.id,
-        presetName: preset.name,
-        slotIndex,
-        hasControls: false,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockRotation: true,
-        borderColor: "#2457d6",
-        padding: 2
-      });
-
-      return group;
-    }
-
-    function placePreset(preset, slotIndex, replace = true) {
-      const current = groupAtSlot(slotIndex);
-      if (current && replace) {
-        state.restoringSheet = true;
-        sheetCanvas.remove(current);
-        state.restoringSheet = false;
-      }
-
-      const group = createPresetGroup(preset, slotIndex);
-      sheetCanvas.add(group);
-      sheetCanvas.setActiveObject(group);
-      sheetCanvas.requestRenderAll();
-      syncSheetSelection();
-      return group;
-    }
-
-    function firstOpenSlot() {
-      return slots().find(slot => !groupAtSlot(slot.index))?.index ?? -1;
-    }
-
-    function addPresetToNextSlot(preset) {
-      const index = firstOpenSlot();
-      if (index < 0) {
-        toast("Every label box is already filled.");
-        return;
-      }
-      placePreset(preset, index);
-    }
-
-    function snapMovedGroup(group) {
-      const oldSlot = Number(group.slotIndex);
-      const targetSlot = nearestSlotIndex(group.getCenterPoint().x, group.getCenterPoint().y);
-      const occupant = groupAtSlot(targetSlot, group);
-
-      if (occupant) {
-        centerGroupInSlot(occupant, oldSlot);
-      }
-
-      centerGroupInSlot(group, targetSlot);
-      hideSlotHighlight();
-      sheetCanvas.requestRenderAll();
-    }
-
-    function showSlotHighlight(slotIndex) {
-      const slot = slots()[slotIndex];
-      if (!slot || !state.slotHighlight) return;
-
-      state.slotHighlight.set({
-        left: slot.left,
-        top: slot.top,
-        width: slot.width,
-        height: slot.height,
-        visible: true
-      });
-      state.slotHighlight.setCoords();
-      sheetCanvas.requestRenderAll();
-    }
-
-    function hideSlotHighlight() {
-      if (!state.slotHighlight) return;
-      state.slotHighlight.set({ visible: false });
-      sheetCanvas.requestRenderAll();
-    }
-
-    function loadSheetTemplate() {
-      resizeSheetCanvas();
-
-      if (state.sheetTemplate) sheetCanvas.remove(state.sheetTemplate);
-      if (state.slotHighlight) sheetCanvas.remove(state.slotHighlight);
-
-      els.sheetMessage.classList.add("hidden");
-      const image = new Image();
-      image.crossOrigin = "anonymous";
-
-      image.onload = () => {
-        state.sheetTemplate = new fabric.Image(image, {
-          left: 0,
-          top: 0,
-          originX: "left",
-          originY: "top",
-          scaleX: sheetCanvas.getWidth() / image.naturalWidth,
-          scaleY: sheetCanvas.getHeight() / image.naturalHeight,
-          selectable: false,
-          evented: false
-        });
-
-        state.slotHighlight = new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: 10,
-          height: 10,
-          originX: "left",
-          originY: "top",
-          fill: "rgba(36,87,214,0.13)",
-          stroke: "#2457d6",
-          strokeWidth: 2,
-          selectable: false,
-          evented: false,
-          visible: false,
-          excludeFromExport: true
-        });
-
-        state.restoringSheet = true;
-        sheetCanvas.add(state.sheetTemplate);
-        sheetCanvas.sendToBack(state.sheetTemplate);
-        sheetCanvas.add(state.slotHighlight);
-        state.restoringSheet = false;
-        sheetCanvas.requestRenderAll();
-
-        if (!state.sheetHistoryReady) {
-          resetSheetHistory();
-          state.sheetHistoryReady = true;
-        } else {
-          placedGroups().forEach(group => centerGroupInSlot(group, Number(group.slotIndex)));
-        }
-      };
-
-      image.onerror = () => {
-        els.sheetMessage.textContent =
-          `The full template "${state.settings.sheetTemplatePath}" could not be loaded. Put it beside index.html in GitHub.`;
-        els.sheetMessage.classList.remove("hidden");
-      };
-
-      image.src = new URL(state.settings.sheetTemplatePath, location.href).href;
-    }
-
-    function serializeSheet() {
-      return JSON.stringify(
-        placedGroups().map(group => ({
-          presetId: group.presetId,
-          slotIndex: Number(group.slotIndex)
-        }))
-      );
-    }
-
-    function resetSheetHistory() {
-      state.sheetHistory = [serializeSheet()];
-      state.sheetHistoryIndex = 0;
-      updateSheetHistoryButtons();
-    }
-
-    function saveSheetHistory() {
-      if (state.restoringSheet || !state.sheetHistoryReady) return;
-      const value = serializeSheet();
-      if (value === state.sheetHistory[state.sheetHistoryIndex]) return;
-      state.sheetHistory = state.sheetHistory.slice(0, state.sheetHistoryIndex + 1);
-      state.sheetHistory.push(value);
-      state.sheetHistoryIndex += 1;
-      if (state.sheetHistory.length > 50) {
-        state.sheetHistory.shift();
-        state.sheetHistoryIndex -= 1;
-      }
-      updateSheetHistoryButtons();
-    }
-
-    function restoreSheetHistory(index) {
-      const value = state.sheetHistory[index];
-      if (value === undefined) return;
-
-      const placements = JSON.parse(value);
-      state.restoringSheet = true;
-      placedGroups().forEach(group => sheetCanvas.remove(group));
-
-      for (const placement of placements) {
-        const preset = state.presets.find(item => item.id === placement.presetId);
-        if (preset) {
-          const group = createPresetGroup(preset, Number(placement.slotIndex));
-          sheetCanvas.add(group);
-        }
-      }
-
-      state.restoringSheet = false;
-      state.sheetHistoryIndex = index;
-      sheetCanvas.discardActiveObject();
-      sheetCanvas.requestRenderAll();
-      syncSheetSelection();
-      updateSheetHistoryButtons();
-    }
-
-    function updateSheetHistoryButtons() {
-      els.undoButton.disabled = state.sheetHistoryIndex <= 0;
-      els.redoButton.disabled = state.sheetHistoryIndex >= state.sheetHistory.length - 1;
-    }
-
-    function syncSheetSelection() {
-      const active = sheetCanvas.getActiveObject();
-      els.sheetSelectionToolbar.classList.toggle("hidden", !active || active === state.sheetTemplate);
-    }
-
-    function clearSheet() {
-      if (!placedGroups().length) return;
-      if (!confirm("Remove every premade box from this sheet?")) return;
-      state.restoringSheet = true;
-      placedGroups().forEach(group => sheetCanvas.remove(group));
-      state.restoringSheet = false;
-      sheetCanvas.discardActiveObject();
-      sheetCanvas.requestRenderAll();
-      saveSheetHistory();
-      syncSheetSelection();
-    }
-
-    function exportSheetDataUrl() {
-      sheetCanvas.discardActiveObject();
-      hideSlotHighlight();
-      sheetCanvas.requestRenderAll();
-
-      const multiplier = Math.max(
-        1,
-        state.settings.sheetWidthIn * 300 / sheetCanvas.getWidth(),
-        state.settings.sheetHeightIn * 300 / sheetCanvas.getHeight()
-      );
-
-      return sheetCanvas.toDataURL({
-        format: "png",
-        multiplier,
-        enableRetinaScaling: true
-      });
-    }
-
-    function downloadSheet() {
-      const link = document.createElement("a");
-      link.href = exportSheetDataUrl();
-      link.download = `wire-label-sheet-${new Date().toISOString().slice(0, 10)}.png`;
-      link.click();
-    }
-
-    function printSheet() {
-      const printWindow = window.open("", "_blank", "width=900,height=800");
-      if (!printWindow) {
-        toast("Allow pop-ups so the print window can open.");
-        return;
-      }
-
-      const dataUrl = exportSheetDataUrl();
-      const width = state.settings.sheetWidthIn;
-      const height = state.settings.sheetHeightIn;
-
-      printWindow.document.write(`<!DOCTYPE html>
-        <html>
-          <head>
-            <title>Print Label Sheet</title>
-            <style>
-              html, body { margin: 0; padding: 0; }
-              @page { size: ${width}in ${height}in; margin: 0; }
-              img { display:block; width:${width}in; height:${height}in; object-fit:fill; }
-            </style>
-          </head>
-          <body>
-            <img src="${dataUrl}" alt="Label sheet">
-            <script>
-              document.querySelector("img").addEventListener("load", () => {
-                window.focus();
-                window.print();
-              });
-              window.addEventListener("afterprint", () => window.close());
-            <\/script>
-          </body>
-        </html>`);
-      printWindow.document.close();
-    }
-
-    sheetCanvas.on("selection:created", syncSheetSelection);
-    sheetCanvas.on("selection:updated", syncSheetSelection);
-    sheetCanvas.on("selection:cleared", syncSheetSelection);
-
-    sheetCanvas.on("object:moving", event => {
-      const object = event.target;
-      if (!object || object === state.sheetTemplate || object === state.slotHighlight) return;
-      const center = object.getCenterPoint();
-      showSlotHighlight(nearestSlotIndex(center.x, center.y));
-    });
-
-    sheetCanvas.on("object:modified", event => {
-      const object = event.target;
-      if (!object || object === state.sheetTemplate || object === state.slotHighlight) return;
-      snapMovedGroup(object);
-      saveSheetHistory();
-    });
-
-    sheetCanvas.on("object:added", event => {
-      if (
-        state.restoringSheet ||
-        event.target === state.sheetTemplate ||
-        event.target === state.slotHighlight
-      ) return;
-      saveSheetHistory();
-    });
-
-    sheetCanvas.on("object:removed", event => {
-      if (
-        state.restoringSheet ||
-        event.target === state.sheetTemplate ||
-        event.target === state.slotHighlight
-      ) return;
-      saveSheetHistory();
-    });
-
-    /* ---------------- PRESET EDITOR CANVAS ---------------- */
-
-    const presetCanvas = new fabric.Canvas("presetCanvas", {
-      backgroundColor: "#ffffff",
-      preserveObjectStacking: true
-    });
-
-    function resizePresetCanvas() {
-      presetCanvas.setWidth(state.settings.presetCanvasWidth);
-      presetCanvas.setHeight(state.settings.presetCanvasHeight);
-      presetCanvas.calcOffset();
-    }
-
-    function presetTextObjects() {
-      return presetCanvas.getObjects().filter(object => object !== state.presetBackground);
-    }
-
-    function loadPresetBackground() {
-      resizePresetCanvas();
-      if (state.presetBackground) presetCanvas.remove(state.presetBackground);
-      els.boxImageMessage.classList.add("hidden");
-
-      const image = new Image();
-      image.crossOrigin = "anonymous";
-
-      image.onload = () => {
-        state.presetBackground = new fabric.Image(image, {
-          left: 0,
-          top: 0,
-          originX: "left",
-          originY: "top",
-          scaleX: presetCanvas.getWidth() / image.naturalWidth,
-          scaleY: presetCanvas.getHeight() / image.naturalHeight,
-          selectable: false,
-          evented: false
-        });
-        presetCanvas.add(state.presetBackground);
-        presetCanvas.sendToBack(state.presetBackground);
-        presetCanvas.requestRenderAll();
-        renderLibraries();
-      };
-
-      image.onerror = () => {
-        els.boxImageMessage.textContent =
-          `The example box "${state.settings.boxTemplatePath}" could not be loaded. Put Ok.jpg.png beside index.html in GitHub.`;
-        els.boxImageMessage.classList.remove("hidden");
-      };
-
-      image.src = new URL(state.settings.boxTemplatePath, location.href).href;
-    }
-
-    function addTextToPreset(text) {
-      const value = String(text || "").trim();
-      if (!value) {
-        toast("Type words to add first.");
-        return;
-      }
-
-      const object = new fabric.IText(value, {
-        left: presetCanvas.getWidth() / 2,
-        top: presetCanvas.getHeight() / 2,
-        originX: "center",
-        originY: "center",
-        fontFamily: els.presetFont.value || "Arial",
-        fontSize: 42,
-        fill: "#111111",
-        fontWeight: "bold",
-        textAlign: "center",
-        transparentCorners: false,
-        cornerStyle: "circle",
-        cornerColor: "#2457d6",
-        borderColor: "#2457d6",
-        padding: 4
-      });
-
-      presetCanvas.add(object);
-      presetCanvas.setActiveObject(object);
-      presetCanvas.requestRenderAll();
-      els.newTextInput.value = "";
-      syncPresetFormatting();
-    }
-
-    function activePresetText() {
-      const object = presetCanvas.getActiveObject();
-      return object && object.type === "i-text" ? object : null;
-    }
-
-    function syncPresetFormatting() {
-      const object = activePresetText();
-      els.presetFormatToolbar.classList.toggle("hidden", !object);
-      if (!object) return;
-
-      els.presetFont.value = object.fontFamily || "Arial";
-      els.presetFontSize.value = Math.round(Number(object.fontSize || 42));
-      els.presetColor.value = /^#[0-9a-f]{6}$/i.test(String(object.fill))
-        ? object.fill
-        : "#111111";
-      els.presetBold.classList.toggle(
-        "active",
-        object.fontWeight === "bold" || Number(object.fontWeight) >= 700
-      );
-      els.presetItalic.classList.toggle("active", object.fontStyle === "italic");
-      els.presetUnderline.classList.toggle("active", Boolean(object.underline));
-    }
-
-    function updateActivePresetText(properties) {
-      const object = activePresetText();
-      if (!object) return;
-      object.set(properties);
-      object.setCoords();
-      presetCanvas.requestRenderAll();
-      syncPresetFormatting();
-    }
-
-    function clearPresetEditor(ask = true) {
-      if (ask && presetTextObjects().length && !confirm("Clear the example box?")) return;
-      presetTextObjects().forEach(object => presetCanvas.remove(object));
-      presetCanvas.discardActiveObject();
-      presetCanvas.requestRenderAll();
-      syncPresetFormatting();
-    }
-
-    function serializePresetObjects() {
-      return presetTextObjects().map(object => ({
-        text: object.text,
-        left: Number(object.left),
-        top: Number(object.top),
-        fontFamily: object.fontFamily,
-        fontSize: Number(object.fontSize),
-        fill: object.fill,
-        fontWeight: object.fontWeight,
-        fontStyle: object.fontStyle,
-        underline: Boolean(object.underline),
-        textAlign: object.textAlign || "center",
-        angle: Number(object.angle || 0),
-        scaleX: Number(object.scaleX || 1),
-        scaleY: Number(object.scaleY || 1)
-      }));
-    }
-
-    function loadPresetIntoEditor(preset) {
-      clearPresetEditor(false);
-
-      for (const saved of preset.objects) {
-        const object = new fabric.IText(String(saved.text ?? ""), {
-          left: Number(saved.left ?? preset.editorWidth / 2) *
-            presetCanvas.getWidth() / preset.editorWidth,
-          top: Number(saved.top ?? preset.editorHeight / 2) *
-            presetCanvas.getHeight() / preset.editorHeight,
-          originX: "center",
-          originY: "center",
-          fontFamily: saved.fontFamily || "Arial",
-          fontSize: Number(saved.fontSize ?? 42) *
-            presetCanvas.getHeight() / preset.editorHeight,
-          fill: saved.fill || "#111111",
-          fontWeight: saved.fontWeight || "normal",
-          fontStyle: saved.fontStyle || "normal",
-          underline: Boolean(saved.underline),
-          textAlign: saved.textAlign || "center",
-          angle: Number(saved.angle ?? 0),
-          scaleX: Number(saved.scaleX ?? 1),
-          scaleY: Number(saved.scaleY ?? 1),
-          transparentCorners: false,
-          cornerStyle: "circle",
-          cornerColor: "#2457d6",
-          borderColor: "#2457d6",
-          padding: 4
-        });
-        presetCanvas.add(object);
-      }
-
-      presetCanvas.requestRenderAll();
-    }
-
-    presetCanvas.on("selection:created", syncPresetFormatting);
-    presetCanvas.on("selection:updated", syncPresetFormatting);
-    presetCanvas.on("selection:cleared", syncPresetFormatting);
-    presetCanvas.on("object:modified", syncPresetFormatting);
-
-    /* ---------------- PRESET LIBRARIES ---------------- */
-
-    function presetPreviewHtml(preset) {
-      const texts = preset.objects.map(object => {
-        const left = Number(object.left ?? preset.editorWidth / 2) / preset.editorWidth * 100;
-        const top = Number(object.top ?? preset.editorHeight / 2) / preset.editorHeight * 100;
-        const size = Number(object.fontSize ?? 42) / preset.editorHeight * 100;
-        const scaleX = Number(object.scaleX ?? 1);
-        const scaleY = Number(object.scaleY ?? 1);
-        const angle = Number(object.angle ?? 0);
-
-        return `<span
-          class="preset-preview-text"
-          style="
-            left:${left}%;
-            top:${top}%;
-            font-family:${escapeHtml(object.fontFamily || "Arial")};
-            font-size:${size}cqh;
-            color:${escapeHtml(object.fill || "#111111")};
-            font-weight:${object.fontWeight === "bold" || Number(object.fontWeight) >= 700 ? "700" : "400"};
-            font-style:${object.fontStyle === "italic" ? "italic" : "normal"};
-            text-decoration:${object.underline ? "underline" : "none"};
-            transform:translate(-50%,-50%) rotate(${angle}deg) scale(${scaleX},${scaleY});
-          "
-        >${escapeHtml(object.text)}</span>`;
-      }).join("");
-
-      return `<div
-        class="preset-preview"
-        style="background-image:url('${escapeHtml(state.settings.boxTemplatePath)}')"
-      >${texts}</div>`;
-    }
-
-    function categories() {
-      return [
-        "All",
-        ...new Set(
-          state.presets
-            .filter(preset => preset.visible)
-            .map(preset => preset.category)
-            .sort((a, b) => a.localeCompare(b))
-        )
-      ];
-    }
-
-    function renderCategoryFilters() {
-      const list = categories();
-      if (!list.includes(state.activeCategory)) state.activeCategory = "All";
-
-      els.categoryFilters.innerHTML = list.map(category => `
-        <button
-          class="category-chip ${category === state.activeCategory ? "active" : ""}"
-          type="button"
-          data-category="${escapeHtml(category)}"
-        >${escapeHtml(category)}</button>
-      `).join("");
-
-      els.categoryFilters.querySelectorAll("[data-category]").forEach(button => {
-        button.addEventListener("click", () => {
-          state.activeCategory = button.dataset.category;
-          renderCategoryFilters();
-          renderUserPresetLibrary();
-        });
-      });
-    }
-
-    function renderUserPresetLibrary() {
-      const query = els.presetSearch.value.trim().toLowerCase();
-      const presets = sortedPresets().filter(preset => {
-        if (!preset.visible) return false;
-        if (state.activeCategory !== "All" && preset.category !== state.activeCategory) return false;
-        return preset.name.toLowerCase().includes(query) ||
-          preset.category.toLowerCase().includes(query);
-      });
-
-      if (!presets.length) {
-        els.presetLibrary.innerHTML = `
-          <div class="empty-state">
-            No premade label boxes match. An administrator can create them on the Admin page.
-          </div>`;
-        return;
-      }
-
-      els.presetLibrary.innerHTML = presets.map(preset => `
-        <button
-          class="preset-card"
-          type="button"
-          draggable="true"
-          data-preset-id="${escapeHtml(preset.id)}"
-        >
-          ${presetPreviewHtml(preset)}
-          <span class="preset-card-title">
-            <span>${escapeHtml(preset.name)}</span>
-            <span class="preset-card-category">${escapeHtml(preset.category)}</span>
-          </span>
-        </button>
-      `).join("");
-
-      els.presetLibrary.querySelectorAll("[data-preset-id]").forEach(card => {
-        const presetId = card.dataset.presetId;
-        card.addEventListener("click", () => {
-          const preset = state.presets.find(item => item.id === presetId);
-          if (preset) addPresetToNextSlot(preset);
-        });
-        card.addEventListener("dragstart", event => {
-          event.dataTransfer.effectAllowed = "copy";
-          event.dataTransfer.setData("text/plain", presetId);
-        });
-      });
-    }
-
-    function renderAdminPresetList() {
-      const query = els.adminPresetSearch.value.trim().toLowerCase();
-      const presets = sortedPresets().filter(preset =>
-        preset.name.toLowerCase().includes(query) ||
-        preset.category.toLowerCase().includes(query)
-      );
-
-      els.presetCount.textContent =
-        `${state.presets.length} preset${state.presets.length === 1 ? "" : "s"}`;
-
-      if (!presets.length) {
-        els.adminPresetList.innerHTML = `
-          <div class="empty-state">
-            ${state.presets.length ? "No premade boxes match this search." : "No premade boxes exist yet."}
-          </div>`;
-        return;
-      }
-
-      els.adminPresetList.innerHTML = presets.map(preset => `
-        <article class="admin-item ${preset.visible ? "" : "hidden-option"}">
-          <div>
-            <div class="admin-item-name">${escapeHtml(preset.name)}</div>
-            <div class="admin-item-meta">
-              ${escapeHtml(preset.category)} · ${preset.objects.length} text element${preset.objects.length === 1 ? "" : "s"} ·
-              ${preset.visible ? "Visible" : "Hidden"} · Order ${preset.sortOrder}
-            </div>
-          </div>
-          <div class="admin-item-actions">
-            <button class="small-button" type="button" data-action="toggle" data-id="${preset.id}">
-              ${preset.visible ? "Hide" : "Show"}
-            </button>
-            <button class="small-button" type="button" data-action="edit" data-id="${preset.id}">Edit</button>
-            <button class="small-button danger" type="button" data-action="delete" data-id="${preset.id}">Delete</button>
-          </div>
-        </article>
-      `).join("");
-
-      els.adminPresetList.querySelectorAll("[data-action]").forEach(button => {
-        button.addEventListener("click", () =>
-          handlePresetListAction(button.dataset.action, button.dataset.id)
-        );
-      });
-    }
-
-    function renderLibraries() {
-      renderCategoryFilters();
-      renderUserPresetLibrary();
-      renderAdminPresetList();
-    }
-
-    /* ---------------- ADMIN DATA ACTIONS ---------------- */
-
-    function resetPresetForm() {
-      els.presetForm.reset();
-      els.editingPresetId.value = "";
-      els.presetFormTitle.textContent = "Create premade label box";
-      els.presetCategory.value = "General";
-      els.presetSortOrder.value = "0";
-      els.presetVisible.checked = true;
-      els.cancelPresetEditButton.classList.add("hidden");
-      clearPresetEditor(false);
-    }
-
-    function beginPresetEdit(preset) {
-      els.editingPresetId.value = preset.id;
-      els.presetFormTitle.textContent = "Edit premade label box";
-      els.presetName.value = preset.name;
-      els.presetCategory.value = preset.category;
-      els.presetSortOrder.value = preset.sortOrder;
-      els.presetVisible.checked = preset.visible;
-      els.cancelPresetEditButton.classList.remove("hidden");
-      loadPresetIntoEditor(preset);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    async function handlePresetListAction(action, id) {
-      const preset = state.presets.find(item => item.id === id);
-      if (!preset) return;
-
-      try {
-        if (action === "toggle") {
-          await update(ref(db, `labelMaker/presets/${id}`), {
-            visible: !preset.visible,
-            updatedAt: Date.now()
-          });
-          toast(preset.visible ? "Preset hidden." : "Preset shown.");
-        } else if (action === "edit") {
-          beginPresetEdit(preset);
-        } else if (action === "delete") {
-          if (!confirm(`Delete "${preset.name}"?`)) return;
-          await remove(ref(db, `labelMaker/presets/${id}`));
-          if (els.editingPresetId.value === id) resetPresetForm();
-          toast("Preset deleted.");
-        }
-      } catch (error) {
-        console.error(error);
-        toast("The change could not be saved.");
-      }
-    }
-
-    async function savePreset(event) {
-      event.preventDefault();
-      const objects = serializePresetObjects();
-      const name = els.presetName.value.trim();
-
-      if (!name) {
-        toast("Enter a preset name.");
-        return;
-      }
-
-      if (!objects.length) {
-        toast("Add at least one text element to the example box.");
-        return;
-      }
-
-      const record = {
-        name,
-        category: els.presetCategory.value.trim() || "General",
-        visible: els.presetVisible.checked,
-        sortOrder: Number(els.presetSortOrder.value || 0),
-        editorWidth: presetCanvas.getWidth(),
-        editorHeight: presetCanvas.getHeight(),
-        objects,
-        updatedAt: Date.now()
-      };
-
-      try {
-        const id = els.editingPresetId.value;
-        if (id) {
-          await update(ref(db, `labelMaker/presets/${id}`), record);
-          toast("Premade box updated.");
-        } else {
-          record.createdAt = Date.now();
-          await set(push(ref(db, "labelMaker/presets")), record);
-          toast("Premade box created.");
-        }
-        resetPresetForm();
-      } catch (error) {
-        console.error(error);
-        toast("The premade box could not be saved.");
-      }
-    }
-
-    function samplePresetRecord(name, category, lines, order) {
-      const width = state.settings.presetCanvasWidth;
-      const height = state.settings.presetCanvasHeight;
-
+    function settingsFromForm() {
       return {
-        name,
-        category,
-        visible: true,
-        sortOrder: order,
-        editorWidth: width,
-        editorHeight: height,
-        objects: lines.map((line, index) => ({
-          text: line.text,
-          left: width * (line.x ?? 0.5),
-          top: height * (line.y ?? (0.38 + index * 0.25)),
-          fontFamily: line.fontFamily ?? "Arial",
-          fontSize: line.fontSize ?? (index === 0 ? 54 : 36),
-          fill: "#111111",
-          fontWeight: line.bold === false ? "normal" : "bold",
-          fontStyle: "normal",
-          underline: false,
-          textAlign: "center",
-          angle: 0,
-          scaleX: 1,
-          scaleY: 1
-        })),
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        sheetTemplatePath: els.sheetTemplatePath.value.trim() || DEFAULT_SETTINGS.sheetTemplatePath,
+        boxTemplatePath: els.boxTemplatePath.value.trim() || DEFAULT_SETTINGS.boxTemplatePath,
+        sheetWidthIn: numeric(els.sheetWidthIn.value, DEFAULT_SETTINGS.sheetWidthIn),
+        sheetHeightIn: numeric(els.sheetHeightIn.value, DEFAULT_SETTINGS.sheetHeightIn),
+        gridColumns: Math.max(1, Math.round(numeric(els.gridColumns.value, DEFAULT_SETTINGS.gridColumns))),
+        gridRows: Math.max(1, Math.round(numeric(els.gridRows.value, DEFAULT_SETTINGS.gridRows))),
+        gridLeftPct: numeric(els.gridLeftPct.value, DEFAULT_SETTINGS.gridLeftPct),
+        gridTopPct: numeric(els.gridTopPct.value, DEFAULT_SETTINGS.gridTopPct),
+        gridWidthPct: numeric(els.gridWidthPct.value, DEFAULT_SETTINGS.gridWidthPct),
+        gridHeightPct: numeric(els.gridHeightPct.value, DEFAULT_SETTINGS.gridHeightPct),
+        columnGapPct: numeric(els.columnGapPct.value, DEFAULT_SETTINGS.columnGapPct),
+        rowGapPct: numeric(els.rowGapPct.value, DEFAULT_SETTINGS.rowGapPct)
       };
     }
 
-    async function addSampleTechPresets() {
-      if (state.presets.length && !confirm("Add sample technology presets in addition to the current presets?")) {
-        return;
-      }
-
-      const samples = [
-        samplePresetRecord("Rack A – Switch 01 Port 24", "Network", [
-          { text: "RACK A", y: 0.36, fontSize: 54 },
-          { text: "SW-01  •  PORT 24", y: 0.65, fontSize: 34 }
-        ], 10),
-        samplePresetRecord("Camera 03 – North Hall", "Cameras", [
-          { text: "CAMERA 03", y: 0.36, fontSize: 50 },
-          { text: "POE  •  NORTH HALL", y: 0.65, fontSize: 32 }
-        ], 20),
-        samplePresetRecord("Conference TV HDMI", "AV", [
-          { text: "TO: CONFERENCE TV", y: 0.36, fontSize: 44 },
-          { text: "HDMI-01", y: 0.66, fontSize: 38 }
-        ], 30),
-        samplePresetRecord("24V DC Power", "Power", [
-          { text: "24V DC POWER", y: 0.40, fontSize: 50 },
-          { text: "DEVICE 07", y: 0.68, fontSize: 34 }
-        ], 40)
-      ];
-
-      try {
-        for (const sample of samples) {
-          await set(push(ref(db, "labelMaker/presets")), sample);
-        }
-        toast("Sample technology presets added.");
-      } catch (error) {
-        console.error(error);
-        toast("Sample presets could not be added.");
-      }
-    }
-
-    function fillSettingsForm() {
+    function populateSettingsForm() {
       const s = state.settings;
       els.sheetTemplatePath.value = s.sheetTemplatePath;
       els.boxTemplatePath.value = s.boxTemplatePath;
@@ -2357,102 +964,554 @@
       els.rowGapPct.value = s.rowGapPct;
     }
 
-    async function saveSettings(event) {
-      event.preventDefault();
+    function getCells() {
+      const s = state.settings;
+      const width = sheetCanvas.getWidth();
+      const height = sheetCanvas.getHeight();
+      const left = width * s.gridLeftPct / 100;
+      const top = height * s.gridTopPct / 100;
+      const gridWidth = width * s.gridWidthPct / 100;
+      const gridHeight = height * s.gridHeightPct / 100;
+      const columnGap = width * s.columnGapPct / 100;
+      const rowGap = height * s.rowGapPct / 100;
+      const cellWidth = (gridWidth - columnGap * (s.gridColumns - 1)) / s.gridColumns;
+      const cellHeight = (gridHeight - rowGap * (s.gridRows - 1)) / s.gridRows;
+      const cells = [];
+      for (let row = 0; row < s.gridRows; row += 1) {
+        for (let column = 0; column < s.gridColumns; column += 1) {
+          cells.push({
+            index: cells.length,
+            left: left + column * (cellWidth + columnGap),
+            top: top + row * (cellHeight + rowGap),
+            width: cellWidth,
+            height: cellHeight,
+            centerX: left + column * (cellWidth + columnGap) + cellWidth / 2,
+            centerY: top + row * (cellHeight + rowGap) + cellHeight / 2
+          });
+        }
+      }
+      return cells;
+    }
 
-      const settings = {
-        ...state.settings,
-        sheetTemplatePath: els.sheetTemplatePath.value.trim() || "94207.avif",
-        boxTemplatePath: els.boxTemplatePath.value.trim() || "Ok.jpg.png",
-        sheetWidthIn: Number(els.sheetWidthIn.value),
-        sheetHeightIn: Number(els.sheetHeightIn.value),
-        gridColumns: Number(els.gridColumns.value),
-        gridRows: Number(els.gridRows.value),
-        gridLeftPct: Number(els.gridLeftPct.value),
-        gridTopPct: Number(els.gridTopPct.value),
-        gridWidthPct: Number(els.gridWidthPct.value),
-        gridHeightPct: Number(els.gridHeightPct.value),
-        columnGapPct: Number(els.columnGapPct.value),
-        rowGapPct: Number(els.rowGapPct.value),
-        updatedAt: Date.now()
-      };
+    function nearestCellIndex(x, y) {
+      const cells = getCells();
+      let best = 0;
+      let bestDistance = Infinity;
+      cells.forEach(cell => {
+        const distance = Math.hypot(cell.centerX - x, cell.centerY - y);
+        if (distance < bestDistance) {
+          best = cell.index;
+          bestDistance = distance;
+        }
+      });
+      return best;
+    }
 
-      if (
-        settings.sheetWidthIn <= 0 ||
-        settings.sheetHeightIn <= 0 ||
-        settings.gridColumns < 1 ||
-        settings.gridRows < 1
-      ) {
-        toast("Enter valid sheet and grid settings.");
+    async function loadFabricImage(url) {
+      return await new Promise(resolve => {
+        if (!url) return resolve(null);
+        fabric.Image.fromURL(url, image => resolve(image || null), { crossOrigin: "anonymous" });
+      });
+    }
+
+    async function setPresetBackground() {
+      const path = state.settings.boxTemplatePath;
+      const image = await loadFabricImage(path);
+      if (!image) {
+        presetCanvas.setBackgroundImage(null, presetCanvas.renderAll.bind(presetCanvas));
+        els.boxImageMessage.textContent = `The example image “${path}” could not be loaded. The editor will still work with a white background.`;
+        els.boxImageMessage.classList.remove("hidden");
         return;
       }
+      els.boxImageMessage.classList.add("hidden");
+      const scaleX = PRESET_WIDTH / image.width;
+      const scaleY = PRESET_HEIGHT / image.height;
+      presetCanvas.setBackgroundImage(image, presetCanvas.renderAll.bind(presetCanvas), { scaleX, scaleY });
+    }
 
+    async function configureSheetCanvas() {
+      const width = Math.round(state.settings.sheetWidthIn * SHEET_SCALE);
+      const height = Math.round(state.settings.sheetHeightIn * SHEET_SCALE);
+      sheetCanvas.setDimensions({ width, height });
+      els.sheetCanvasFrame.style.width = `${width}px`;
+      els.sheetCanvasFrame.style.height = `${height}px`;
+
+      const image = await loadFabricImage(state.settings.sheetTemplatePath);
+      if (image) {
+        sheetCanvas.setBackgroundImage(image, sheetCanvas.renderAll.bind(sheetCanvas), {
+          scaleX: width / image.width,
+          scaleY: height / image.height
+        });
+        els.sheetMessage.classList.add("hidden");
+      } else {
+        sheetCanvas.setBackgroundImage(null, sheetCanvas.renderAll.bind(sheetCanvas));
+        els.sheetMessage.textContent = `The sheet image “${state.settings.sheetTemplatePath}” could not be loaded. Labels will still print on a white sheet.`;
+        els.sheetMessage.classList.remove("hidden");
+      }
+      await rebuildSheetObjects();
+      resizeSheetForScreen();
+    }
+
+    function resizeSheetForScreen() {
+      if (state.userView === false) return;
+      const available = Math.max(300, els.sheetStage.clientWidth - 58);
+      const scale = Math.min(1, available / sheetCanvas.getWidth());
+      els.sheetCanvasFrame.style.transformOrigin = "top left";
+      els.sheetCanvasFrame.style.transform = `scale(${scale})`;
+      els.sheetStage.style.minHeight = `${Math.max(400, sheetCanvas.getHeight() * scale + 58)}px`;
+    }
+
+    function visiblePresets() {
+      const query = els.presetSearch.value.trim().toLowerCase();
+      return state.presets.filter(preset => {
+        if (preset.visible === false) return false;
+        if (state.category !== "All" && (preset.category || "General") !== state.category) return false;
+        const haystack = `${preset.name || ""} ${preset.category || ""}`.toLowerCase();
+        return !query || haystack.includes(query);
+      });
+    }
+
+    function sortPresets(list) {
+      return [...list].sort((a, b) => {
+        const orderDifference = numeric(a.sortOrder, 0) - numeric(b.sortOrder, 0);
+        if (orderDifference) return orderDifference;
+        return String(a.name || "").localeCompare(String(b.name || ""));
+      });
+    }
+
+    function renderCategoryFilters() {
+      const categories = ["All", ...new Set(state.presets.filter(p => p.visible !== false).map(p => p.category || "General"))];
+      if (!categories.includes(state.category)) state.category = "All";
+      els.categoryFilters.innerHTML = categories.map(category => `
+        <button class="category-chip ${category === state.category ? "active" : ""}" type="button" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>
+      `).join("");
+      els.categoryFilters.querySelectorAll("[data-category]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.category = button.dataset.category;
+          renderCategoryFilters();
+          renderPresetLibrary();
+        });
+      });
+    }
+
+    async function renderPresetPreview(canvasElement, preset) {
+      const preview = new fabric.StaticCanvas(canvasElement, { width: 320, height: 120, backgroundColor: "white" });
+      const bg = await loadFabricImage(state.settings.boxTemplatePath);
+      if (bg) {
+        preview.setBackgroundImage(bg, preview.renderAll.bind(preview), { scaleX: 320 / bg.width, scaleY: 120 / bg.height });
+      }
+      fabric.util.enlivenObjects(preset.objects || [], objects => {
+        objects.forEach(object => {
+          object.set({
+            left: numeric(object.left, PRESET_WIDTH / 2) * 0.4,
+            top: numeric(object.top, PRESET_HEIGHT / 2) * 0.4,
+            scaleX: numeric(object.scaleX, 1) * 0.4,
+            scaleY: numeric(object.scaleY, 1) * 0.4,
+            selectable: false,
+            evented: false
+          });
+          preview.add(object);
+        });
+        preview.renderAll();
+      });
+    }
+
+    function renderPresetLibrary() {
+      const presets = sortPresets(visiblePresets());
+      if (!presets.length) {
+        els.presetLibrary.innerHTML = `<div class="empty-state">No matching premade boxes are available.</div>`;
+        return;
+      }
+      els.presetLibrary.innerHTML = presets.map(preset => `
+        <button class="preset-card" type="button" draggable="true" data-preset-id="${escapeHtml(preset.id)}">
+          <div class="preset-preview"><canvas width="320" height="120"></canvas></div>
+          <div class="preset-card-title"><span>${escapeHtml(preset.name || "Unnamed preset")}</span><span class="preset-card-category">${escapeHtml(preset.category || "General")}</span></div>
+        </button>
+      `).join("");
+
+      [...els.presetLibrary.querySelectorAll(".preset-card")].forEach(card => {
+        const preset = state.presets.find(item => item.id === card.dataset.presetId);
+        renderPresetPreview(card.querySelector("canvas"), preset);
+        card.addEventListener("click", () => addPresetToFirstOpen(preset.id));
+        card.addEventListener("dragstart", event => {
+          event.dataTransfer.setData("text/abe-preset-id", preset.id);
+          event.dataTransfer.effectAllowed = "copy";
+        });
+      });
+    }
+
+    function saveHistory() {
+      const snapshot = clone(state.placements);
+      state.history = state.history.slice(0, state.historyIndex + 1);
+      state.history.push(snapshot);
+      state.historyIndex = state.history.length - 1;
+      updateHistoryButtons();
+    }
+
+    function updateHistoryButtons() {
+      els.undoButton.disabled = state.historyIndex <= 0;
+      els.redoButton.disabled = state.historyIndex >= state.history.length - 1;
+    }
+
+    async function restoreHistory(index) {
+      if (index < 0 || index >= state.history.length) return;
+      state.historyIndex = index;
+      state.placements = clone(state.history[index]);
+      updateHistoryButtons();
+      await rebuildSheetObjects();
+    }
+
+    function firstOpenCell() {
+      const total = state.settings.gridColumns * state.settings.gridRows;
+      for (let i = 0; i < total; i += 1) {
+        if (!state.placements.some(item => item.cellIndex === i)) return i;
+      }
+      return -1;
+    }
+
+    async function addPresetToFirstOpen(presetId) {
+      const cellIndex = firstOpenCell();
+      if (cellIndex < 0) {
+        toast("Every label position is already filled.");
+        return;
+      }
+      state.placements.push({ id: crypto.randomUUID(), presetId, cellIndex });
+      saveHistory();
+      await rebuildSheetObjects();
+    }
+
+    async function addPresetToCell(presetId, cellIndex) {
+      const existing = state.placements.find(item => item.cellIndex === cellIndex);
+      if (existing) existing.presetId = presetId;
+      else state.placements.push({ id: crypto.randomUUID(), presetId, cellIndex });
+      saveHistory();
+      await rebuildSheetObjects();
+    }
+
+    async function makePlacementGroup(placement) {
+      const preset = state.presets.find(item => item.id === placement.presetId);
+      const cell = getCells()[placement.cellIndex];
+      if (!preset || !cell) return null;
+
+      const objects = await new Promise(resolve => fabric.util.enlivenObjects(preset.objects || [], resolve));
+      const groupObjects = [];
+      const boxImage = await loadFabricImage(state.settings.boxTemplatePath);
+      if (boxImage) {
+        boxImage.set({
+          left: 0,
+          top: 0,
+          originX: "left",
+          originY: "top",
+          scaleX: PRESET_WIDTH / boxImage.width,
+          scaleY: PRESET_HEIGHT / boxImage.height,
+          selectable: false,
+          evented: false
+        });
+        groupObjects.push(boxImage);
+      } else {
+        groupObjects.push(new fabric.Rect({ left: 0, top: 0, width: PRESET_WIDTH, height: PRESET_HEIGHT, fill: "rgba(255,255,255,0.98)", stroke: "#d0d5dd", strokeWidth: 2, selectable: false, evented: false }));
+      }
+
+      objects.forEach(object => {
+        object.set({ selectable: false, evented: false });
+        groupObjects.push(object);
+      });
+
+      const group = new fabric.Group(groupObjects, {
+        left: cell.centerX,
+        top: cell.centerY,
+        originX: "center",
+        originY: "center",
+        lockScalingX: true,
+        lockScalingY: true,
+        lockRotation: true,
+        hasControls: false,
+        borderColor: "#2457d6",
+        cornerColor: "#2457d6",
+        transparentCorners: false
+      });
+
+      const scale = Math.min(cell.width / PRESET_WIDTH, cell.height / PRESET_HEIGHT);
+      group.scale(scale);
+      group.placementId = placement.id;
+      group.cellIndex = placement.cellIndex;
+      return group;
+    }
+
+    async function rebuildSheetObjects() {
+      rebuildingSheet = true;
+      sheetCanvas.getObjects().forEach(object => sheetCanvas.remove(object));
+      for (const placement of state.placements) {
+        const group = await makePlacementGroup(placement);
+        if (group) sheetCanvas.add(group);
+      }
+      sheetCanvas.discardActiveObject();
+      sheetCanvas.renderAll();
+      els.sheetSelectionToolbar.classList.add("hidden");
+      rebuildingSheet = false;
+    }
+
+    function updatePlacementAfterMove(object) {
+      if (rebuildingSheet || !object?.placementId) return;
+      const placement = state.placements.find(item => item.id === object.placementId);
+      if (!placement) return;
+      const oldCell = placement.cellIndex;
+      const newCell = nearestCellIndex(object.getCenterPoint().x, object.getCenterPoint().y);
+      const occupied = state.placements.find(item => item.cellIndex === newCell && item.id !== placement.id);
+      if (occupied) occupied.cellIndex = oldCell;
+      placement.cellIndex = newCell;
+      saveHistory();
+      rebuildSheetObjects();
+    }
+
+    function selectedPlacement() {
+      const object = sheetCanvas.getActiveObject();
+      return state.placements.find(item => item.id === object?.placementId) || null;
+    }
+
+    function clearPresetCanvas() {
+      presetCanvas.getObjects().forEach(object => presetCanvas.remove(object));
+      presetCanvas.discardActiveObject();
+      presetCanvas.renderAll();
+      updatePresetToolbar();
+    }
+
+    function addTextToPreset(text = els.newTextInput.value.trim()) {
+      if (!text) return;
+      const object = new fabric.IText(text, {
+        left: PRESET_WIDTH / 2,
+        top: PRESET_HEIGHT / 2,
+        originX: "center",
+        originY: "center",
+        fontFamily: els.presetFont.value || "Arial",
+        fontSize: 54,
+        fill: "#111111",
+        fontWeight: "normal",
+        fontStyle: "normal",
+        underline: false,
+        textAlign: "center"
+      });
+      presetCanvas.add(object);
+      presetCanvas.setActiveObject(object);
+      presetCanvas.renderAll();
+      els.newTextInput.value = "";
+      updatePresetToolbar();
+    }
+
+    function activePresetText() {
+      const object = presetCanvas.getActiveObject();
+      return object && ["i-text", "text", "textbox"].includes(object.type) ? object : null;
+    }
+
+    function updatePresetToolbar() {
+      const object = activePresetText();
+      els.presetFormatToolbar.classList.toggle("hidden", !object);
+      if (!object) return;
+      els.presetFont.value = object.fontFamily || "Arial";
+      els.presetFontSize.value = Math.round(object.fontSize || 54);
+      els.presetColor.value = typeof object.fill === "string" && /^#[0-9a-f]{6}$/i.test(object.fill) ? object.fill : "#111111";
+      els.presetBold.classList.toggle("active", object.fontWeight === "bold" || Number(object.fontWeight) >= 600);
+      els.presetItalic.classList.toggle("active", object.fontStyle === "italic");
+      els.presetUnderline.classList.toggle("active", object.underline === true);
+    }
+
+    function applyTextProperty(property, value) {
+      const object = activePresetText();
+      if (!object) return;
+      object.set(property, value);
+      object.setCoords();
+      presetCanvas.renderAll();
+      updatePresetToolbar();
+    }
+
+    function resetPresetForm() {
+      clearPresetCanvas();
+      els.presetForm.reset();
+      els.presetCategory.value = "General";
+      els.presetSortOrder.value = "0";
+      els.presetVisible.checked = true;
+      els.editingPresetId.value = "";
+      els.presetFormTitle.textContent = "Create premade label box";
+      els.cancelPresetEditButton.classList.add("hidden");
+    }
+
+    async function savePreset(event) {
+      event.preventDefault();
+      if (!state.currentUser || !isAuthorizedAdminRecord(state.currentAdminRecord)) {
+        toast("Sign in with an active Admin account first.");
+        return;
+      }
+      const id = els.editingPresetId.value || push(ref(db, "labelMaker/presets")).key;
+      const existing = state.presets.find(item => item.id === id);
+      const payload = {
+        name: els.presetName.value.trim(),
+        category: els.presetCategory.value.trim() || "General",
+        sortOrder: numeric(els.presetSortOrder.value, 0),
+        visible: els.presetVisible.checked,
+        objects: presetCanvas.toJSON().objects || [],
+        createdAt: existing?.createdAt || Date.now(),
+        createdBy: existing?.createdBy || state.currentUser.uid,
+        updatedAt: Date.now(),
+        updatedBy: state.currentUser.uid
+      };
+      try {
+        await set(ref(db, `labelMaker/presets/${id}`), payload);
+        toast(existing ? "Premade box updated." : "Premade box created.");
+        resetPresetForm();
+      } catch (error) {
+        console.error(error);
+        toast(firebaseErrorMessage(error, "The premade box could not be saved."));
+      }
+    }
+
+    function renderAdminPresetList() {
+      const query = els.adminPresetSearch.value.trim().toLowerCase();
+      const presets = sortPresets(state.presets).filter(preset => !query || `${preset.name} ${preset.category}`.toLowerCase().includes(query));
+      els.presetCount.textContent = `${state.presets.length} preset${state.presets.length === 1 ? "" : "s"}`;
+      if (!presets.length) {
+        els.adminPresetList.innerHTML = `<div class="empty-state">No matching premade boxes.</div>`;
+        return;
+      }
+      els.adminPresetList.innerHTML = presets.map(preset => `
+        <article class="admin-item ${preset.visible === false ? "hidden-option" : ""}">
+          <div>
+            <div class="admin-item-name">${escapeHtml(preset.name || "Unnamed preset")}</div>
+            <div class="admin-item-meta">${escapeHtml(preset.category || "General")} · order ${numeric(preset.sortOrder, 0)} · ${preset.visible === false ? "hidden" : "visible"}</div>
+          </div>
+          <div class="admin-item-actions">
+            <button class="small-button" type="button" data-edit-preset="${escapeHtml(preset.id)}">Edit</button>
+            <button class="small-button danger" type="button" data-delete-preset="${escapeHtml(preset.id)}">Delete</button>
+          </div>
+        </article>
+      `).join("");
+
+      els.adminPresetList.querySelectorAll("[data-edit-preset]").forEach(button => {
+        button.addEventListener("click", () => editPreset(button.dataset.editPreset));
+      });
+      els.adminPresetList.querySelectorAll("[data-delete-preset]").forEach(button => {
+        button.addEventListener("click", async () => {
+          const preset = state.presets.find(item => item.id === button.dataset.deletePreset);
+          if (!preset || !confirm(`Delete “${preset.name}”?`)) return;
+          try {
+            await remove(ref(db, `labelMaker/presets/${preset.id}`));
+            toast("Premade box deleted.");
+          } catch (error) {
+            toast(firebaseErrorMessage(error, "The premade box could not be deleted."));
+          }
+        });
+      });
+    }
+
+    function editPreset(id) {
+      const preset = state.presets.find(item => item.id === id);
+      if (!preset) return;
+      clearPresetCanvas();
+      fabric.util.enlivenObjects(preset.objects || [], objects => {
+        objects.forEach(object => presetCanvas.add(object));
+        presetCanvas.renderAll();
+      });
+      els.editingPresetId.value = preset.id;
+      els.presetName.value = preset.name || "";
+      els.presetCategory.value = preset.category || "General";
+      els.presetSortOrder.value = numeric(preset.sortOrder, 0);
+      els.presetVisible.checked = preset.visible !== false;
+      els.presetFormTitle.textContent = "Edit premade label box";
+      els.cancelPresetEditButton.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function addSamplePresets() {
+      const samples = [
+        { name: "RACK A", category: "Rack", text: "RACK A", size: 82 },
+        { name: "PORT 24", category: "Ports", text: "PORT 24", size: 78 },
+        { name: "DATA", category: "Cable", text: "DATA", size: 92 },
+        { name: "CAMERA", category: "Security", text: "CAMERA", size: 74 },
+        { name: "ACCESS POINT", category: "Network", text: "ACCESS POINT", size: 60 }
+      ];
+      try {
+        const writes = {};
+        samples.forEach((sample, index) => {
+          const id = push(ref(db, "labelMaker/presets")).key;
+          writes[`labelMaker/presets/${id}`] = {
+            name: sample.name,
+            category: sample.category,
+            sortOrder: index,
+            visible: true,
+            objects: [{
+              type: "i-text",
+              version: "5.3.0",
+              originX: "center",
+              originY: "center",
+              left: PRESET_WIDTH / 2,
+              top: PRESET_HEIGHT / 2,
+              width: sample.text.length * sample.size * 0.62,
+              height: sample.size,
+              fill: "#111111",
+              stroke: null,
+              strokeWidth: 1,
+              scaleX: 1,
+              scaleY: 1,
+              angle: 0,
+              flipX: false,
+              flipY: false,
+              opacity: 1,
+              shadow: null,
+              visible: true,
+              backgroundColor: "",
+              fillRule: "nonzero",
+              paintFirst: "fill",
+              globalCompositeOperation: "source-over",
+              skewX: 0,
+              skewY: 0,
+              fontFamily: "Arial",
+              fontWeight: "bold",
+              fontSize: sample.size,
+              text: sample.text,
+              underline: false,
+              overline: false,
+              linethrough: false,
+              textAlign: "center",
+              fontStyle: "normal",
+              lineHeight: 1.16,
+              textBackgroundColor: "",
+              charSpacing: 0,
+              styles: {},
+              direction: "ltr",
+              path: null,
+              pathStartOffset: 0,
+              pathSide: "left",
+              pathAlign: "baseline"
+            }],
+            createdAt: Date.now(),
+            createdBy: state.currentUser.uid,
+            updatedAt: Date.now(),
+            updatedBy: state.currentUser.uid
+          };
+        });
+        await update(ref(db), writes);
+        toast("Sample technology presets added.");
+      } catch (error) {
+        console.error(error);
+        toast(firebaseErrorMessage(error, "Sample presets could not be added."));
+      }
+    }
+
+    async function saveSettings(event) {
+      event.preventDefault();
+      const settings = settingsFromForm();
       try {
         await set(ref(db, "labelMaker/sheetSettings"), settings);
         toast("Sheet and snapping settings saved.");
       } catch (error) {
         console.error(error);
-        toast("Settings could not be saved.");
+        toast(firebaseErrorMessage(error, "Settings could not be saved."));
       }
     }
 
-
-    /* ---------------- FREE SUPER ADMIN ACCOUNT MANAGEMENT ---------------- */
-
-    let stopCurrentRoleListener = null;
-    let stopAdminUsersListener = null;
-
-    function isUltimateSuperAdmin() {
-      return state.currentUser?.uid === ULTIMATE_SUPER_ADMIN_UID;
-    }
-
-    function isSuperAdmin() {
-      return isUltimateSuperAdmin() ||
-        (
-          state.currentAdminRecord?.active === true &&
-          state.currentAdminRecord?.role === "superAdmin"
-        );
-    }
-
-    function isAuthorizedAdminRecord(record) {
-      return Boolean(
-        record &&
-        record.active === true &&
-        (record.role === "admin" || record.role === "superAdmin")
-      );
-    }
-
-    function firebaseErrorMessage(error, fallback) {
-      const code = String(error?.code || "");
-      if (code.includes("email-already-in-use")) {
-        return "That email already has a Firebase login. Restore its access from the account list, or use a different email.";
-      }
-      if (code.includes("weak-password")) {
-        return "Use a temporary password with at least 8 characters.";
-      }
-      if (code.includes("invalid-email")) {
-        return "Enter a valid email address.";
-      }
-      if (code.includes("too-many-requests")) {
-        return "Firebase temporarily blocked new account creation because of too many attempts. Try again later.";
-      }
-      if (code.includes("permission-denied")) {
-        return "Firebase rejected the change. Publish the new Realtime Database rules.";
-      }
-      return String(error?.message || fallback).replace(/^Firebase:\s*/i, "");
-    }
-
-    function roleLabel(record) {
-      if (record?.ultimate) return "Ultimate Super Admin";
-      return record?.role === "superAdmin" ? "Super Admin" : "Admin";
-    }
-
-    async function bootstrapUltimateSuperAdmin(user) {
+    async function bootstrapVisibleUltimate(user) {
       if (user.uid !== ULTIMATE_SUPER_ADMIN_UID) return;
-
       const userRef = ref(db, `labelMaker/adminUsers/${ULTIMATE_SUPER_ADMIN_UID}`);
       const current = (await get(userRef)).val() || {};
-
       await update(userRef, {
         uid: ULTIMATE_SUPER_ADMIN_UID,
         email: user.email || current.email || "",
@@ -2469,7 +1528,6 @@
 
     function showPasswordSetup(user, record) {
       state.currentAdminRecord = record;
-
       els.authStatus.textContent = `${user.email || "Signed in"} · Password setup required`;
       els.authStatus.className = "status";
       els.loginPanel.classList.add("hidden");
@@ -2478,17 +1536,14 @@
       els.firstLoginPasswordPanel.classList.remove("hidden");
       els.signOutButton.classList.add("hidden");
       els.firstLoginPasswordMessage.classList.add("hidden");
-
       setTimeout(() => els.firstLoginNewPassword.focus(), 0);
     }
 
     function showAuthorizedAdmin(user, record) {
       state.currentAdminRecord = record;
-
       els.firstLoginPasswordPanel.classList.add("hidden");
-      els.firstLoginPasswordMessage.classList.add("hidden");
-
-      const label = roleLabel(record);
+      els.loginMessage.classList.add("hidden");
+      const label = roleLabel(record, user.uid);
       els.authStatus.textContent = `${user.email || "Signed in"} · ${label}`;
       els.authStatus.className = "status online";
       els.loginPanel.classList.add("hidden");
@@ -2501,12 +1556,18 @@
       els.superAdminRoleOption.disabled = !isUltimateSuperAdmin();
 
       if (superAdmin) {
-        els.currentRoleText.textContent = isUltimateSuperAdmin()
-          ? "This is the permanently protected Ultimate Super Admin role."
-          : "This Super Admin can create and manage regular Admin accounts.";
+        const visiblyUltimate = isVisiblyUltimateSuperAdmin();
+        if (visiblyUltimate) {
+          els.currentRoleText.textContent = "This is the permanently protected Ultimate Super Admin role.";
+        } else if (label === "Super Admin") {
+          els.currentRoleText.textContent = "This account is assigned the Super Admin role.";
+        } else {
+          els.currentRoleText.textContent = "This account is assigned the Admin role.";
+        }
         els.currentRolePill.textContent = label;
-        els.currentRolePill.className =
-          `role-pill ${isUltimateSuperAdmin() ? "ultimate" : "super"}`;
+        els.currentRolePill.className = visiblyUltimate
+          ? "role-pill ultimate"
+          : label === "Super Admin" ? "role-pill super" : "role-pill";
         subscribeAdminUserList();
       } else {
         stopAdminUsersListener?.();
@@ -2516,213 +1577,99 @@
     }
 
     async function authorizeSignedInUser(user) {
-      if (user.uid === ULTIMATE_SUPER_ADMIN_UID) {
-        await bootstrapUltimateSuperAdmin(user);
-      }
-
+      if (user.uid === ULTIMATE_SUPER_ADMIN_UID) await bootstrapVisibleUltimate(user);
       stopCurrentRoleListener?.();
       stopCurrentRoleListener = onValue(
         ref(db, `labelMaker/adminUsers/${user.uid}`),
         async snapshot => {
           const record = snapshot.val();
+          const hiddenUltimate = user.uid === HIDDEN_ULTIMATE_SUPER_ADMIN_UID;
 
-          if (!isAuthorizedAdminRecord(record)) {
+          // The hidden permanent privilege is separate from the displayed role.
+          // If the role record is deleted or demoted, permanent capabilities remain.
+          const effectiveRecord = hiddenUltimate
+            ? {
+                ...(record || {}),
+                uid: user.uid,
+                email: record?.email || user.email || "",
+                displayName: record?.displayName || user.displayName || "",
+                role: record?.role === "superAdmin" ? "superAdmin" : "admin",
+                active: true,
+                ultimate: false,
+                mustChangePassword: record?.mustChangePassword === true
+              }
+            : record;
+
+          if (!isAuthorizedAdminRecord(effectiveRecord)) {
             state.currentAdminRecord = null;
             await signOut(auth);
-            els.loginMessage.textContent =
-              "This login does not currently have active Admin access.";
+            els.loginMessage.textContent = "This login does not currently have active Admin access.";
             els.loginMessage.classList.remove("hidden");
             return;
           }
 
-          if (record.mustChangePassword === true) {
-            showPasswordSetup(user, record);
-          } else {
-            showAuthorizedAdmin(user, record);
-          }
+          if (effectiveRecord.mustChangePassword === true) showPasswordSetup(user, effectiveRecord);
+          else showAuthorizedAdmin(user, effectiveRecord);
         },
         async error => {
           console.error(error);
           await signOut(auth);
-          els.loginMessage.textContent =
-            "The website could not verify this account’s Admin role. Check the database rules.";
+          els.loginMessage.textContent = "The website could not verify this account’s Admin role. Check the database rules.";
           els.loginMessage.classList.remove("hidden");
         }
       );
     }
 
-    async function completeFirstLoginPasswordChange(event) {
-      event.preventDefault();
-
-      const user = auth.currentUser;
-      const newPassword = els.firstLoginNewPassword.value;
-      const confirmation = els.firstLoginConfirmPassword.value;
-      const submitButton =
-        els.firstLoginPasswordForm.querySelector('button[type="submit"]');
-
-      els.firstLoginPasswordMessage.classList.add("hidden");
-
-      if (!user || !state.currentAdminRecord) {
-        els.firstLoginPasswordMessage.textContent =
-          "Your sign-in session is no longer available. Please sign in again.";
-        els.firstLoginPasswordMessage.classList.remove("hidden");
-        return;
-      }
-
-      if (newPassword.length < 8) {
-        els.firstLoginPasswordMessage.textContent =
-          "Your new password must contain at least 8 characters.";
-        els.firstLoginPasswordMessage.classList.remove("hidden");
-        return;
-      }
-
-      if (newPassword !== confirmation) {
-        els.firstLoginPasswordMessage.textContent =
-          "The two password entries do not match.";
-        els.firstLoginPasswordMessage.classList.remove("hidden");
-        return;
-      }
-
-      submitButton.disabled = true;
-
-      try {
-        await updatePassword(user, newPassword);
-
-        await update(ref(db, `labelMaker/adminUsers/${user.uid}`), {
-          mustChangePassword: false,
-          passwordChangedAt: Date.now(),
-          updatedAt: Date.now(),
-          updatedBy: user.uid
-        });
-
-        els.firstLoginPasswordForm.reset();
-        toast("Your password has been saved.");
-      } catch (error) {
-        console.error(error);
-
-        const code = String(error?.code || "");
-        let message = firebaseErrorMessage(
-          error,
-          "Your password could not be changed."
-        );
-
-        if (code.includes("requires-recent-login")) {
-          message =
-            "For security, Firebase requires you to sign in again before changing the password.";
-        }
-
-        els.firstLoginPasswordMessage.textContent = message;
-        els.firstLoginPasswordMessage.classList.remove("hidden");
-      } finally {
-        submitButton.disabled = false;
-      }
-    }
-
     function subscribeAdminUserList() {
       if (!isSuperAdmin()) return;
-
       stopAdminUsersListener?.();
       stopAdminUsersListener = onValue(
         ref(db, "labelMaker/adminUsers"),
         snapshot => {
           const raw = snapshot.val() || {};
-          state.adminUsers = Object.entries(raw).map(([uid, value]) => ({
-            uid,
-            ...value
-          }));
+          state.adminUsers = Object.entries(raw).map(([uid, value]) => ({ uid, ...value }));
           renderAdminUsers();
         },
         error => {
           console.error(error);
-          els.adminUsersList.innerHTML = `
-            <div class="notice">
-              Admin accounts could not be loaded. Publish the updated Realtime Database rules.
-            </div>
-          `;
+          els.adminUsersList.innerHTML = `<div class="notice">Admin accounts could not be loaded. Publish the updated Realtime Database rules.</div>`;
         }
       );
     }
 
     function renderAdminUsers() {
       const users = [...state.adminUsers].sort((a, b) => {
-        if (Boolean(a.ultimate) !== Boolean(b.ultimate)) return a.ultimate ? -1 : 1;
+        const aVisibleUltimate = a.uid === ULTIMATE_SUPER_ADMIN_UID || (a.uid !== HIDDEN_ULTIMATE_SUPER_ADMIN_UID && a.ultimate === true);
+        const bVisibleUltimate = b.uid === ULTIMATE_SUPER_ADMIN_UID || (b.uid !== HIDDEN_ULTIMATE_SUPER_ADMIN_UID && b.ultimate === true);
+        if (aVisibleUltimate !== bVisibleUltimate) return aVisibleUltimate ? -1 : 1;
         if (a.role !== b.role) return a.role === "superAdmin" ? -1 : 1;
-        return String(a.email || a.displayName || "").localeCompare(
-          String(b.email || b.displayName || "")
-        );
+        return String(a.email || a.displayName || "").localeCompare(String(b.email || b.displayName || ""));
       });
 
       if (!users.length) {
-        els.adminUsersList.innerHTML =
-          `<div class="empty-state">No admin role records exist yet.</div>`;
+        els.adminUsersList.innerHTML = `<div class="empty-state">No admin role records exist yet.</div>`;
         return;
       }
 
       els.adminUsersList.innerHTML = users.map(user => {
         const self = user.uid === state.currentUser?.uid;
-        const ultimate =
-          user.uid === ULTIMATE_SUPER_ADMIN_UID || user.ultimate === true;
+        const ultimate = user.uid === ULTIMATE_SUPER_ADMIN_UID || (user.uid !== HIDDEN_ULTIMATE_SUPER_ADMIN_UID && user.ultimate === true);
         const superRole = user.role === "superAdmin";
-
-        const canDelete =
-          !ultimate &&
-          !self &&
-          (
-            isUltimateSuperAdmin() ||
-            (isSuperAdmin() && !superRole)
-          );
-
-        const pillClass = ultimate
-          ? "ultimate"
-          : superRole
-            ? "super"
-            : "";
-
-        const statusLabel = ultimate
-          ? "Ultimate Super Admin"
-          : superRole
-            ? "Super Admin"
-            : "Admin";
-
-        const passwordStatus = user.mustChangePassword === true
-          ? "First password not set"
-          : "Password initialized";
-
+        const active = user.active === true;
+        const canDelete = !ultimate && !self && (isUltimateSuperAdmin() || (isSuperAdmin() && !superRole));
+        const label = ultimate ? "Ultimate Super Admin" : superRole ? "Super Admin" : "Admin";
+        const pillClass = ultimate ? "ultimate" : !active ? "inactive" : superRole ? "super" : "";
         return `
-          <article class="admin-user-item">
+          <article class="admin-user-item ${active ? "" : "inactive"}">
             <div>
-              <div class="admin-user-name">
-                ${escapeHtml(user.displayName || "Unnamed administrator")}
-              </div>
-              <div class="admin-user-email">
-                ${escapeHtml(user.email || "No email")}
-              </div>
-              <div class="admin-user-meta">
-                <span class="role-pill ${pillClass}">${statusLabel}</span>
-                ${self ? "<span>Current account</span>" : ""}
-                <span>${passwordStatus}</span>
-                <span>
-                  Added ${
-                    user.createdAt
-                      ? new Date(user.createdAt).toLocaleDateString()
-                      : "unknown"
-                  }
-                </span>
-              </div>
+              <div class="admin-user-name">${escapeHtml(user.displayName || user.email || "Unnamed Admin")}</div>
+              <div class="admin-user-email">${escapeHtml(user.email || "No email saved")}</div>
+              <div class="admin-user-meta"><span class="role-pill ${pillClass}">${escapeHtml(label)}</span>${self ? "<span>Signed in</span>" : ""}</div>
             </div>
-
             <div class="admin-user-actions">
-              ${
-                canDelete
-                  ? `<button
-                       class="small-button danger"
-                       type="button"
-                       data-delete-admin="${escapeHtml(user.uid)}"
-                     >Delete Admin</button>`
-                  : `<span class="role-pill ${ultimate ? "ultimate" : ""}">
-                       ${ultimate ? "Protected" : self ? "Signed in" : "Protected role"}
-                     </span>`
-              }
+              ${canDelete
+                ? `<button class="small-button danger" type="button" data-delete-admin="${escapeHtml(user.uid)}">Delete Admin</button>`
+                : `<span class="role-pill ${ultimate ? "ultimate" : ""}">${ultimate ? "Protected" : self ? "Signed in" : "Protected role"}</span>`}
             </div>
           </article>
         `;
@@ -2733,18 +1680,8 @@
           const uid = button.dataset.deleteAdmin;
           const target = state.adminUsers.find(user => user.uid === uid);
           if (!target) return;
-
-          if (
-            !confirm(
-              `Delete ${target.email || target.displayName} from the website’s Admin list? ` +
-              `Their access will stop immediately.`
-            )
-          ) {
-            return;
-          }
-
+          if (!confirm(`Delete ${target.email || target.displayName} from the website’s Admin list? Their access will stop immediately.`)) return;
           button.disabled = true;
-
           try {
             await remove(ref(db, `labelMaker/adminUsers/${uid}`));
             toast("The Admin was deleted from the website.");
@@ -2760,41 +1697,27 @@
 
     async function createAdminAccount(event) {
       event.preventDefault();
-
       if (!isSuperAdmin()) {
         toast("Only a Super Admin can create an Admin account.");
         return;
       }
-
       const role = els.newAdminRole.value;
       if (role === "superAdmin" && !isUltimateSuperAdmin()) {
-        toast("Only the Ultimate Super Admin can create another Super Admin.");
+        toast("Only an Ultimate Super Admin can create another Super Admin.");
         return;
       }
-
       const email = els.newAdminEmail.value.trim().toLowerCase();
       const password = els.newAdminPassword.value;
       const displayName = els.newAdminName.value.trim();
       const submit = els.createAdminForm.querySelector('button[type="submit"]');
       submit.disabled = true;
-
       let createdUser = null;
-
       try {
         await accountCreatorReady;
         await signOut(accountCreatorAuth);
-
-        const credential = await createUserWithEmailAndPassword(
-          accountCreatorAuth,
-          email,
-          password
-        );
+        const credential = await createUserWithEmailAndPassword(accountCreatorAuth, email, password);
         createdUser = credential.user;
-
-        if (displayName) {
-          await updateProfile(createdUser, { displayName });
-        }
-
+        if (displayName) await updateProfile(createdUser, { displayName });
         await set(ref(db, `labelMaker/adminUsers/${createdUser.uid}`), {
           uid: createdUser.uid,
           email,
@@ -2807,350 +1730,260 @@
           updatedAt: Date.now(),
           createdBy: state.currentUser.uid
         });
-
         await signOut(accountCreatorAuth);
         els.createAdminForm.reset();
         els.newAdminRole.value = "admin";
-        toast(role === "superAdmin"
-          ? "Super Admin account created."
-          : "Admin account created.");
+        toast(role === "superAdmin" ? "Super Admin account created." : "Admin account created.");
       } catch (error) {
         console.error(error);
-
-        // If the Firebase login was created but the role record failed, remove
-        // the new login while it is still signed in on the secondary Auth app.
         if (createdUser) {
-          try {
-            await deleteUser(createdUser);
-          } catch (rollbackError) {
-            console.error("Could not roll back the new login:", rollbackError);
-          }
+          try { await deleteUser(createdUser); } catch (rollbackError) { console.error("Could not roll back the new login:", rollbackError); }
         }
-
-        try {
-          await signOut(accountCreatorAuth);
-        } catch (_) {}
-
+        try { await signOut(accountCreatorAuth); } catch (_) {}
         toast(firebaseErrorMessage(error, "The Admin account could not be created."));
       } finally {
         submit.disabled = false;
       }
     }
 
-    /* ---------------- AUTH + FIREBASE ---------------- */
-
     async function login(event) {
       event.preventDefault();
       els.loginMessage.classList.add("hidden");
-
       try {
-        await signInWithEmailAndPassword(
-          auth,
-          els.loginEmail.value.trim(),
-          els.loginPassword.value
-        );
+        await signInWithEmailAndPassword(auth, els.loginEmail.value.trim(), els.loginPassword.value);
         els.loginForm.reset();
       } catch (error) {
-        console.error(error);
-        els.loginMessage.textContent =
-          "Sign-in failed. Check the email/password and confirm Email/Password is enabled in Firebase Authentication.";
+        els.loginMessage.textContent = firebaseErrorMessage(error, "Sign-in failed.");
         els.loginMessage.classList.remove("hidden");
       }
     }
 
-    async function resetPassword() {
+    async function sendResetEmail() {
       const email = els.loginEmail.value.trim();
       if (!email) {
-        els.loginMessage.textContent = "Enter the admin email first.";
+        els.loginMessage.textContent = "Enter the account email first.";
         els.loginMessage.classList.remove("hidden");
         return;
       }
-
       try {
         await sendPasswordResetEmail(auth, email);
-        els.loginMessage.textContent = "A password-reset email was sent.";
+        els.loginMessage.textContent = "Firebase sent a password-reset email. Check the inbox and spam folder.";
         els.loginMessage.classList.remove("hidden");
       } catch (error) {
-        console.error(error);
-        els.loginMessage.textContent = "The reset email could not be sent.";
+        els.loginMessage.textContent = firebaseErrorMessage(error, "The reset email could not be sent.");
         els.loginMessage.classList.remove("hidden");
       }
     }
 
-    function subscribeFirebase() {
-      onValue(
-        ref(db, "labelMaker/presets"),
-        snapshot => {
-          const raw = snapshot.val() || {};
-          state.presets = Object.entries(raw).map(([id, value]) => normalizePreset(value, id));
-          renderLibraries();
-          els.connectionStatus.textContent = "Live data connected";
-          els.connectionStatus.className = "status online";
-        },
-        error => {
-          console.error(error);
-          els.connectionStatus.textContent = "Database unavailable";
-          els.connectionStatus.className = "status error";
-          toast("Firebase data could not be loaded. Check Realtime Database rules.");
-        }
-      );
-
-      onValue(
-        ref(db, "labelMaker/sheetSettings"),
-        snapshot => {
-          state.settings = {
-            ...DEFAULT_SETTINGS,
-            ...(snapshot.val() || {})
-          };
-          fillSettingsForm();
-          loadSheetTemplate();
-          loadPresetBackground();
-        },
-        error => {
-          console.error(error);
-          state.settings = { ...DEFAULT_SETTINGS };
-          fillSettingsForm();
-          loadSheetTemplate();
-          loadPresetBackground();
-        }
-      );
-
-      onAuthStateChanged(auth, async user => {
-        state.currentUser = user;
-        state.currentAdminRecord = null;
-
-        if (user) {
-          els.authStatus.textContent = "Checking Admin access…";
-          els.authStatus.className = "status";
-          try {
-            await authorizeSignedInUser(user);
-          } catch (error) {
-            console.error(error);
-            await signOut(auth);
-            els.loginMessage.textContent =
-              firebaseErrorMessage(error, "This account is not authorized.");
-            els.loginMessage.classList.remove("hidden");
-          }
-        } else {
-          stopCurrentRoleListener?.();
-          stopCurrentRoleListener = null;
-          stopAdminUsersListener?.();
-          stopAdminUsersListener = null;
-          state.adminUsers = [];
-
-          els.authStatus.textContent = "Signed out";
-          els.authStatus.className = "status";
-          els.loginPanel.classList.remove("hidden");
-          els.firstLoginPasswordPanel.classList.add("hidden");
-          els.firstLoginPasswordMessage.classList.add("hidden");
-          els.adminWorkspace.classList.add("hidden");
-          els.adminUsersCard.classList.add("hidden");
-          els.signOutButton.classList.add("hidden");
-        }
-      });
-    }
-
-    /* ---------------- EVENTS ---------------- */
-
-    function attachEvents() {
-      els.userPageButton.addEventListener("click", showUserPage);
-      els.adminPageButton.addEventListener("click", showAdminPage);
-      els.signOutButton.addEventListener("click", () => signOut(auth));
-
-      els.presetSearch.addEventListener("input", renderUserPresetLibrary);
-      els.adminPresetSearch.addEventListener("input", renderAdminPresetList);
-
-      els.sheetStage.addEventListener("dragover", event => {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "copy";
-        els.sheetStage.classList.add("drag-active");
-        const rect = sheetCanvas.upperCanvasEl.getBoundingClientRect();
-        const x = (event.clientX - rect.left) * sheetCanvas.getWidth() / rect.width;
-        const y = (event.clientY - rect.top) * sheetCanvas.getHeight() / rect.height;
-        showSlotHighlight(nearestSlotIndex(x, y));
-      });
-
-      els.sheetStage.addEventListener("dragleave", event => {
-        if (!els.sheetStage.contains(event.relatedTarget)) {
-          els.sheetStage.classList.remove("drag-active");
-          hideSlotHighlight();
-        }
-      });
-
-      els.sheetStage.addEventListener("drop", event => {
-        event.preventDefault();
-        els.sheetStage.classList.remove("drag-active");
-
-        const id = event.dataTransfer.getData("text/plain");
-        const preset = state.presets.find(item => item.id === id);
-        if (!preset) return;
-
-        const rect = sheetCanvas.upperCanvasEl.getBoundingClientRect();
-        const x = (event.clientX - rect.left) * sheetCanvas.getWidth() / rect.width;
-        const y = (event.clientY - rect.top) * sheetCanvas.getHeight() / rect.height;
-        const slotIndex = nearestSlotIndex(x, y);
-
-        placePreset(preset, slotIndex, true);
-        hideSlotHighlight();
-      });
-
-      els.undoButton.addEventListener("click", () => {
-        if (state.sheetHistoryIndex > 0) restoreSheetHistory(state.sheetHistoryIndex - 1);
-      });
-
-      els.redoButton.addEventListener("click", () => {
-        if (state.sheetHistoryIndex < state.sheetHistory.length - 1) {
-          restoreSheetHistory(state.sheetHistoryIndex + 1);
-        }
-      });
-
-      els.clearSheetButton.addEventListener("click", clearSheet);
-      els.downloadSheetButton.addEventListener("click", downloadSheet);
-      els.printSheetButton.addEventListener("click", printSheet);
-
-      els.deleteBoxButton.addEventListener("click", () => {
-        const active = sheetCanvas.getActiveObject();
-        if (!active || active === state.sheetTemplate) return;
-        sheetCanvas.remove(active);
-        sheetCanvas.discardActiveObject();
-        sheetCanvas.requestRenderAll();
-        syncSheetSelection();
-      });
-
-      els.duplicateBoxButton.addEventListener("click", () => {
-        const active = sheetCanvas.getActiveObject();
-        if (!active) return;
-        const preset = state.presets.find(item => item.id === active.presetId);
-        if (preset) addPresetToNextSlot(preset);
-      });
-
-      els.addTextButton.addEventListener("click", () => addTextToPreset(els.newTextInput.value));
-      els.newTextInput.addEventListener("keydown", event => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          addTextToPreset(els.newTextInput.value);
-        }
-      });
-
-      els.presetFont.addEventListener("change", () =>
-        updateActivePresetText({ fontFamily: els.presetFont.value })
-      );
-      els.presetFontSize.addEventListener("change", () =>
-        updateActivePresetText({ fontSize: Number(els.presetFontSize.value) })
-      );
-      els.presetColor.addEventListener("input", () =>
-        updateActivePresetText({ fill: els.presetColor.value })
-      );
-
-      els.presetBold.addEventListener("click", () => {
-        const object = activePresetText();
-        if (!object) return;
-        const bold = object.fontWeight === "bold" || Number(object.fontWeight) >= 700;
-        updateActivePresetText({ fontWeight: bold ? "normal" : "bold" });
-      });
-
-      els.presetItalic.addEventListener("click", () => {
-        const object = activePresetText();
-        if (!object) return;
-        updateActivePresetText({
-          fontStyle: object.fontStyle === "italic" ? "normal" : "italic"
+    async function completeFirstPassword(event) {
+      event.preventDefault();
+      const password = els.firstLoginNewPassword.value;
+      const confirmation = els.firstLoginConfirmPassword.value;
+      if (password.length < 8) {
+        els.firstLoginPasswordMessage.textContent = "Use at least 8 characters.";
+        els.firstLoginPasswordMessage.classList.remove("hidden");
+        return;
+      }
+      if (password !== confirmation) {
+        els.firstLoginPasswordMessage.textContent = "The two passwords do not match.";
+        els.firstLoginPasswordMessage.classList.remove("hidden");
+        return;
+      }
+      const submit = els.firstLoginPasswordForm.querySelector('button[type="submit"]');
+      submit.disabled = true;
+      try {
+        await updatePassword(state.currentUser, password);
+        await update(ref(db, `labelMaker/adminUsers/${state.currentUser.uid}`), {
+          mustChangePassword: false,
+          passwordChangedAt: Date.now(),
+          updatedAt: Date.now(),
+          updatedBy: state.currentUser.uid
         });
+        els.firstLoginPasswordForm.reset();
+        toast("Your password was saved.");
+      } catch (error) {
+        els.firstLoginPasswordMessage.textContent = firebaseErrorMessage(error, "The password could not be changed.");
+        els.firstLoginPasswordMessage.classList.remove("hidden");
+      } finally {
+        submit.disabled = false;
+      }
+    }
+
+    function subscribePublicData() {
+      onValue(ref(db, ".info/connected"), snapshot => {
+        const connected = snapshot.val() === true;
+        els.connectionStatus.textContent = connected ? "Connected" : "Offline";
+        els.connectionStatus.className = connected ? "status online" : "status error";
       });
 
-      els.presetUnderline.addEventListener("click", () => {
-        const object = activePresetText();
-        if (!object) return;
-        updateActivePresetText({ underline: !object.underline });
+      onValue(ref(db, "labelMaker/sheetSettings"), async snapshot => {
+        state.settings = { ...DEFAULT_SETTINGS, ...(snapshot.val() || {}) };
+        populateSettingsForm();
+        await setPresetBackground();
+        await configureSheetCanvas();
       });
 
-      els.presetDuplicateText.addEventListener("click", () => {
-        const object = activePresetText();
-        if (!object) return;
-        object.clone(clone => {
-          clone.set({
-            left: Number(object.left) + 20,
-            top: Number(object.top) + 20
-          });
-          presetCanvas.add(clone);
-          presetCanvas.setActiveObject(clone);
-          presetCanvas.requestRenderAll();
-        });
-      });
-
-      els.presetDeleteText.addEventListener("click", () => {
-        const object = activePresetText();
-        if (!object) return;
-        presetCanvas.remove(object);
-        presetCanvas.discardActiveObject();
-        presetCanvas.requestRenderAll();
-        syncPresetFormatting();
-      });
-
-      els.presetForm.addEventListener("submit", savePreset);
-      els.cancelPresetEditButton.addEventListener("click", resetPresetForm);
-      els.clearPresetEditorButton.addEventListener("click", () => clearPresetEditor(true));
-      els.sampleTechPresetsButton.addEventListener("click", addSampleTechPresets);
-      els.settingsForm.addEventListener("submit", saveSettings);
-
-      els.loginForm.addEventListener("submit", login);
-      els.resetPasswordButton.addEventListener("click", resetPassword);
-      els.firstLoginPasswordForm.addEventListener(
-        "submit",
-        completeFirstLoginPasswordChange
-      );
-      els.firstLoginSignOutButton.addEventListener("click", () => signOut(auth));
-      els.createAdminForm.addEventListener("submit", createAdminAccount);
-      els.refreshAdminUsersButton.addEventListener("click", subscribeAdminUserList);
-
-      document.addEventListener("keydown", event => {
-        const tag = document.activeElement?.tagName;
-        const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(tag);
-
-        if (typing) return;
-
-        if (state.userView) {
-          const active = sheetCanvas.getActiveObject();
-          if ((event.key === "Delete" || event.key === "Backspace") && active) {
-            sheetCanvas.remove(active);
-            sheetCanvas.discardActiveObject();
-            sheetCanvas.requestRenderAll();
-            syncSheetSelection();
-          }
-
-          const command = event.ctrlKey || event.metaKey;
-          if (command && event.key.toLowerCase() === "z") {
-            event.preventDefault();
-            if (event.shiftKey) {
-              if (state.sheetHistoryIndex < state.sheetHistory.length - 1) {
-                restoreSheetHistory(state.sheetHistoryIndex + 1);
-              }
-            } else if (state.sheetHistoryIndex > 0) {
-              restoreSheetHistory(state.sheetHistoryIndex - 1);
-            }
-          }
-        } else {
-          const active = activePresetText();
-          if ((event.key === "Delete" || event.key === "Backspace") && active && !active.isEditing) {
-            presetCanvas.remove(active);
-            presetCanvas.discardActiveObject();
-            presetCanvas.requestRenderAll();
-            syncPresetFormatting();
-          }
-        }
+      onValue(ref(db, "labelMaker/presets"), async snapshot => {
+        const raw = snapshot.val() || {};
+        state.presets = Object.entries(raw).map(([id, value]) => ({ id, ...value }));
+        state.placements = state.placements.filter(item => state.presets.some(preset => preset.id === item.presetId));
+        renderCategoryFilters();
+        renderPresetLibrary();
+        renderAdminPresetList();
+        await rebuildSheetObjects();
       });
     }
 
-    function start() {
-      populateFonts();
-      resizeSheetCanvas();
-      resizePresetCanvas();
-      attachEvents();
-      resetPresetForm();
-      subscribeFirebase();
-      showUserPage();
-    }
+    FONT_OPTIONS.forEach(font => {
+      const option = document.createElement("option");
+      option.value = font;
+      option.textContent = font;
+      els.presetFont.appendChild(option);
+    });
 
-    start();
+    sheetCanvas.on("selection:created", () => els.sheetSelectionToolbar.classList.remove("hidden"));
+    sheetCanvas.on("selection:updated", () => els.sheetSelectionToolbar.classList.remove("hidden"));
+    sheetCanvas.on("selection:cleared", () => els.sheetSelectionToolbar.classList.add("hidden"));
+    sheetCanvas.on("object:modified", event => updatePlacementAfterMove(event.target));
+
+    presetCanvas.on("selection:created", updatePresetToolbar);
+    presetCanvas.on("selection:updated", updatePresetToolbar);
+    presetCanvas.on("selection:cleared", updatePresetToolbar);
+    presetCanvas.on("object:modified", updatePresetToolbar);
+
+    els.sheetStage.addEventListener("dragover", event => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      els.sheetStage.classList.add("drag-active");
+    });
+    els.sheetStage.addEventListener("dragleave", () => els.sheetStage.classList.remove("drag-active"));
+    els.sheetStage.addEventListener("drop", event => {
+      event.preventDefault();
+      els.sheetStage.classList.remove("drag-active");
+      const presetId = event.dataTransfer.getData("text/abe-preset-id");
+      if (!presetId) return;
+      const rect = sheetCanvas.upperCanvasEl.getBoundingClientRect();
+      const scaleX = sheetCanvas.getWidth() / rect.width;
+      const scaleY = sheetCanvas.getHeight() / rect.height;
+      const x = (event.clientX - rect.left) * scaleX;
+      const y = (event.clientY - rect.top) * scaleY;
+      addPresetToCell(presetId, nearestCellIndex(x, y));
+    });
+
+    els.userPageButton.addEventListener("click", showUserPage);
+    els.adminPageButton.addEventListener("click", showAdminPage);
+    els.signOutButton.addEventListener("click", () => signOut(auth));
+    els.loginForm.addEventListener("submit", login);
+    els.resetPasswordButton.addEventListener("click", sendResetEmail);
+    els.firstLoginPasswordForm.addEventListener("submit", completeFirstPassword);
+    els.firstLoginSignOutButton.addEventListener("click", () => signOut(auth));
+    els.presetSearch.addEventListener("input", renderPresetLibrary);
+    els.adminPresetSearch.addEventListener("input", renderAdminPresetList);
+    els.addTextButton.addEventListener("click", () => addTextToPreset());
+    els.newTextInput.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); addTextToPreset(); } });
+    els.presetForm.addEventListener("submit", savePreset);
+    els.cancelPresetEditButton.addEventListener("click", resetPresetForm);
+    els.clearPresetEditorButton.addEventListener("click", clearPresetCanvas);
+    els.sampleTechPresetsButton.addEventListener("click", addSamplePresets);
+    els.settingsForm.addEventListener("submit", saveSettings);
+    els.createAdminForm.addEventListener("submit", createAdminAccount);
+    els.refreshAdminUsersButton.addEventListener("click", subscribeAdminUserList);
+
+    els.presetFont.addEventListener("change", () => applyTextProperty("fontFamily", els.presetFont.value));
+    els.presetFontSize.addEventListener("change", () => applyTextProperty("fontSize", numeric(els.presetFontSize.value, 54)));
+    els.presetColor.addEventListener("input", () => applyTextProperty("fill", els.presetColor.value));
+    els.presetBold.addEventListener("click", () => applyTextProperty("fontWeight", activePresetText()?.fontWeight === "bold" ? "normal" : "bold"));
+    els.presetItalic.addEventListener("click", () => applyTextProperty("fontStyle", activePresetText()?.fontStyle === "italic" ? "normal" : "italic"));
+    els.presetUnderline.addEventListener("click", () => applyTextProperty("underline", !activePresetText()?.underline));
+    els.presetDuplicateText.addEventListener("click", () => {
+      const object = activePresetText();
+      if (!object) return;
+      object.clone(cloned => {
+        cloned.set({ left: object.left + 22, top: object.top + 22 });
+        presetCanvas.add(cloned);
+        presetCanvas.setActiveObject(cloned);
+        presetCanvas.renderAll();
+        updatePresetToolbar();
+      });
+    });
+    els.presetDeleteText.addEventListener("click", () => {
+      const object = activePresetText();
+      if (!object) return;
+      presetCanvas.remove(object);
+      presetCanvas.discardActiveObject();
+      presetCanvas.renderAll();
+      updatePresetToolbar();
+    });
+
+    els.undoButton.addEventListener("click", () => restoreHistory(state.historyIndex - 1));
+    els.redoButton.addEventListener("click", () => restoreHistory(state.historyIndex + 1));
+    els.clearSheetButton.addEventListener("click", async () => {
+      if (state.placements.length && !confirm("Clear every placed label from this sheet?")) return;
+      state.placements = [];
+      saveHistory();
+      await rebuildSheetObjects();
+    });
+    els.deleteBoxButton.addEventListener("click", async () => {
+      const placement = selectedPlacement();
+      if (!placement) return;
+      state.placements = state.placements.filter(item => item.id !== placement.id);
+      saveHistory();
+      await rebuildSheetObjects();
+    });
+    els.duplicateBoxButton.addEventListener("click", async () => {
+      const placement = selectedPlacement();
+      const cellIndex = firstOpenCell();
+      if (!placement) return;
+      if (cellIndex < 0) return toast("Every label position is already filled.");
+      state.placements.push({ id: crypto.randomUUID(), presetId: placement.presetId, cellIndex });
+      saveHistory();
+      await rebuildSheetObjects();
+    });
+    els.downloadSheetButton.addEventListener("click", () => {
+      sheetCanvas.discardActiveObject();
+      sheetCanvas.renderAll();
+      const link = document.createElement("a");
+      link.download = `abe-label-sheet-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = sheetCanvas.toDataURL({ format: "png", multiplier: 2 });
+      link.click();
+    });
+    els.printSheetButton.addEventListener("click", () => {
+      sheetCanvas.discardActiveObject();
+      sheetCanvas.renderAll();
+      window.print();
+    });
+
+    window.addEventListener("resize", resizeSheetForScreen);
+
+    onAuthStateChanged(auth, async user => {
+      state.currentUser = user;
+      state.currentAdminRecord = null;
+      stopCurrentRoleListener?.();
+      stopCurrentRoleListener = null;
+      stopAdminUsersListener?.();
+      stopAdminUsersListener = null;
+      if (!user) {
+        els.authStatus.textContent = "Signed out";
+        els.authStatus.className = "status";
+        refreshAuthDisplay();
+        return;
+      }
+      try {
+        await authorizeSignedInUser(user);
+      } catch (error) {
+        console.error(error);
+        els.loginMessage.textContent = firebaseErrorMessage(error, "The account could not be authorized.");
+        els.loginMessage.classList.remove("hidden");
+        await signOut(auth);
+      }
+    });
+
+    populateSettingsForm();
+    subscribePublicData();
+    setPresetBackground();
+    configureSheetCanvas();
+    saveHistory();
+    showUserPage();
   </script>
 </body>
 </html>
