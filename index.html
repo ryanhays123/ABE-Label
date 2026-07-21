@@ -932,9 +932,9 @@
       </div>
 
       <p class="sheet-help">
-        Drag an existing box to another label position to move it. If the destination is occupied,
-        the two boxes swap places. The preview slightly separates the boxes and visually centers each
-        design for readability. PDF and printing still use the exact physical Avery coordinates.
+        Drag a preset over a box and the matching box highlights exactly. The sidebar card no longer
+        covers the sheet while dragging. After dropping, the visible design is centered in that preview
+        box. PDF and printing still use the exact physical Avery coordinates.
       </p>
     </section>
   </main>
@@ -1529,6 +1529,46 @@
       return result;
     }
 
+    function previewSlot(slotIndex) {
+      const slot = slots()[slotIndex];
+      if (!slot) return null;
+
+      return {
+        ...slot,
+        left: slot.left + PREVIEW_GUIDE_INSET_X,
+        top: slot.top + PREVIEW_GUIDE_INSET_Y,
+        width: slot.width - PREVIEW_GUIDE_INSET_X * 2,
+        height: slot.height - PREVIEW_GUIDE_INSET_Y * 2,
+        centerX: slot.centerX,
+        centerY: slot.centerY
+      };
+    }
+
+    function sheetPointFromDragEvent(event) {
+      const rectangle = sheetCanvas.upperCanvasEl.getBoundingClientRect();
+      const clientX = Math.max(
+        rectangle.left,
+        Math.min(rectangle.right, event.clientX)
+      );
+      const clientY = Math.max(
+        rectangle.top,
+        Math.min(rectangle.bottom, event.clientY)
+      );
+
+      return {
+        x:
+          (clientX - rectangle.left) *
+          (sheetCanvas.getWidth() / Math.max(rectangle.width, 1)),
+        y:
+          (clientY - rectangle.top) *
+          (sheetCanvas.getHeight() / Math.max(rectangle.height, 1))
+      };
+    }
+
+    const transparentDragImage = document.createElement("canvas");
+    transparentDragImage.width = 1;
+    transparentDragImage.height = 1;
+
     function nearestSlotIndex(x, y) {
       const all = slots();
       let best = 0;
@@ -1617,31 +1657,40 @@
     }
 
     function applyPreviewAlignment(group, slotIndex) {
-      const slot = slots()[slotIndex];
-      if (!slot) return;
+      const exactSlot = slots()[slotIndex];
+      const visibleSlot = previewSlot(slotIndex);
+      if (!exactSlot || !visibleSlot) return;
 
-      // Start from the exact print location, then shift only the browser preview
-      // so the visible content appears centered in its label.
+      // The PDF uses the exact saved coordinates. The browser preview offsets
+      // the whole design so its visible contents sit in the visual center.
       setGroupToExactPrintPosition(group, slotIndex);
 
-      const bounds = groupVisibleContentBounds(group);
-      const maximumOffsetX =
-        Math.max(0, (slot.width - bounds.width) / 2 - PREVIEW_CONTENT_PADDING);
-      const maximumOffsetY =
-        Math.max(0, (slot.height - bounds.height) / 2 - PREVIEW_CONTENT_PADDING);
+      const centerX = Number(group.previewContentCenterX || 0);
+      const centerY = Number(group.previewContentCenterY || 0);
+      const contentWidth = Number(group.previewContentWidth || 0);
+      const contentHeight = Number(group.previewContentHeight || 0);
+
+      const maximumOffsetX = Math.max(
+        0,
+        (visibleSlot.width - contentWidth) / 2 - PREVIEW_CONTENT_PADDING
+      );
+      const maximumOffsetY = Math.max(
+        0,
+        (visibleSlot.height - contentHeight) / 2 - PREVIEW_CONTENT_PADDING
+      );
 
       const offsetX = Math.max(
         -maximumOffsetX,
-        Math.min(maximumOffsetX, -bounds.centerX)
+        Math.min(maximumOffsetX, -centerX)
       );
       const offsetY = Math.max(
         -maximumOffsetY,
-        Math.min(maximumOffsetY, -bounds.centerY)
+        Math.min(maximumOffsetY, -centerY)
       );
 
       group.set({
-        left: slot.centerX + offsetX,
-        top: slot.centerY + offsetY,
+        left: visibleSlot.centerX + offsetX,
+        top: visibleSlot.centerY + offsetY,
         previewOffsetX: offsetX,
         previewOffsetY: offsetY
       });
@@ -1657,23 +1706,7 @@
       const ratioX = slot.width / preset.editorWidth;
       const ratioY = slot.height / preset.editorHeight;
       const fontRatio = Math.min(ratioX, ratioY);
-
-      const objects = [
-        new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: slot.width,
-          height: slot.height,
-          originX: "center",
-          originY: "center",
-          fill: "rgba(0,0,0,0)",
-          stroke: "rgba(0,0,0,0)",
-          strokeWidth: 0,
-          opacity: 0,
-          selectable: false,
-          evented: false
-        })
-      ];
+      const contentObjects = [];
 
       for (const saved of preset.objects) {
         if (saved.type === "image" && saved.src) {
@@ -1695,7 +1728,7 @@
               selectable: false,
               evented: false
             });
-            objects.push(image);
+            contentObjects.push(image);
           } catch (error) {
             console.error("Could not place a preset image:", error);
           }
@@ -1725,10 +1758,52 @@
           selectable: false,
           evented: false
         });
-        objects.push(item);
+        contentObjects.push(item);
       }
 
-      const group = new fabric.Group(objects, {
+      let minX = 0;
+      let minY = 0;
+      let maxX = 0;
+      let maxY = 0;
+
+      if (contentObjects.length) {
+        minX = Infinity;
+        minY = Infinity;
+        maxX = -Infinity;
+        maxY = -Infinity;
+
+        contentObjects.forEach(object => {
+          object.setCoords();
+          const bounds = object.getBoundingRect(true, true);
+          minX = Math.min(minX, bounds.left);
+          minY = Math.min(minY, bounds.top);
+          maxX = Math.max(maxX, bounds.left + bounds.width);
+          maxY = Math.max(maxY, bounds.top + bounds.height);
+        });
+      }
+
+      const contentCenterX = (minX + maxX) / 2;
+      const contentCenterY = (minY + maxY) / 2;
+      const contentWidth = Math.max(0, maxX - minX);
+      const contentHeight = Math.max(0, maxY - minY);
+
+      // Invisible anchor preserves the physical label coordinate system.
+      const anchor = new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: slot.width,
+        height: slot.height,
+        originX: "center",
+        originY: "center",
+        fill: "rgba(0,0,0,0)",
+        stroke: "rgba(0,0,0,0)",
+        strokeWidth: 0,
+        opacity: 0,
+        selectable: false,
+        evented: false
+      });
+
+      const group = new fabric.Group([anchor, ...contentObjects], {
         left: slot.centerX,
         top: slot.centerY,
         originX: "center",
@@ -1736,6 +1811,10 @@
         presetId: preset.id,
         presetName: preset.name,
         slotIndex,
+        previewContentCenterX: contentCenterX,
+        previewContentCenterY: contentCenterY,
+        previewContentWidth: contentWidth,
+        previewContentHeight: contentHeight,
         hasControls: false,
         hasBorders: false,
         lockScalingX: true,
@@ -1753,7 +1832,7 @@
         })
       });
 
-      centerGroupInSlot(group, slotIndex);
+      applyPreviewAlignment(group, slotIndex);
       return group;
     }
 
@@ -1801,7 +1880,7 @@
     }
 
     function showSlotHighlight(slotIndex) {
-      const slot = slots()[slotIndex];
+      const slot = previewSlot(slotIndex);
       if (!slot || !state.slotHighlight) return;
 
       state.slotHighlight.set({
@@ -1809,6 +1888,8 @@
         top: slot.top,
         width: slot.width,
         height: slot.height,
+        rx: Math.min(slot.width, slot.height) * 0.045,
+        ry: Math.min(slot.width, slot.height) * 0.045,
         visible: true
       });
       state.slotHighlight.setCoords();
@@ -2834,6 +2915,14 @@
         card.addEventListener("dragstart", event => {
           event.dataTransfer.effectAllowed = "copy";
           event.dataTransfer.setData("text/plain", presetId);
+          event.dataTransfer.setDragImage(transparentDragImage, 0, 0);
+          document.body.classList.add("preset-dragging");
+        });
+
+        card.addEventListener("dragend", () => {
+          document.body.classList.remove("preset-dragging");
+          els.sheetStage.classList.remove("drag-active");
+          hideSlotHighlight();
         });
       });
     }
@@ -3772,10 +3861,8 @@
         event.preventDefault();
         event.dataTransfer.dropEffect = "copy";
         els.sheetStage.classList.add("drag-active");
-        const rect = sheetCanvas.upperCanvasEl.getBoundingClientRect();
-        const x = (event.clientX - rect.left) * sheetCanvas.getWidth() / rect.width;
-        const y = (event.clientY - rect.top) * sheetCanvas.getHeight() / rect.height;
-        showSlotHighlight(nearestSlotIndex(x, y));
+        const point = sheetPointFromDragEvent(event);
+        showSlotHighlight(nearestSlotIndex(point.x, point.y));
       });
 
       els.sheetStage.addEventListener("dragleave", event => {
@@ -3793,12 +3880,13 @@
         const preset = state.presets.find(item => item.id === id);
         if (!preset) return;
 
-        const rect = sheetCanvas.upperCanvasEl.getBoundingClientRect();
-        const x = (event.clientX - rect.left) * sheetCanvas.getWidth() / rect.width;
-        const y = (event.clientY - rect.top) * sheetCanvas.getHeight() / rect.height;
-        const slotIndex = nearestSlotIndex(x, y);
+        const point = sheetPointFromDragEvent(event);
+        const slotIndex = nearestSlotIndex(point.x, point.y);
 
         await placePreset(preset, slotIndex, true);
+        sheetCanvas.discardActiveObject();
+        sheetCanvas.requestRenderAll();
+        document.body.classList.remove("preset-dragging");
         hideSlotHighlight();
       });
 
