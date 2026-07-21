@@ -518,7 +518,7 @@
       <div class="editor-heading">
         <div>
           <h2>Label sheet</h2>
-          <p>Each design snaps to the nearest label box and stays centered.</p>
+          <p>Only the saved text and design elements are placed. Each design stays centered in its label.</p>
         </div>
         <div class="button-row">
           <button id="undoButton" class="button button-secondary" type="button" disabled>Undo</button>
@@ -544,7 +544,7 @@
         <button id="printSheetButton" class="button button-primary" type="button">Print full sheet</button>
       </div>
 
-      <p class="sheet-help">Drag an existing box to another label position to move it. If the destination is occupied, the two boxes swap places.</p>
+      <p class="sheet-help">Drag a placed design to another label position to move it. It remains centered and, if the destination is occupied, the two designs swap places.</p>
     </section>
   </main>
 
@@ -1193,27 +1193,36 @@
       const cell = getCells()[placement.cellIndex];
       if (!preset || !cell) return null;
 
-      const objects = await new Promise(resolve => fabric.util.enlivenObjects(preset.objects || [], resolve));
-      const groupObjects = [];
-      const boxImage = await loadFabricImage(state.settings.boxTemplatePath);
-      if (boxImage) {
-        boxImage.set({
-          left: 0,
-          top: 0,
-          originX: "left",
-          originY: "top",
-          scaleX: PRESET_WIDTH / boxImage.width,
-          scaleY: PRESET_HEIGHT / boxImage.height,
+      const objects = await new Promise(resolve =>
+        fabric.util.enlivenObjects(preset.objects || [], resolve)
+      );
+
+      /*
+       * The example-box image is intentionally NOT copied to the full sheet.
+       * This transparent frame preserves the original 800 × 300 design area,
+       * so text, icons, and other objects remain in exactly the same position
+       * they had inside the Admin example box.
+       */
+      const alignmentFrame = new fabric.Rect({
+        left: 0,
+        top: 0,
+        originX: "left",
+        originY: "top",
+        width: PRESET_WIDTH,
+        height: PRESET_HEIGHT,
+        fill: "rgba(0,0,0,0)",
+        strokeWidth: 0,
+        selectable: false,
+        evented: false
+      });
+
+      const groupObjects = [alignmentFrame];
+
+      objects.forEach(object => {
+        object.set({
           selectable: false,
           evented: false
         });
-        groupObjects.push(boxImage);
-      } else {
-        groupObjects.push(new fabric.Rect({ left: 0, top: 0, width: PRESET_WIDTH, height: PRESET_HEIGHT, fill: "rgba(255,255,255,0.98)", stroke: "#d0d5dd", strokeWidth: 2, selectable: false, evented: false }));
-      }
-
-      objects.forEach(object => {
-        object.set({ selectable: false, evented: false });
         groupObjects.push(object);
       });
 
@@ -1228,11 +1237,32 @@
         hasControls: false,
         borderColor: "#2457d6",
         cornerColor: "#2457d6",
-        transparentCorners: false
+        transparentCorners: false,
+        objectCaching: false,
+        hoverCursor: "move",
+        moveCursor: "move"
       });
 
-      const scale = Math.min(cell.width / PRESET_WIDTH, cell.height / PRESET_HEIGHT);
+      // Hide anything that was positioned beyond the edges of the example box.
+      group.clipPath = new fabric.Rect({
+        width: PRESET_WIDTH,
+        height: PRESET_HEIGHT,
+        originX: "center",
+        originY: "center"
+      });
+
+      // Fit the complete design area inside the selected sheet label.
+      const scale = Math.min(
+        cell.width / PRESET_WIDTH,
+        cell.height / PRESET_HEIGHT
+      );
+
       group.scale(scale);
+      group.set({
+        left: cell.centerX,
+        top: cell.centerY
+      });
+      group.setCoords();
       group.placementId = placement.id;
       group.cellIndex = placement.cellIndex;
       return group;
@@ -1844,6 +1874,18 @@
     sheetCanvas.on("selection:created", () => els.sheetSelectionToolbar.classList.remove("hidden"));
     sheetCanvas.on("selection:updated", () => els.sheetSelectionToolbar.classList.remove("hidden"));
     sheetCanvas.on("selection:cleared", () => els.sheetSelectionToolbar.classList.add("hidden"));
+
+    // Keep a moved design locked to the center of the nearest label while dragging.
+    sheetCanvas.on("object:moving", event => {
+      const object = event.target;
+      if (rebuildingSheet || !object?.placementId) return;
+      const center = object.getCenterPoint();
+      const cell = getCells()[nearestCellIndex(center.x, center.y)];
+      if (!cell) return;
+      object.set({ left: cell.centerX, top: cell.centerY });
+      object.setCoords();
+    });
+
     sheetCanvas.on("object:modified", event => updatePlacementAfterMove(event.target));
 
     presetCanvas.on("selection:created", updatePresetToolbar);
