@@ -932,9 +932,9 @@
       </div>
 
       <p class="sheet-help">
-        Drag a preset over a box and the matching box highlights exactly. The sidebar card no longer
-        covers the sheet while dragging. After dropping, the visible design is centered in that preview
-        box. PDF and printing still use the exact physical Avery coordinates.
+        Drag a preset over a box and it locks into that exact visible box. The design is centered
+        within the box for the on-screen preview. PDF and printing continue to use the exact physical
+        Avery coordinates and are not changed by this preview adjustment.
       </p>
     </section>
   </main>
@@ -1773,12 +1773,22 @@
         maxY = -Infinity;
 
         contentObjects.forEach(object => {
-          object.setCoords();
-          const bounds = object.getBoundingRect(true, true);
-          minX = Math.min(minX, bounds.left);
-          minY = Math.min(minY, bounds.top);
-          maxX = Math.max(maxX, bounds.left + bounds.width);
-          maxY = Math.max(maxY, bounds.top + bounds.height);
+          const width = Math.abs(object.getScaledWidth());
+          const height = Math.abs(object.getScaledHeight());
+          const radians = Number(object.angle || 0) * Math.PI / 180;
+          const rotatedWidth =
+            Math.abs(width * Math.cos(radians)) +
+            Math.abs(height * Math.sin(radians));
+          const rotatedHeight =
+            Math.abs(width * Math.sin(radians)) +
+            Math.abs(height * Math.cos(radians));
+          const centerX = Number(object.left || 0);
+          const centerY = Number(object.top || 0);
+
+          minX = Math.min(minX, centerX - rotatedWidth / 2);
+          minY = Math.min(minY, centerY - rotatedHeight / 2);
+          maxX = Math.max(maxX, centerX + rotatedWidth / 2);
+          maxY = Math.max(maxY, centerY + rotatedHeight / 2);
         });
       }
 
@@ -1928,9 +1938,12 @@
         })
       );
 
+      const guideLeft = Math.min(...guideObjects.map(object => Number(object.left)));
+      const guideTop = Math.min(...guideObjects.map(object => Number(object.top)));
+
       state.sheetTemplate = new fabric.Group(guideObjects, {
-        left: 0,
-        top: 0,
+        left: guideLeft,
+        top: guideTop,
         originX: "left",
         originY: "top",
         selectable: false,
@@ -1945,7 +1958,7 @@
         height: 10,
         originX: "left",
         originY: "top",
-        fill: "rgba(36,87,214,0.13)",
+        fill: "rgba(36,87,214,0.07)",
         stroke: "#2457d6",
         strokeWidth: 2,
         selectable: false,
@@ -2199,8 +2212,21 @@
       }
     }
 
-    sheetCanvas.on("selection:created", syncSheetSelection);
-    sheetCanvas.on("selection:updated", syncSheetSelection);
+    sheetCanvas.on("selection:created", event => {
+      const object = event.selected?.[0] || event.target;
+      if (object && object !== state.sheetTemplate && object !== state.slotHighlight) {
+        applyPreviewAlignment(object, Number(object.slotIndex));
+      }
+      syncSheetSelection();
+    });
+
+    sheetCanvas.on("selection:updated", event => {
+      const object = event.selected?.[0] || event.target;
+      if (object && object !== state.sheetTemplate && object !== state.slotHighlight) {
+        applyPreviewAlignment(object, Number(object.slotIndex));
+      }
+      syncSheetSelection();
+    });
     sheetCanvas.on("selection:cleared", syncSheetSelection);
 
     sheetCanvas.on("object:moving", event => {
@@ -3883,11 +3909,12 @@
         const point = sheetPointFromDragEvent(event);
         const slotIndex = nearestSlotIndex(point.x, point.y);
 
+        hideSlotHighlight();
         await placePreset(preset, slotIndex, true);
         sheetCanvas.discardActiveObject();
-        sheetCanvas.requestRenderAll();
         document.body.classList.remove("preset-dragging");
-        hideSlotHighlight();
+        state.slotHighlight?.set({ visible: false });
+        sheetCanvas.requestRenderAll();
       });
 
       els.undoButton.addEventListener("click", () => {
