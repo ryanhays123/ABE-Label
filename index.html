@@ -12,6 +12,12 @@
     referrerpolicy="no-referrer"
   ></script>
 
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+
   <style>
     :root {
       --bg: #f3f5f8;
@@ -402,6 +408,14 @@
       transform-origin: center;
       white-space: pre;
       line-height: 1.05;
+      pointer-events: none;
+    }
+
+    .preset-preview-image {
+      position: absolute;
+      display: block;
+      object-fit: contain;
+      transform-origin: center;
       pointer-events: none;
     }
 
@@ -913,12 +927,14 @@
       </div>
 
       <div class="sheet-toolbar">
-        <button id="downloadSheetButton" class="button button-secondary" type="button">Download sheet PNG</button>
+        <button id="downloadSheetButton" class="button button-secondary" type="button">Download clean sheet PDF</button>
         <button id="printSheetButton" class="button button-primary" type="button">Print full sheet</button>
       </div>
 
       <p class="sheet-help">
-        Drag an existing box to another label position to move it. If the destination is occupied, the two boxes swap places.
+        Drag an existing box to another label position to move it. If the destination is occupied,
+        the two boxes swap places. The black Avery outlines are placement guides only and are
+        automatically removed from printing and PDF downloads.
       </p>
     </section>
   </main>
@@ -1010,30 +1026,47 @@
           <button id="addTextButton" class="button button-primary" type="button">Add text</button>
         </div>
 
+        <div class="button-row" style="margin-bottom: 12px;">
+          <input id="presetImageInput" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+          <button id="importPresetImageButton" class="button button-secondary" type="button">
+            Import image
+          </button>
+          <button id="autoAdjustTextButton" class="button button-secondary" type="button">
+            Auto adjust text
+          </button>
+        </div>
+
+        <div class="notice" style="margin-top: 0; margin-bottom: 12px;">
+          Auto adjust centers every text line horizontally and spaces the text evenly as one
+          vertically centered group. Imported images remain where you place them.
+        </div>
+
         <div id="presetFormatToolbar" class="format-toolbar hidden">
-          <label class="compact-field">
-            <span>Font</span>
-            <select id="presetFont"></select>
-          </label>
+          <div id="presetTextControls" style="display: contents;">
+            <label class="compact-field">
+              <span>Font</span>
+              <select id="presetFont"></select>
+            </label>
 
-          <label class="compact-field">
-            <span>Size</span>
-            <input id="presetFontSize" type="number" min="6" max="240" />
-          </label>
+            <label class="compact-field">
+              <span>Size</span>
+              <input id="presetFontSize" type="number" min="6" max="240" />
+            </label>
 
-          <label class="compact-field">
-            <span>Color</span>
-            <input id="presetColor" class="color-input" type="color" />
-          </label>
+            <label class="compact-field">
+              <span>Color</span>
+              <input id="presetColor" class="color-input" type="color" />
+            </label>
 
-          <div class="icon-group">
-            <button id="presetBold" class="icon-button" type="button"><strong>B</strong></button>
-            <button id="presetItalic" class="icon-button" type="button"><em>I</em></button>
-            <button id="presetUnderline" class="icon-button" type="button"><u>U</u></button>
+            <div class="icon-group">
+              <button id="presetBold" class="icon-button" type="button"><strong>B</strong></button>
+              <button id="presetItalic" class="icon-button" type="button"><em>I</em></button>
+              <button id="presetUnderline" class="icon-button" type="button"><u>U</u></button>
+            </div>
           </div>
 
-          <button id="presetDuplicateText" class="button button-secondary" type="button">Duplicate text</button>
-          <button id="presetDeleteText" class="button button-danger" type="button">Delete text</button>
+          <button id="presetDuplicateText" class="button button-secondary" type="button">Duplicate selected</button>
+          <button id="presetDeleteText" class="button button-danger" type="button">Delete selected</button>
         </div>
 
         <form id="presetForm" class="form-grid">
@@ -1521,14 +1554,12 @@
       group.setCoords();
     }
 
-    function createPresetGroup(preset, slotIndex) {
+    async function createPresetGroup(preset, slotIndex) {
       const slot = slots()[slotIndex];
       const ratioX = slot.width / preset.editorWidth;
       const ratioY = slot.height / preset.editorHeight;
       const fontRatio = Math.min(ratioX, ratioY);
 
-      // The invisible anchor preserves the full example-box coordinate system.
-      // It is never visible or printed; the user sees only saved text/items.
       const objects = [
         new fabric.Rect({
           left: 0,
@@ -1547,6 +1578,32 @@
       ];
 
       for (const saved of preset.objects) {
+        if (saved.type === "image" && saved.src) {
+          try {
+            const image = await loadFabricImage(saved.src);
+            image.set({
+              left:
+                (Number(saved.left ?? preset.editorWidth / 2) -
+                  preset.editorWidth / 2) * ratioX,
+              top:
+                (Number(saved.top ?? preset.editorHeight / 2) -
+                  preset.editorHeight / 2) * ratioY,
+              originX: "center",
+              originY: "center",
+              angle: Number(saved.angle ?? 0),
+              scaleX: Number(saved.scaleX ?? 1) * ratioX,
+              scaleY: Number(saved.scaleY ?? 1) * ratioY,
+              opacity: Number(saved.opacity ?? 1),
+              selectable: false,
+              evented: false
+            });
+            objects.push(image);
+          } catch (error) {
+            console.error("Could not place a preset image:", error);
+          }
+          continue;
+        }
+
         const item = new fabric.IText(String(saved.text ?? ""), {
           left:
             (Number(saved.left ?? preset.editorWidth / 2) -
@@ -1566,6 +1623,7 @@
           angle: Number(saved.angle ?? 0),
           scaleX: Number(saved.scaleX ?? 1),
           scaleY: Number(saved.scaleY ?? 1),
+          opacity: Number(saved.opacity ?? 1),
           selectable: false,
           evented: false
         });
@@ -1589,7 +1647,6 @@
         cornerColor: "rgba(0,0,0,0)",
         hoverCursor: "move",
         padding: 0,
-        // Prevent any saved item from rendering outside its physical label.
         clipPath: new fabric.Rect({
           width: slot.width * 0.965,
           height: slot.height * 0.90,
@@ -1602,7 +1659,7 @@
       return group;
     }
 
-    function placePreset(preset, slotIndex, replace = true) {
+    async function placePreset(preset, slotIndex, replace = true) {
       const current = groupAtSlot(slotIndex);
       if (current && replace) {
         state.restoringSheet = true;
@@ -1610,7 +1667,7 @@
         state.restoringSheet = false;
       }
 
-      const group = createPresetGroup(preset, slotIndex);
+      const group = await createPresetGroup(preset, slotIndex);
       sheetCanvas.add(group);
       sheetCanvas.setActiveObject(group);
       sheetCanvas.requestRenderAll();
@@ -1622,13 +1679,13 @@
       return slots().find(slot => !groupAtSlot(slot.index))?.index ?? -1;
     }
 
-    function addPresetToNextSlot(preset) {
+    async function addPresetToNextSlot(preset) {
       const index = firstOpenSlot();
       if (index < 0) {
         toast("Every label box is already filled.");
         return;
       }
-      placePreset(preset, index);
+      await placePreset(preset, index);
     }
 
     function snapMovedGroup(group) {
@@ -1676,7 +1733,7 @@
       const image = new Image();
       image.crossOrigin = "anonymous";
 
-      image.onload = () => {
+      image.onload = async () => {
         state.sheetTemplate = new fabric.Image(image, {
           left: 0,
           top: 0,
@@ -1726,7 +1783,7 @@
           for (const placement of placements) {
             const preset = state.presets.find(item => item.id === placement.presetId);
             if (preset && slots()[placement.slotIndex]) {
-              sheetCanvas.add(createPresetGroup(preset, placement.slotIndex));
+              sheetCanvas.add(await createPresetGroup(preset, placement.slotIndex));
             }
           }
 
@@ -1775,7 +1832,7 @@
       updateSheetHistoryButtons();
     }
 
-    function restoreSheetHistory(index) {
+    async function restoreSheetHistory(index) {
       const value = state.sheetHistory[index];
       if (value === undefined) return;
 
@@ -1786,7 +1843,7 @@
       for (const placement of placements) {
         const preset = state.presets.find(item => item.id === placement.presetId);
         if (preset) {
-          const group = createPresetGroup(preset, Number(placement.slotIndex));
+          const group = await createPresetGroup(preset, Number(placement.slotIndex));
           sheetCanvas.add(group);
         }
       }
@@ -1821,29 +1878,73 @@
       syncSheetSelection();
     }
 
-    function exportSheetDataUrl() {
+    function exportCleanSheetDataUrl() {
       sheetCanvas.discardActiveObject();
       hideSlotHighlight();
-      sheetCanvas.requestRenderAll();
 
-      const multiplier = Math.max(
-        1,
-        state.settings.sheetWidthIn * 300 / sheetCanvas.getWidth(),
-        state.settings.sheetHeightIn * 300 / sheetCanvas.getHeight()
-      );
+      const templateWasVisible = state.sheetTemplate?.visible !== false;
+      const previousBackground = sheetCanvas.backgroundColor;
 
-      return sheetCanvas.toDataURL({
-        format: "png",
-        multiplier,
-        enableRetinaScaling: true
-      });
+      try {
+        // The Avery sheet image is only an on-screen alignment guide.
+        // Hide it so the output is white with only placed preset content.
+        if (state.sheetTemplate) {
+          state.sheetTemplate.set({ visible: false });
+        }
+
+        if (state.slotHighlight) {
+          state.slotHighlight.set({ visible: false });
+        }
+
+        sheetCanvas.setBackgroundColor("#ffffff", () => {});
+        sheetCanvas.requestRenderAll();
+
+        const multiplier = Math.max(
+          1,
+          state.settings.sheetWidthIn * 300 / sheetCanvas.getWidth(),
+          state.settings.sheetHeightIn * 300 / sheetCanvas.getHeight()
+        );
+
+        return sheetCanvas.toDataURL({
+          format: "png",
+          multiplier,
+          enableRetinaScaling: true,
+          backgroundColor: "#ffffff"
+        });
+      } finally {
+        if (state.sheetTemplate) {
+          state.sheetTemplate.set({ visible: templateWasVisible });
+        }
+
+        sheetCanvas.setBackgroundColor(previousBackground || "#ffffff", () => {});
+        sheetCanvas.requestRenderAll();
+      }
     }
 
     function downloadSheet() {
-      const link = document.createElement("a");
-      link.href = exportSheetDataUrl();
-      link.download = `wire-label-sheet-${new Date().toISOString().slice(0, 10)}.png`;
-      link.click();
+      if (!window.jspdf?.jsPDF) {
+        toast("The PDF library has not loaded. Refresh the page and try again.");
+        return;
+      }
+
+      const dataUrl = exportCleanSheetDataUrl();
+      const width = Number(state.settings.sheetWidthIn);
+      const height = Number(state.settings.sheetHeightIn);
+      const orientation = width > height ? "landscape" : "portrait";
+      const { jsPDF } = window.jspdf;
+
+      const pdf = new jsPDF({
+        orientation,
+        unit: "in",
+        format: [width, height],
+        compress: true,
+        hotfixes: ["px_scaling"]
+      });
+
+      pdf.addImage(dataUrl, "PNG", 0, 0, width, height, undefined, "FAST");
+      pdf.save(
+        `wire-label-sheet-${new Date().toISOString().slice(0, 10)}.pdf`
+      );
     }
 
     function printSheet() {
@@ -1853,7 +1954,7 @@
         return;
       }
 
-      const dataUrl = exportSheetDataUrl();
+      const dataUrl = exportCleanSheetDataUrl();
       const width = state.settings.sheetWidthIn;
       const height = state.settings.sheetHeightIn;
 
@@ -1862,9 +1963,24 @@
           <head>
             <title>Print Label Sheet</title>
             <style>
-              html, body { margin: 0; padding: 0; }
+              html, body {
+                margin: 0;
+                padding: 0;
+                width: ${width}in;
+                height: ${height}in;
+                overflow: hidden;
+                background: #ffffff;
+              }
               @page { size: ${width}in ${height}in; margin: 0; }
-              img { display:block; width:${width}in; height:${height}in; object-fit:fill; }
+              img {
+                display: block;
+                width: ${width}in;
+                height: ${height}in;
+                object-fit: fill;
+                border: 0;
+                outline: 0;
+                background: #ffffff;
+              }
             </style>
           </head>
           <body>
@@ -2063,15 +2179,56 @@
       syncPresetFormatting();
     }
 
-    function activePresetText() {
+    function activePresetObject() {
       const object = presetCanvas.getActiveObject();
+
+      if (
+        !object ||
+        object === state.presetBackground ||
+        object.isCenterGuide === true
+      ) {
+        return null;
+      }
+
+      return object;
+    }
+
+    function activePresetText() {
+      const object = activePresetObject();
       return object && object.type === "i-text" ? object : null;
     }
 
+    function imageSource(object) {
+      if (!object) return "";
+      if (typeof object.getSrc === "function") return object.getSrc();
+      return object._originalElement?.src || object._element?.src || "";
+    }
+
+    function loadFabricImage(source) {
+      return new Promise((resolve, reject) => {
+        fabric.Image.fromURL(
+          source,
+          image => {
+            if (!image) {
+              reject(new Error("The image could not be loaded."));
+              return;
+            }
+            resolve(image);
+          },
+          { crossOrigin: "anonymous" }
+        );
+      });
+    }
+
     function syncPresetFormatting() {
-      const object = activePresetText();
+      const object = activePresetObject();
       els.presetFormatToolbar.classList.toggle("hidden", !object);
       if (!object) return;
+
+      const isText = object.type === "i-text";
+      els.presetTextControls.classList.toggle("hidden", !isText);
+
+      if (!isText) return;
 
       els.presetFont.value = object.fontFamily || "Arial";
       els.presetFontSize.value = Math.round(Number(object.fontSize || 42));
@@ -2095,6 +2252,149 @@
       syncPresetFormatting();
     }
 
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(reader.error || new Error("The image could not be read."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function resizeImportedImage(file) {
+      const originalDataUrl = await readFileAsDataUrl(file);
+      const image = new Image();
+
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error("The selected image is invalid."));
+        image.src = originalDataUrl;
+      });
+
+      const maxWidth = 900;
+      const maxHeight = 500;
+      const scale = Math.min(
+        1,
+        maxWidth / Math.max(image.naturalWidth, 1),
+        maxHeight / Math.max(image.naturalHeight, 1)
+      );
+
+      const width = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const resizeCanvas = document.createElement("canvas");
+      resizeCanvas.width = width;
+      resizeCanvas.height = height;
+
+      const context = resizeCanvas.getContext("2d");
+      context.clearRect(0, 0, width, height);
+      context.drawImage(image, 0, 0, width, height);
+
+      const output = resizeCanvas.toDataURL("image/png");
+
+      if (output.length > 1_800_000) {
+        throw new Error(
+          "That image is still too large after resizing. Use a smaller or simpler image."
+        );
+      }
+
+      return output;
+    }
+
+    async function importPresetImage(file) {
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        toast("Choose a PNG, JPG, WebP, or GIF image.");
+        return;
+      }
+
+      try {
+        const source = await resizeImportedImage(file);
+        const image = await loadFabricImage(source);
+        const maximumWidth = presetCanvas.getWidth() * 0.42;
+        const maximumHeight = presetCanvas.getHeight() * 0.55;
+        const scale = Math.min(
+          maximumWidth / Math.max(image.width, 1),
+          maximumHeight / Math.max(image.height, 1),
+          1
+        );
+
+        image.set({
+          left: presetCanvas.getWidth() / 2,
+          top: presetCanvas.getHeight() / 2,
+          originX: "center",
+          originY: "center",
+          scaleX: scale,
+          scaleY: scale,
+          transparentCorners: false,
+          cornerStyle: "circle",
+          cornerColor: "#2457d6",
+          borderColor: "#2457d6",
+          padding: 4
+        });
+
+        presetCanvas.add(image);
+        presetCanvas.setActiveObject(image);
+        ensurePresetCenterGuides();
+        presetCanvas.requestRenderAll();
+        syncPresetFormatting();
+        toast("Image imported.");
+      } catch (error) {
+        console.error(error);
+        toast(error.message || "The image could not be imported.");
+      } finally {
+        els.presetImageInput.value = "";
+      }
+    }
+
+    function autoAdjustPresetText() {
+      const textObjects = presetTextObjects()
+        .filter(object => object.type === "i-text")
+        .sort((a, b) => Number(a.top || 0) - Number(b.top || 0));
+
+      if (!textObjects.length) {
+        toast("Add text before using Auto adjust.");
+        return;
+      }
+
+      const centerX = presetCanvas.getWidth() / 2;
+      const centerY = presetCanvas.getHeight() / 2;
+      const safeHeight = presetCanvas.getHeight() * 0.72;
+      const heights = textObjects.map(object => object.getScaledHeight());
+      const totalTextHeight = heights.reduce((sum, height) => sum + height, 0);
+
+      let gap = textObjects.length > 1
+        ? (safeHeight - totalTextHeight) / (textObjects.length - 1)
+        : 0;
+
+      gap = Math.max(8, Math.min(40, gap));
+      const blockHeight =
+        totalTextHeight + gap * Math.max(0, textObjects.length - 1);
+      let currentY = centerY - blockHeight / 2;
+
+      textObjects.forEach((object, index) => {
+        const objectHeight = heights[index];
+        const objectCenterY = currentY + objectHeight / 2;
+
+        object.setPositionByOrigin(
+          new fabric.Point(centerX, objectCenterY),
+          "center",
+          "center"
+        );
+        object.set({ angle: 0 });
+        object.setCoords();
+        currentY += objectHeight + gap;
+      });
+
+      ensurePresetCenterGuides();
+      presetCenterGuides.vertical.set({ visible: true });
+      presetCenterGuides.horizontal.set({ visible: false });
+      presetCanvas.requestRenderAll();
+
+      window.setTimeout(hidePresetCenterGuides, 700);
+      toast("Text centered and spaced vertically.");
+    }
+
     function clearPresetEditor(ask = true) {
       if (ask && presetTextObjects().length && !confirm("Clear the example box?")) return;
       presetTextObjects().forEach(object => presetCanvas.remove(object));
@@ -2104,27 +2404,73 @@
     }
 
     function serializePresetObjects() {
-      return presetTextObjects().map(object => ({
-        text: object.text,
-        left: Number(object.left),
-        top: Number(object.top),
-        fontFamily: object.fontFamily,
-        fontSize: Number(object.fontSize),
-        fill: object.fill,
-        fontWeight: object.fontWeight,
-        fontStyle: object.fontStyle,
-        underline: Boolean(object.underline),
-        textAlign: object.textAlign || "center",
-        angle: Number(object.angle || 0),
-        scaleX: Number(object.scaleX || 1),
-        scaleY: Number(object.scaleY || 1)
-      }));
+      return presetTextObjects().map(object => {
+        const common = {
+          type: object.type === "image" ? "image" : "text",
+          left: Number(object.left),
+          top: Number(object.top),
+          angle: Number(object.angle || 0),
+          scaleX: Number(object.scaleX || 1),
+          scaleY: Number(object.scaleY || 1),
+          opacity: Number(object.opacity ?? 1)
+        };
+
+        if (object.type === "image") {
+          return {
+            ...common,
+            src: imageSource(object),
+            width: Number(object.width || 1),
+            height: Number(object.height || 1)
+          };
+        }
+
+        return {
+          ...common,
+          text: object.text,
+          fontFamily: object.fontFamily,
+          fontSize: Number(object.fontSize),
+          fill: object.fill,
+          fontWeight: object.fontWeight,
+          fontStyle: object.fontStyle,
+          underline: Boolean(object.underline),
+          textAlign: object.textAlign || "center"
+        };
+      });
     }
 
-    function loadPresetIntoEditor(preset) {
+    async function loadPresetIntoEditor(preset) {
       clearPresetEditor(false);
 
       for (const saved of preset.objects) {
+        if (saved.type === "image" && saved.src) {
+          try {
+            const image = await loadFabricImage(saved.src);
+            image.set({
+              left: Number(saved.left ?? preset.editorWidth / 2) *
+                presetCanvas.getWidth() / preset.editorWidth,
+              top: Number(saved.top ?? preset.editorHeight / 2) *
+                presetCanvas.getHeight() / preset.editorHeight,
+              originX: "center",
+              originY: "center",
+              angle: Number(saved.angle ?? 0),
+              scaleX: Number(saved.scaleX ?? 1) *
+                presetCanvas.getWidth() / preset.editorWidth,
+              scaleY: Number(saved.scaleY ?? 1) *
+                presetCanvas.getHeight() / preset.editorHeight,
+              opacity: Number(saved.opacity ?? 1),
+              transparentCorners: false,
+              cornerStyle: "circle",
+              cornerColor: "#2457d6",
+              borderColor: "#2457d6",
+              padding: 4
+            });
+            presetCanvas.add(image);
+          } catch (error) {
+            console.error("Could not load a saved preset image:", error);
+          }
+          continue;
+        }
+
         const object = new fabric.IText(String(saved.text ?? ""), {
           left: Number(saved.left ?? preset.editorWidth / 2) *
             presetCanvas.getWidth() / preset.editorWidth,
@@ -2143,6 +2489,7 @@
           angle: Number(saved.angle ?? 0),
           scaleX: Number(saved.scaleX ?? 1),
           scaleY: Number(saved.scaleY ?? 1),
+          opacity: Number(saved.opacity ?? 1),
           transparentCorners: false,
           cornerStyle: "circle",
           cornerColor: "#2457d6",
@@ -2226,13 +2573,43 @@
     /* ---------------- PRESET LIBRARIES ---------------- */
 
     function presetPreviewHtml(preset) {
-      const texts = preset.objects.map(object => {
-        const left = Number(object.left ?? preset.editorWidth / 2) / preset.editorWidth * 100;
-        const top = Number(object.top ?? preset.editorHeight / 2) / preset.editorHeight * 100;
-        const size = Number(object.fontSize ?? 42) / preset.editorHeight * 100;
+      const items = preset.objects.map(object => {
+        const left =
+          Number(object.left ?? preset.editorWidth / 2) /
+          preset.editorWidth * 100;
+        const top =
+          Number(object.top ?? preset.editorHeight / 2) /
+          preset.editorHeight * 100;
         const scaleX = Number(object.scaleX ?? 1);
         const scaleY = Number(object.scaleY ?? 1);
         const angle = Number(object.angle ?? 0);
+
+        if (object.type === "image" && object.src) {
+          const width =
+            Number(object.width ?? 1) * scaleX /
+            preset.editorWidth * 100;
+          const height =
+            Number(object.height ?? 1) * scaleY /
+            preset.editorHeight * 100;
+
+          return `<img
+            class="preset-preview-image"
+            src="${escapeHtml(object.src)}"
+            alt=""
+            style="
+              left:${left}%;
+              top:${top}%;
+              width:${width}%;
+              height:${height}%;
+              opacity:${Number(object.opacity ?? 1)};
+              transform:translate(-50%,-50%) rotate(${angle}deg);
+            "
+          >`;
+        }
+
+        const size =
+          Number(object.fontSize ?? 42) /
+          preset.editorHeight * 100;
 
         return `<span
           class="preset-preview-text"
@@ -2242,9 +2619,15 @@
             font-family:${escapeHtml(object.fontFamily || "Arial")};
             font-size:${size}cqh;
             color:${escapeHtml(object.fill || "#111111")};
-            font-weight:${object.fontWeight === "bold" || Number(object.fontWeight) >= 700 ? "700" : "400"};
+            font-weight:${
+              object.fontWeight === "bold" ||
+              Number(object.fontWeight) >= 700
+                ? "700"
+                : "400"
+            };
             font-style:${object.fontStyle === "italic" ? "italic" : "normal"};
             text-decoration:${object.underline ? "underline" : "none"};
+            opacity:${Number(object.opacity ?? 1)};
             transform:translate(-50%,-50%) rotate(${angle}deg) scale(${scaleX},${scaleY});
           "
         >${escapeHtml(object.text)}</span>`;
@@ -2253,7 +2636,7 @@
       return `<div
         class="preset-preview"
         style="background-image:url('${escapeHtml(state.settings.boxTemplatePath)}')"
-      >${texts}</div>`;
+      >${items}</div>`;
     }
 
     function categories() {
@@ -2357,7 +2740,7 @@
           <div>
             <div class="admin-item-name">${escapeHtml(preset.name)}</div>
             <div class="admin-item-meta">
-              ${escapeHtml(preset.category)} · ${preset.objects.length} text element${preset.objects.length === 1 ? "" : "s"} ·
+              ${escapeHtml(preset.category)} · ${preset.objects.length} element${preset.objects.length === 1 ? "" : "s"} ·
               ${preset.visible ? "Visible" : "Hidden"} · Order ${preset.sortOrder}
             </div>
           </div>
@@ -2366,6 +2749,7 @@
               ${preset.visible ? "Hide" : "Show"}
             </button>
             <button class="small-button" type="button" data-action="edit" data-id="${preset.id}">Edit</button>
+            <button class="small-button" type="button" data-action="duplicate" data-id="${preset.id}">Duplicate</button>
             <button class="small-button danger" type="button" data-action="delete" data-id="${preset.id}">Delete</button>
           </div>
         </article>
@@ -2397,7 +2781,7 @@
       clearPresetEditor(false);
     }
 
-    function beginPresetEdit(preset) {
+    async function beginPresetEdit(preset) {
       els.editingPresetId.value = preset.id;
       els.presetFormTitle.textContent = "Edit premade label box";
       els.presetName.value = preset.name;
@@ -2405,7 +2789,7 @@
       els.presetSortOrder.value = preset.sortOrder;
       els.presetVisible.checked = preset.visible;
       els.cancelPresetEditButton.classList.remove("hidden");
-      loadPresetIntoEditor(preset);
+      await loadPresetIntoEditor(preset);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -2421,7 +2805,22 @@
           });
           toast(preset.visible ? "Preset hidden." : "Preset shown.");
         } else if (action === "edit") {
-          beginPresetEdit(preset);
+          await beginPresetEdit(preset);
+        } else if (action === "duplicate") {
+          const duplicate = {
+            name: `${preset.name} Copy`,
+            category: preset.category,
+            visible: preset.visible,
+            sortOrder: Number(preset.sortOrder || 0) + 1,
+            editorWidth: preset.editorWidth,
+            editorHeight: preset.editorHeight,
+            objects: JSON.parse(JSON.stringify(preset.objects || [])),
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          };
+
+          await set(push(ref(db, "labelMaker/presets")), duplicate);
+          toast("Premade box duplicated.");
         } else if (action === "delete") {
           if (!confirm(`Delete "${preset.name}"?`)) return;
           await remove(ref(db, `labelMaker/presets/${id}`));
@@ -2445,7 +2844,7 @@
       }
 
       if (!objects.length) {
-        toast("Add at least one text element to the example box.");
+        toast("Add at least one text or image element to the example box.");
         return;
       }
 
@@ -3265,7 +3664,7 @@
         }
       });
 
-      els.sheetStage.addEventListener("drop", event => {
+      els.sheetStage.addEventListener("drop", async event => {
         event.preventDefault();
         els.sheetStage.classList.remove("drag-active");
 
@@ -3278,7 +3677,7 @@
         const y = (event.clientY - rect.top) * sheetCanvas.getHeight() / rect.height;
         const slotIndex = nearestSlotIndex(x, y);
 
-        placePreset(preset, slotIndex, true);
+        await placePreset(preset, slotIndex, true);
         hideSlotHighlight();
       });
 
@@ -3313,6 +3712,14 @@
       });
 
       els.addTextButton.addEventListener("click", () => addTextToPreset(els.newTextInput.value));
+      els.importPresetImageButton.addEventListener("click", () => {
+        els.presetImageInput.click();
+      });
+      els.presetImageInput.addEventListener("change", () => {
+        importPresetImage(els.presetImageInput.files?.[0]);
+      });
+      els.autoAdjustTextButton.addEventListener("click", autoAdjustPresetText);
+
       els.newTextInput.addEventListener("keydown", event => {
         if (event.key === "Enter") {
           event.preventDefault();
@@ -3352,21 +3759,29 @@
       });
 
       els.presetDuplicateText.addEventListener("click", () => {
-        const object = activePresetText();
+        const object = activePresetObject();
         if (!object) return;
+
         object.clone(clone => {
           clone.set({
             left: Number(object.left) + 20,
-            top: Number(object.top) + 20
+            top: Number(object.top) + 20,
+            transparentCorners: false,
+            cornerStyle: "circle",
+            cornerColor: "#2457d6",
+            borderColor: "#2457d6",
+            padding: 4
           });
           presetCanvas.add(clone);
           presetCanvas.setActiveObject(clone);
+          ensurePresetCenterGuides();
           presetCanvas.requestRenderAll();
+          syncPresetFormatting();
         });
       });
 
       els.presetDeleteText.addEventListener("click", () => {
-        const object = activePresetText();
+        const object = activePresetObject();
         if (!object) return;
         presetCanvas.remove(object);
         presetCanvas.discardActiveObject();
@@ -3417,8 +3832,12 @@
             }
           }
         } else {
-          const active = activePresetText();
-          if ((event.key === "Delete" || event.key === "Backspace") && active && !active.isEditing) {
+          const active = activePresetObject();
+          if (
+            (event.key === "Delete" || event.key === "Backspace") &&
+            active &&
+            !(active.type === "i-text" && active.isEditing)
+          ) {
             presetCanvas.remove(active);
             presetCanvas.discardActiveObject();
             presetCanvas.requestRenderAll();
