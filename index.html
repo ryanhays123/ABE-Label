@@ -518,7 +518,7 @@
       <div class="editor-heading">
         <div>
           <h2>Label sheet</h2>
-          <p>Only the saved text and design elements are placed. Each design stays centered in its label.</p>
+          <p>The exact visible contents of each example box are placed, centered, and scaled safely inside one Avery label.</p>
         </div>
         <div class="button-row">
           <button id="undoButton" class="button button-secondary" type="button" disabled>Undo</button>
@@ -544,7 +544,7 @@
         <button id="printSheetButton" class="button button-primary" type="button">Print full sheet</button>
       </div>
 
-      <p class="sheet-help">Drag a placed design to another label position to move it. It remains centered and, if the destination is occupied, the two designs swap places.</p>
+      <p class="sheet-help">Each placed design is an exact clipped copy of its example box, scaled proportionally into the printable center of one Avery label. Drag it to another label to move it; occupied labels swap.</p>
     </section>
   </main>
 
@@ -665,11 +665,11 @@
 
       <section class="panel admin-card settings-card">
         <div class="panel-heading">
-          <div><h2>Sheet, example box, and snapping settings</h2><p>The default layout is a two-column by five-row label sheet.</p></div>
+          <div><h2>Sheet, example box, and snapping settings</h2><p>Preset for the Avery 94207 two-column by five-row sheet.</p></div>
         </div>
 
         <form id="settingsForm" class="form-grid">
-          <label class="field field-full"><span>Full sheet template image</span><input id="sheetTemplatePath" class="input" type="text" value="94207.avif" /></label>
+          <label class="field field-full"><span>Full sheet template image</span><input id="sheetTemplatePath" class="input" type="text" value="AVERY 94207 USE.png" /></label>
           <label class="field field-full"><span>Single example box image</span><input id="boxTemplatePath" class="input" type="text" value="Ok.jpg.png" /></label>
           <label class="field"><span>Printed sheet width (inches)</span><input id="sheetWidthIn" class="input" type="number" min="1" max="30" step="0.01" value="8.5" /></label>
           <label class="field"><span>Printed sheet height (inches)</span><input id="sheetHeightIn" class="input" type="number" min="1" max="30" step="0.01" value="11" /></label>
@@ -679,11 +679,11 @@
             <div class="form-grid advanced-grid">
               <label class="field"><span>Columns</span><input id="gridColumns" class="input" type="number" min="1" max="20" step="1" value="2" /></label>
               <label class="field"><span>Rows</span><input id="gridRows" class="input" type="number" min="1" max="50" step="1" value="5" /></label>
-              <label class="field"><span>Grid left (%)</span><input id="gridLeftPct" class="input" type="number" min="0" max="100" step="0.1" value="11.3" /></label>
-              <label class="field"><span>Grid top (%)</span><input id="gridTopPct" class="input" type="number" min="0" max="100" step="0.1" value="5" /></label>
-              <label class="field"><span>Grid width (%)</span><input id="gridWidthPct" class="input" type="number" min="5" max="100" step="0.1" value="76" /></label>
-              <label class="field"><span>Grid height (%)</span><input id="gridHeightPct" class="input" type="number" min="5" max="100" step="0.1" value="90" /></label>
-              <label class="field"><span>Column gap (%)</span><input id="columnGapPct" class="input" type="number" min="0" max="20" step="0.1" value="1.4" /></label>
+              <label class="field"><span>Grid left (%)</span><input id="gridLeftPct" class="input" type="number" min="0" max="100" step="0.1" value="14.25" /></label>
+              <label class="field"><span>Grid top (%)</span><input id="gridTopPct" class="input" type="number" min="0" max="100" step="0.1" value="12.80" /></label>
+              <label class="field"><span>Grid width (%)</span><input id="gridWidthPct" class="input" type="number" min="5" max="100" step="0.1" value="70.90" /></label>
+              <label class="field"><span>Grid height (%)</span><input id="gridHeightPct" class="input" type="number" min="5" max="100" step="0.1" value="75.35" /></label>
+              <label class="field"><span>Column gap (%)</span><input id="columnGapPct" class="input" type="number" min="0" max="20" step="0.1" value="0.72" /></label>
               <label class="field"><span>Row gap (%)</span><input id="rowGapPct" class="input" type="number" min="0" max="20" step="0.1" value="0" /></label>
             </div>
           </details>
@@ -748,23 +748,36 @@
       "Times New Roman", "Trebuchet MS", "Verdana"
     ];
 
-    const DEFAULT_SETTINGS = {
-      sheetTemplatePath: "94207.avif",
-      boxTemplatePath: "Ok.jpg.png",
+    const AVERY_LAYOUT_VERSION = 2;
+
+    // Coordinates measured from the supplied 8.5 × 11 Avery 94207 template.
+    // These values describe the outside edges of the ten printed labels.
+    const AVERY_94207_LAYOUT = {
+      layoutVersion: AVERY_LAYOUT_VERSION,
+      sheetTemplatePath: "AVERY 94207 USE.png",
       sheetWidthIn: 8.5,
       sheetHeightIn: 11,
       gridColumns: 2,
       gridRows: 5,
-      gridLeftPct: 11.3,
-      gridTopPct: 5,
-      gridWidthPct: 76,
-      gridHeightPct: 90,
-      columnGapPct: 1.4,
+      gridLeftPct: 14.25,
+      gridTopPct: 12.80,
+      gridWidthPct: 70.90,
+      gridHeightPct: 75.35,
+      columnGapPct: 0.72,
       rowGapPct: 0
+    };
+
+    const DEFAULT_SETTINGS = {
+      ...AVERY_94207_LAYOUT,
+      boxTemplatePath: "Ok.jpg.png"
     };
 
     const PRESET_WIDTH = 800;
     const PRESET_HEIGHT = 300;
+    const PRESET_SAFE_PADDING = 22;
+    const LABEL_SAFE_INSET_X = 0.055;
+    const LABEL_SAFE_INSET_Y = 0.12;
+    const PRESET_RENDER_MULTIPLIER = 2;
     const SHEET_SCALE = 100;
 
     const state = {
@@ -831,6 +844,7 @@
     let stopAdminUsersListener = null;
     let toastTimer = null;
     let rebuildingSheet = false;
+    const presetArtworkCache = new Map();
 
     function toast(message) {
       clearTimeout(toastTimer);
@@ -931,8 +945,30 @@
       els.signOutButton.classList.toggle("hidden", state.userView);
     }
 
+    function normalizeSheetSettings(rawSettings = {}) {
+      const rawPath = String(rawSettings.sheetTemplatePath || "").trim();
+      const filename = rawPath.split(/[\/]/).pop().toLowerCase();
+      const isLegacyTemplate = !filename || filename === "94207.avif";
+      const isCurrentAveryTemplate = filename === "avery 94207 use.png";
+      const needsAveryMigration = isLegacyTemplate || (
+        isCurrentAveryTemplate && numeric(rawSettings.layoutVersion, 0) < AVERY_LAYOUT_VERSION
+      );
+
+      if (needsAveryMigration) {
+        return {
+          ...DEFAULT_SETTINGS,
+          ...rawSettings,
+          ...AVERY_94207_LAYOUT,
+          boxTemplatePath: rawSettings.boxTemplatePath || DEFAULT_SETTINGS.boxTemplatePath
+        };
+      }
+
+      return { ...DEFAULT_SETTINGS, ...rawSettings };
+    }
+
     function settingsFromForm() {
       return {
+        layoutVersion: AVERY_LAYOUT_VERSION,
         sheetTemplatePath: els.sheetTemplatePath.value.trim() || DEFAULT_SETTINGS.sheetTemplatePath,
         boxTemplatePath: els.boxTemplatePath.value.trim() || DEFAULT_SETTINGS.boxTemplatePath,
         sheetWidthIn: numeric(els.sheetWidthIn.value, DEFAULT_SETTINGS.sheetWidthIn),
@@ -1095,25 +1131,35 @@
     }
 
     async function renderPresetPreview(canvasElement, preset) {
-      const preview = new fabric.StaticCanvas(canvasElement, { width: 320, height: 120, backgroundColor: "white" });
+      const preview = new fabric.StaticCanvas(canvasElement, {
+        width: 320,
+        height: 120,
+        backgroundColor: "white",
+        renderOnAddRemove: false
+      });
+
       const bg = await loadFabricImage(state.settings.boxTemplatePath);
       if (bg) {
-        preview.setBackgroundImage(bg, preview.renderAll.bind(preview), { scaleX: 320 / bg.width, scaleY: 120 / bg.height });
-      }
-      fabric.util.enlivenObjects(preset.objects || [], objects => {
-        objects.forEach(object => {
-          object.set({
-            left: numeric(object.left, PRESET_WIDTH / 2) * 0.4,
-            top: numeric(object.top, PRESET_HEIGHT / 2) * 0.4,
-            scaleX: numeric(object.scaleX, 1) * 0.4,
-            scaleY: numeric(object.scaleY, 1) * 0.4,
-            selectable: false,
-            evented: false
-          });
-          preview.add(object);
+        preview.setBackgroundImage(bg, preview.renderAll.bind(preview), {
+          scaleX: 320 / bg.width,
+          scaleY: 120 / bg.height
         });
-        preview.renderAll();
+      }
+
+      const artworkCanvas = await getPresetArtworkCanvas(preset);
+      const artwork = new fabric.Image(artworkCanvas, {
+        left: 160,
+        top: 60,
+        originX: "center",
+        originY: "center",
+        selectable: false,
+        evented: false,
+        objectCaching: true
       });
+      const scale = Math.min(304 / artwork.width, 106 / artwork.height);
+      artwork.scale(scale);
+      preview.add(artwork);
+      preview.renderAll();
     }
 
     function renderPresetLibrary() {
@@ -1188,45 +1234,62 @@
       await rebuildSheetObjects();
     }
 
-    async function makePlacementGroup(placement) {
-      const preset = state.presets.find(item => item.id === placement.presetId);
-      const cell = getCells()[placement.cellIndex];
-      if (!preset || !cell) return null;
+    async function getPresetArtworkCanvas(preset) {
+      const cacheKey = `${preset.id}:${numeric(preset.updatedAt, 0)}`;
+      const cached = presetArtworkCache.get(cacheKey);
+      if (cached) return cached;
+
+      const sourceCanvas = document.createElement("canvas");
+      sourceCanvas.width = PRESET_WIDTH;
+      sourceCanvas.height = PRESET_HEIGHT;
+
+      const artworkCanvas = new fabric.StaticCanvas(sourceCanvas, {
+        width: PRESET_WIDTH,
+        height: PRESET_HEIGHT,
+        backgroundColor: "rgba(0,0,0,0)",
+        renderOnAddRemove: false,
+        enableRetinaScaling: false
+      });
 
       const objects = await new Promise(resolve =>
         fabric.util.enlivenObjects(preset.objects || [], resolve)
       );
 
-      /*
-       * The example-box image is intentionally NOT copied to the full sheet.
-       * This transparent frame preserves the original 800 × 300 design area,
-       * so text, icons, and other objects remain in exactly the same position
-       * they had inside the Admin example box.
-       */
-      const alignmentFrame = new fabric.Rect({
-        left: 0,
-        top: 0,
-        originX: "left",
-        originY: "top",
-        width: PRESET_WIDTH,
-        height: PRESET_HEIGHT,
-        fill: "rgba(0,0,0,0)",
-        strokeWidth: 0,
-        selectable: false,
-        evented: false
-      });
-
-      const groupObjects = [alignmentFrame];
-
       objects.forEach(object => {
         object.set({
           selectable: false,
-          evented: false
+          evented: false,
+          excludeFromExport: false
         });
-        groupObjects.push(object);
+        artworkCanvas.add(object);
       });
 
-      const group = new fabric.Group(groupObjects, {
+      artworkCanvas.renderAll();
+
+      // Render the entire example area as one transparent image. The canvas
+      // boundary performs exact clipping, so no object can leak into another label.
+      const rasterCanvas = artworkCanvas.toCanvasElement(PRESET_RENDER_MULTIPLIER, {
+        left: 0,
+        top: 0,
+        width: PRESET_WIDTH,
+        height: PRESET_HEIGHT
+      });
+      artworkCanvas.dispose();
+
+      [...presetArtworkCache.keys()]
+        .filter(key => key.startsWith(`${preset.id}:`) && key !== cacheKey)
+        .forEach(key => presetArtworkCache.delete(key));
+      presetArtworkCache.set(cacheKey, rasterCanvas);
+      return rasterCanvas;
+    }
+
+    async function makePlacementGroup(placement) {
+      const preset = state.presets.find(item => item.id === placement.presetId);
+      const cell = getCells()[placement.cellIndex];
+      if (!preset || !cell) return null;
+
+      const artworkCanvas = await getPresetArtworkCanvas(preset);
+      const artwork = new fabric.Image(artworkCanvas, {
         left: cell.centerX,
         top: cell.centerY,
         originX: "center",
@@ -1238,34 +1301,24 @@
         borderColor: "#2457d6",
         cornerColor: "#2457d6",
         transparentCorners: false,
-        objectCaching: false,
+        objectCaching: true,
         hoverCursor: "move",
         moveCursor: "move"
       });
 
-      // Hide anything that was positioned beyond the edges of the example box.
-      group.clipPath = new fabric.Rect({
-        width: PRESET_WIDTH,
-        height: PRESET_HEIGHT,
-        originX: "center",
-        originY: "center"
-      });
-
-      // Fit the complete design area inside the selected sheet label.
+      const safeWidth = cell.width * (1 - LABEL_SAFE_INSET_X * 2);
+      const safeHeight = cell.height * (1 - LABEL_SAFE_INSET_Y * 2);
       const scale = Math.min(
-        cell.width / PRESET_WIDTH,
-        cell.height / PRESET_HEIGHT
+        safeWidth / artwork.width,
+        safeHeight / artwork.height
       );
 
-      group.scale(scale);
-      group.set({
-        left: cell.centerX,
-        top: cell.centerY
-      });
-      group.setCoords();
-      group.placementId = placement.id;
-      group.cellIndex = placement.cellIndex;
-      return group;
+      artwork.scale(scale);
+      artwork.set({ left: cell.centerX, top: cell.centerY });
+      artwork.setCoords();
+      artwork.placementId = placement.id;
+      artwork.cellIndex = placement.cellIndex;
+      return artwork;
     }
 
     async function rebuildSheetObjects() {
@@ -1299,6 +1352,59 @@
       return state.placements.find(item => item.id === object?.placementId) || null;
     }
 
+    function fitPresetObjectInsideCanvas(object, { shrink = true } = {}) {
+      if (!object) return;
+      const maxWidth = PRESET_WIDTH - PRESET_SAFE_PADDING * 2;
+      const maxHeight = PRESET_HEIGHT - PRESET_SAFE_PADDING * 2;
+
+      object.setCoords();
+      let bounds = object.getBoundingRect(true, true);
+
+      if (shrink && (bounds.width > maxWidth || bounds.height > maxHeight)) {
+        const factor = Math.min(
+          maxWidth / Math.max(bounds.width, 1),
+          maxHeight / Math.max(bounds.height, 1),
+          1
+        );
+        object.set({
+          scaleX: numeric(object.scaleX, 1) * factor,
+          scaleY: numeric(object.scaleY, 1) * factor
+        });
+        object.setCoords();
+        bounds = object.getBoundingRect(true, true);
+      }
+
+      let moveX = 0;
+      let moveY = 0;
+      const rightLimit = PRESET_WIDTH - PRESET_SAFE_PADDING;
+      const bottomLimit = PRESET_HEIGHT - PRESET_SAFE_PADDING;
+
+      if (bounds.left < PRESET_SAFE_PADDING) {
+        moveX = PRESET_SAFE_PADDING - bounds.left;
+      } else if (bounds.left + bounds.width > rightLimit) {
+        moveX = rightLimit - (bounds.left + bounds.width);
+      }
+
+      if (bounds.top < PRESET_SAFE_PADDING) {
+        moveY = PRESET_SAFE_PADDING - bounds.top;
+      } else if (bounds.top + bounds.height > bottomLimit) {
+        moveY = bottomLimit - (bounds.top + bounds.height);
+      }
+
+      if (moveX || moveY) {
+        object.set({
+          left: numeric(object.left, 0) + moveX,
+          top: numeric(object.top, 0) + moveY
+        });
+        object.setCoords();
+      }
+    }
+
+    function fitAllPresetObjectsInsideCanvas() {
+      presetCanvas.getObjects().forEach(object => fitPresetObjectInsideCanvas(object));
+      presetCanvas.requestRenderAll();
+    }
+
     function clearPresetCanvas() {
       presetCanvas.getObjects().forEach(object => presetCanvas.remove(object));
       presetCanvas.discardActiveObject();
@@ -1322,6 +1428,7 @@
         textAlign: "center"
       });
       presetCanvas.add(object);
+      fitPresetObjectInsideCanvas(object);
       presetCanvas.setActiveObject(object);
       presetCanvas.renderAll();
       els.newTextInput.value = "";
@@ -1349,6 +1456,7 @@
       const object = activePresetText();
       if (!object) return;
       object.set(property, value);
+      fitPresetObjectInsideCanvas(object);
       object.setCoords();
       presetCanvas.renderAll();
       updatePresetToolbar();
@@ -1371,6 +1479,7 @@
         toast("Sign in with an active Admin account first.");
         return;
       }
+      fitAllPresetObjectsInsideCanvas();
       const id = els.editingPresetId.value || push(ref(db, "labelMaker/presets")).key;
       const existing = state.presets.find(item => item.id === id);
       const payload = {
@@ -1437,7 +1546,10 @@
       if (!preset) return;
       clearPresetCanvas();
       fabric.util.enlivenObjects(preset.objects || [], objects => {
-        objects.forEach(object => presetCanvas.add(object));
+        objects.forEach(object => {
+          presetCanvas.add(object);
+          fitPresetObjectInsideCanvas(object);
+        });
         presetCanvas.renderAll();
       });
       els.editingPresetId.value = preset.id;
@@ -1847,7 +1959,7 @@
       });
 
       onValue(ref(db, "labelMaker/sheetSettings"), async snapshot => {
-        state.settings = { ...DEFAULT_SETTINGS, ...(snapshot.val() || {}) };
+        state.settings = normalizeSheetSettings(snapshot.val() || {});
         populateSettingsForm();
         await setPresetBackground();
         await configureSheetCanvas();
@@ -1855,6 +1967,7 @@
 
       onValue(ref(db, "labelMaker/presets"), async snapshot => {
         const raw = snapshot.val() || {};
+        presetArtworkCache.clear();
         state.presets = Object.entries(raw).map(([id, value]) => ({ id, ...value }));
         state.placements = state.placements.filter(item => state.presets.some(preset => preset.id === item.presetId));
         renderCategoryFilters();
@@ -1891,7 +2004,25 @@
     presetCanvas.on("selection:created", updatePresetToolbar);
     presetCanvas.on("selection:updated", updatePresetToolbar);
     presetCanvas.on("selection:cleared", updatePresetToolbar);
-    presetCanvas.on("object:modified", updatePresetToolbar);
+    presetCanvas.on("object:moving", event => {
+      fitPresetObjectInsideCanvas(event.target, { shrink: false });
+    });
+    presetCanvas.on("object:scaling", event => {
+      fitPresetObjectInsideCanvas(event.target);
+    });
+    presetCanvas.on("object:rotating", event => {
+      fitPresetObjectInsideCanvas(event.target);
+    });
+    presetCanvas.on("text:changed", event => {
+      fitPresetObjectInsideCanvas(event.target);
+      updatePresetToolbar();
+      presetCanvas.requestRenderAll();
+    });
+    presetCanvas.on("object:modified", event => {
+      fitPresetObjectInsideCanvas(event.target);
+      updatePresetToolbar();
+      presetCanvas.requestRenderAll();
+    });
 
     els.sheetStage.addEventListener("dragover", event => {
       event.preventDefault();
@@ -1943,6 +2074,7 @@
       object.clone(cloned => {
         cloned.set({ left: object.left + 22, top: object.top + 22 });
         presetCanvas.add(cloned);
+        fitPresetObjectInsideCanvas(cloned);
         presetCanvas.setActiveObject(cloned);
         presetCanvas.renderAll();
         updatePresetToolbar();
