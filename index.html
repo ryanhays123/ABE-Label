@@ -509,23 +509,38 @@
     .settings-card { grid-column: 1 / -1; }
 
     .preset-editor-stage {
-      min-height: 350px;
-      padding: 20px;
+      width: 100%;
+      min-height: 0;
+      padding: 12px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      overflow: auto;
+      overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 12px;
       background: #e9edf2;
     }
 
     .preset-canvas-frame {
-      width: 800px;
-      height: 300px;
-      flex: 0 0 auto;
+      width: min(796px, 100%);
+      height: auto;
+      aspect-ratio: 796 / 382;
+      flex: 0 1 796px;
+      overflow: hidden;
       background: #fff;
       box-shadow: 0 12px 30px rgba(23,31,42,0.2);
+    }
+
+    /* Fabric keeps its real 796 × 382 coordinate system while the browser
+       scales the complete example box to fit the available Admin-card width. */
+    .preset-canvas-frame .canvas-container {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .preset-canvas-frame canvas {
+      width: 100% !important;
+      height: 100% !important;
     }
 
     .text-add-row {
@@ -1909,14 +1924,77 @@
       preserveObjectStacking: true
     });
 
+    const CENTER_GUIDE_COLOR = "#2457d6";
+    const CENTER_SNAP_SCREEN_PX = 10;
+
+    const presetCenterGuides = {
+      vertical: new fabric.Line([0, 0, 0, 0], {
+        stroke: CENTER_GUIDE_COLOR,
+        strokeWidth: 1.5,
+        strokeDashArray: [8, 6],
+        selectable: false,
+        evented: false,
+        visible: false,
+        excludeFromExport: true,
+        isCenterGuide: true
+      }),
+      horizontal: new fabric.Line([0, 0, 0, 0], {
+        stroke: CENTER_GUIDE_COLOR,
+        strokeWidth: 1.5,
+        strokeDashArray: [8, 6],
+        selectable: false,
+        evented: false,
+        visible: false,
+        excludeFromExport: true,
+        isCenterGuide: true
+      })
+    };
+
+    function ensurePresetCenterGuides() {
+      const centerX = presetCanvas.getWidth() / 2;
+      const centerY = presetCanvas.getHeight() / 2;
+
+      presetCenterGuides.vertical.set({
+        x1: centerX,
+        y1: 0,
+        x2: centerX,
+        y2: presetCanvas.getHeight()
+      });
+
+      presetCenterGuides.horizontal.set({
+        x1: 0,
+        y1: centerY,
+        x2: presetCanvas.getWidth(),
+        y2: centerY
+      });
+
+      for (const guide of Object.values(presetCenterGuides)) {
+        if (!presetCanvas.getObjects().includes(guide)) {
+          presetCanvas.add(guide);
+        }
+        presetCanvas.bringToFront(guide);
+      }
+    }
+
+    function hidePresetCenterGuides() {
+      presetCenterGuides.vertical.set({ visible: false });
+      presetCenterGuides.horizontal.set({ visible: false });
+      presetCanvas.requestRenderAll();
+    }
+
     function resizePresetCanvas() {
       presetCanvas.setWidth(state.settings.presetCanvasWidth);
       presetCanvas.setHeight(state.settings.presetCanvasHeight);
+      ensurePresetCenterGuides();
       presetCanvas.calcOffset();
     }
 
     function presetTextObjects() {
-      return presetCanvas.getObjects().filter(object => object !== state.presetBackground);
+      return presetCanvas.getObjects().filter(
+        object =>
+          object !== state.presetBackground &&
+          object.isCenterGuide !== true
+      );
     }
 
     function loadPresetBackground() {
@@ -1940,6 +2018,7 @@
         });
         presetCanvas.add(state.presetBackground);
         presetCanvas.sendToBack(state.presetBackground);
+        ensurePresetCenterGuides();
         presetCanvas.requestRenderAll();
         renderLibraries();
       };
@@ -2073,13 +2152,76 @@
         presetCanvas.add(object);
       }
 
+      ensurePresetCenterGuides();
       presetCanvas.requestRenderAll();
     }
 
     presetCanvas.on("selection:created", syncPresetFormatting);
     presetCanvas.on("selection:updated", syncPresetFormatting);
-    presetCanvas.on("selection:cleared", syncPresetFormatting);
-    presetCanvas.on("object:modified", syncPresetFormatting);
+    presetCanvas.on("selection:cleared", () => {
+      syncPresetFormatting();
+      hidePresetCenterGuides();
+    });
+
+    presetCanvas.on("object:moving", event => {
+      const object = event.target;
+
+      if (
+        !object ||
+        object === state.presetBackground ||
+        object.isCenterGuide === true
+      ) {
+        return;
+      }
+
+      const canvasRect = presetCanvas.upperCanvasEl.getBoundingClientRect();
+      const thresholdX =
+        CENTER_SNAP_SCREEN_PX *
+        (presetCanvas.getWidth() / Math.max(canvasRect.width, 1));
+      const thresholdY =
+        CENTER_SNAP_SCREEN_PX *
+        (presetCanvas.getHeight() / Math.max(canvasRect.height, 1));
+
+      const canvasCenterX = presetCanvas.getWidth() / 2;
+      const canvasCenterY = presetCanvas.getHeight() / 2;
+      const objectCenter = object.getCenterPoint();
+
+      const snapVertical =
+        Math.abs(objectCenter.x - canvasCenterX) <= thresholdX;
+      const snapHorizontal =
+        Math.abs(objectCenter.y - canvasCenterY) <= thresholdY;
+
+      if (snapVertical || snapHorizontal) {
+        object.setPositionByOrigin(
+          new fabric.Point(
+            snapVertical ? canvasCenterX : objectCenter.x,
+            snapHorizontal ? canvasCenterY : objectCenter.y
+          ),
+          "center",
+          "center"
+        );
+        object.setCoords();
+      }
+
+      presetCenterGuides.vertical.set({ visible: snapVertical });
+      presetCenterGuides.horizontal.set({ visible: snapHorizontal });
+
+      if (snapVertical) {
+        presetCanvas.bringToFront(presetCenterGuides.vertical);
+      }
+      if (snapHorizontal) {
+        presetCanvas.bringToFront(presetCenterGuides.horizontal);
+      }
+
+      presetCanvas.requestRenderAll();
+    });
+
+    presetCanvas.on("object:modified", () => {
+      hidePresetCenterGuides();
+      syncPresetFormatting();
+    });
+
+    presetCanvas.on("mouse:up", hidePresetCenterGuides);
 
     /* ---------------- PRESET LIBRARIES ---------------- */
 
