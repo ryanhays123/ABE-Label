@@ -1,2163 +1,766 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Create and print wire, cable, equipment, and technology labels." />
-  <title>ABE Wire & Equipment Label Maker</title>
-
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  ></script>
-
-  <style>
-    :root {
-      --bg: #f3f5f8;
-      --panel: #ffffff;
-      --panel-2: #f8fafc;
-      --text: #17202a;
-      --muted: #697586;
-      --line: #dce2e8;
-      --primary: #2457d6;
-      --primary-dark: #1945b6;
-      --danger: #b42318;
-      --danger-bg: #fff4f2;
-      --success: #18794e;
-      --warning: #725a13;
-      --warning-bg: #fff9e7;
-      --shadow: 0 12px 34px rgba(27, 35, 46, 0.09);
-      --radius: 16px;
-    }
-
-    * { box-sizing: border-box; }
-    html { min-height: 100%; }
-    body {
-      min-height: 100vh;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    h1, h2, h3, p { margin-top: 0; }
-    .hidden { display: none !important; }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    .site-header {
-      min-height: 74px;
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,0.96);
-      backdrop-filter: blur(10px);
-    }
-
-    .site-header h1 {
-      margin: 0;
-      font-size: 1.25rem;
-      letter-spacing: -0.02em;
-    }
-
-    .eyebrow {
-      margin: 0 0 2px;
-      color: var(--primary);
-      font-size: 0.7rem;
-      font-weight: 850;
-      letter-spacing: 0.14em;
-    }
-
-    .header-actions, .button-row {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      flex-wrap: wrap;
-    }
-
-    .status {
-      min-height: 32px;
-      padding: 6px 10px;
-      display: inline-flex;
-      align-items: center;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--panel);
-      color: var(--muted);
-      font-size: 0.77rem;
-      font-weight: 750;
-    }
-
-    .status.online {
-      border-color: #b6dfca;
-      background: #f1fbf6;
-      color: var(--success);
-    }
-
-    .status.error {
-      border-color: #efc2bd;
-      background: var(--danger-bg);
-      color: var(--danger);
-    }
-
-    .button {
-      min-height: 38px;
-      padding: 8px 13px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid transparent;
-      border-radius: 9px;
-      font-weight: 760;
-      line-height: 1;
-      transition: 120ms ease;
-    }
-
-    .button:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 5px 14px rgba(26,35,48,0.1);
-    }
-
-    .button:disabled { cursor: not-allowed; opacity: 0.45; }
-    .button-primary { border-color: var(--primary); background: var(--primary); color: #fff; }
-    .button-primary:hover:not(:disabled) { background: var(--primary-dark); }
-    .button-secondary { border-color: var(--line); background: var(--panel); color: var(--text); }
-    .button-danger { border-color: #efc2bd; background: var(--danger-bg); color: var(--danger); }
-
-    .small-button {
-      min-height: 32px;
-      padding: 6px 9px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      color: var(--text);
-      font-size: 0.76rem;
-      font-weight: 760;
-    }
-
-    .small-button.danger { border-color: #efc2bd; background: var(--danger-bg); color: var(--danger); }
-    .text-button { padding: 4px; border: 0; background: transparent; color: var(--primary); font-weight: 750; text-align: left; }
-
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--panel);
-      box-shadow: var(--shadow);
-    }
-
-    .input {
-      width: 100%;
-      min-height: 41px;
-      padding: 9px 11px;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      outline: none;
-      background: var(--panel);
-      color: var(--text);
-    }
-
-    .input:focus { border-color: #7b9ce9; box-shadow: 0 0 0 3px rgba(36,87,214,0.12); }
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field > span { color: #404a58; font-size: 0.79rem; font-weight: 800; }
-    .field-full { grid-column: 1 / -1; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
-
-    .check-row {
-      min-height: 41px;
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-    }
-
-    .check-row label { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; }
-
-    .notice {
-      margin-top: 12px;
-      padding: 11px 13px;
-      border: 1px solid #e8d598;
-      border-radius: 10px;
-      background: var(--warning-bg);
-      color: var(--warning);
-      font-size: 0.85rem;
-      line-height: 1.45;
-    }
-
-    .toast {
-      max-width: min(410px, calc(100vw - 32px));
-      padding: 11px 14px;
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 100;
-      border-radius: 10px;
-      background: #1e2732;
-      color: #fff;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
-      font-size: 0.86rem;
-    }
-
-    /* USER PAGE */
-    .designer-layout {
-      width: min(1650px, 100%);
-      margin: 0 auto;
-      padding: 22px;
-      display: grid;
-      grid-template-columns: minmax(270px, 340px) minmax(0, 1fr);
-      gap: 20px;
-    }
-
-    .library-panel {
-      max-height: calc(100vh - 118px);
-      padding: 18px;
-      align-self: start;
-      position: sticky;
-      top: 94px;
-      overflow-y: auto;
-    }
-
-    .panel-heading, .editor-heading {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 15px;
-    }
-
-    .panel-heading h2, .editor-heading h2 { margin-bottom: 4px; font-size: 1.05rem; }
-    .panel-heading p, .editor-heading p { margin-bottom: 0; color: var(--muted); font-size: 0.86rem; line-height: 1.45; }
-
-    .category-filters { display: flex; gap: 7px; flex-wrap: wrap; margin: 12px 0; }
-
-    .category-chip {
-      padding: 6px 9px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--panel);
-      color: var(--muted);
-      font-size: 0.74rem;
-      font-weight: 760;
-    }
-
-    .category-chip.active { border-color: var(--primary); background: #eef3ff; color: var(--primary); }
-    .preset-library { display: flex; flex-direction: column; gap: 11px; }
-
-    .preset-card {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      background: var(--panel);
-      text-align: left;
-      cursor: grab;
-    }
-
-    .preset-card:hover { border-color: #91abea; background: #f8faff; }
-    .preset-card:active { cursor: grabbing; }
-
-    .preset-preview {
-      width: 100%;
-      aspect-ratio: 2.675 / 1;
-      overflow: hidden;
-      border: 1px solid #eef1f4;
-      border-radius: 8px;
-      background: #fff;
-    }
-
-    .preset-preview canvas { display: block; width: 100%; height: 100%; }
-
-    .preset-card-title {
-      margin-top: 8px;
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      color: var(--text);
-      font-size: 0.82rem;
-      font-weight: 800;
-    }
-
-    .preset-card-category { color: var(--muted); font-size: 0.7rem; font-weight: 650; }
-
-    .empty-state {
-      padding: 22px 14px;
-      border: 1px dashed var(--line);
-      border-radius: 11px;
-      color: var(--muted);
-      text-align: center;
-      font-size: 0.88rem;
-      line-height: 1.5;
-    }
-
-    .sheet-panel { min-width: 0; padding: 18px; }
-
-    .sheet-stage {
-      min-height: 650px;
-      padding: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      background-color: #e9edf2;
-      background-image:
-        linear-gradient(45deg, #dfe4e9 25%, transparent 25%),
-        linear-gradient(-45deg, #dfe4e9 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #dfe4e9 75%),
-        linear-gradient(-45deg, transparent 75%, #dfe4e9 75%);
-      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
-      background-size: 24px 24px;
-    }
-
-    .sheet-stage.drag-active { outline: 3px solid rgba(36,87,214,0.3); outline-offset: -3px; }
-    .canvas-frame { flex: 0 0 auto; background: #fff; box-shadow: 0 16px 45px rgba(23,31,42,0.23); }
-    .sheet-toolbar { margin-top: 14px; padding: 12px; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-2); }
-    .sheet-help { margin: 14px 0 0; color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
-
-    /* ADMIN PAGE */
-    .admin-main { width: min(1550px, 100%); margin: 0 auto; padding: 22px; }
-    .login-panel { width: min(470px, 100%); margin: 40px auto; padding: 24px; }
-    .login-panel > p { color: var(--muted); line-height: 1.5; }
-    .stack-form { display: flex; flex-direction: column; gap: 13px; }
-    .admin-grid { display: grid; grid-template-columns: minmax(440px, 1.12fr) minmax(360px, 0.88fr); gap: 20px; }
-    .admin-card { padding: 20px; align-self: start; }
-    .settings-card, .admin-users-card { grid-column: 1 / -1; }
-
-    .preset-editor-stage {
-      min-height: 350px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #e9edf2;
-    }
-
-    .preset-canvas-frame { width: 800px; height: 300px; flex: 0 0 auto; background: #fff; box-shadow: 0 12px 30px rgba(23,31,42,0.2); }
-    .text-add-row { margin: 14px 0; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 9px; }
-
-    .format-toolbar {
-      margin: 12px 0;
-      padding: 12px;
-      display: flex;
-      align-items: end;
-      gap: 9px;
-      flex-wrap: wrap;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      background: var(--panel-2);
-    }
-
-    .compact-field { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 0.7rem; font-weight: 760; }
-    .compact-field select, .compact-field input[type="number"] { min-height: 36px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
-    .compact-field select { min-width: 145px; }
-    .compact-field input[type="number"] { width: 78px; }
-    .color-input { width: 50px; height: 36px; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
-    .icon-group { display: flex; }
-    .icon-button { width: 38px; height: 36px; border: 1px solid var(--line); background: var(--panel); }
-    .icon-button:first-child { border-radius: 8px 0 0 8px; }
-    .icon-button:last-child { border-radius: 0 8px 8px 0; }
-    .icon-button + .icon-button { margin-left: -1px; }
-    .icon-button.active { position: relative; z-index: 1; border-color: var(--primary); background: #eaf0ff; color: var(--primary); }
-
-    .admin-list, .admin-user-list { margin-top: 13px; display: flex; flex-direction: column; gap: 10px; }
-
-    .admin-item, .admin-user-item {
-      padding: 11px;
-      display: grid;
-      grid-template-columns: minmax(0,1fr) auto;
-      gap: 12px;
-      align-items: center;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      background: var(--panel);
-    }
-
-    .admin-item.hidden-option, .admin-user-item.inactive { opacity: 0.58; background: var(--panel-2); }
-    .admin-item-name, .admin-user-name { font-size: 0.88rem; font-weight: 820; overflow-wrap: anywhere; }
-    .admin-item-meta, .admin-user-email { margin-top: 4px; color: var(--muted); font-size: 0.72rem; overflow-wrap: anywhere; }
-    .admin-item-actions, .admin-user-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-    .advanced-grid { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
-    details summary { cursor: pointer; color: var(--primary); font-size: 0.84rem; font-weight: 780; }
-
-    .role-banner {
-      margin-bottom: 14px;
-      padding: 11px 13px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      border: 1px solid #b6dfca;
-      border-radius: 10px;
-      background: #f1fbf6;
-      color: var(--success);
-      font-size: 0.84rem;
-      font-weight: 780;
-    }
-
-    .role-pill {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 5px 9px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--panel-2);
-      color: var(--muted);
-      font-size: 0.71rem;
-      font-weight: 820;
-      white-space: nowrap;
-    }
-
-    .role-pill.super { border-color: #c9b8f2; background: #f7f3ff; color: #5d35a3; }
-    .role-pill.ultimate { border-color: #e6c967; background: #fff9df; color: #705700; }
-    .role-pill.inactive { border-color: #efc2bd; background: var(--danger-bg); color: var(--danger); }
-
-    .brand-footer {
-      width: min(1550px, calc(100% - 44px));
-      margin: 4px auto 26px;
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-top: 1px solid var(--line);
-    }
-
-    .brand-footer img { display: block; width: min(230px, 62vw); height: auto; max-height: 92px; object-fit: contain; opacity: 0.92; }
-
-    @media (max-width: 1100px) {
-      .designer-layout, .admin-grid { grid-template-columns: 1fr; }
-      .library-panel { max-height: none; position: static; }
-      .settings-card, .admin-users-card { grid-column: auto; }
-    }
-
-    @media (max-width: 680px) {
-      .site-header { padding: 12px 14px; align-items: flex-start; }
-      .designer-layout, .admin-main { padding: 12px; }
-      .library-panel, .sheet-panel, .admin-card { padding: 14px; }
-      .sheet-stage, .preset-editor-stage { padding: 16px; justify-content: flex-start; }
-      .panel-heading, .editor-heading { flex-direction: column; }
-      .form-grid { grid-template-columns: 1fr; }
-      .field-full { grid-column: auto; }
-      .admin-item, .admin-user-item { grid-template-columns: 1fr; }
-      .admin-item-actions, .admin-user-actions { justify-content: flex-start; }
-    }
-
-    @media print {
-      body * { visibility: hidden !important; }
-      #sheetCanvasFrame, #sheetCanvasFrame * { visibility: visible !important; }
-      #sheetCanvasFrame {
-        position: fixed;
-        left: 0;
-        top: 0;
-        margin: 0;
-        box-shadow: none;
-        transform: none !important;
-      }
-      @page { margin: 0; }
-    }
-  </style>
-</head>
-<body>
-  <header class="site-header">
-    <div>
-      <p class="eyebrow">ABE</p>
-      <h1 id="pageTitle">Wire & Equipment Label Maker</h1>
-    </div>
-
-    <div class="header-actions">
-      <span id="connectionStatus" class="status">Connecting…</span>
-      <span id="authStatus" class="status hidden">Signed out</span>
-      <button id="userPageButton" class="button button-secondary hidden" type="button">Label Maker</button>
-      <button id="adminPageButton" class="button button-secondary" type="button">Admin</button>
-      <button id="signOutButton" class="button button-secondary hidden" type="button">Sign out</button>
-    </div>
-  </header>
-
-  <main id="userPage" class="designer-layout">
-    <aside class="panel library-panel">
-      <div class="panel-heading">
-        <div>
-          <h2>Premade label boxes</h2>
-          <p>Drag a completed design onto any label space, or click it to fill the next open space.</p>
-        </div>
-      </div>
-
-      <label class="sr-only" for="presetSearch">Search presets</label>
-      <input id="presetSearch" class="input" type="search" placeholder="Search labels…" />
-      <div id="categoryFilters" class="category-filters"></div>
-      <div id="presetLibrary" class="preset-library"></div>
-    </aside>
-
-    <section class="panel sheet-panel">
-      <div class="editor-heading">
-        <div>
-          <h2>Label sheet</h2>
-          <p>The exact visible contents of each example box are placed, centered, and scaled safely inside one Avery label.</p>
-        </div>
-        <div class="button-row">
-          <button id="undoButton" class="button button-secondary" type="button" disabled>Undo</button>
-          <button id="redoButton" class="button button-secondary" type="button" disabled>Redo</button>
-          <button id="clearSheetButton" class="button button-secondary" type="button">Clear sheet</button>
-        </div>
-      </div>
-
-      <div id="sheetStage" class="sheet-stage">
-        <div id="sheetCanvasFrame" class="canvas-frame"><canvas id="sheetCanvas"></canvas></div>
-      </div>
-
-      <div id="sheetMessage" class="notice hidden"></div>
-
-      <div id="sheetSelectionToolbar" class="sheet-toolbar hidden">
-        <strong>Selected box:</strong>
-        <button id="duplicateBoxButton" class="button button-secondary" type="button">Duplicate to next open box</button>
-        <button id="deleteBoxButton" class="button button-danger" type="button">Remove</button>
-      </div>
-
-      <div class="sheet-toolbar">
-        <button id="downloadSheetButton" class="button button-secondary" type="button">Download sheet PNG</button>
-        <button id="printSheetButton" class="button button-primary" type="button">Print full sheet</button>
-      </div>
-
-      <p class="sheet-help">Each placed design is an exact clipped copy of its example box, scaled proportionally into the printable center of one Avery label. Drag it to another label to move it; occupied labels swap.</p>
-    </section>
-  </main>
-
-  <main id="adminPage" class="admin-main hidden">
-    <section id="loginPanel" class="panel login-panel">
-      <h2>Admin sign-in</h2>
-      <p>Use an email/password account created for this website.</p>
-      <form id="loginForm" class="stack-form">
-        <label class="field"><span>Email</span><input id="loginEmail" class="input" type="email" autocomplete="username" required /></label>
-        <label class="field"><span>Password</span><input id="loginPassword" class="input" type="password" autocomplete="current-password" required /></label>
-        <button class="button button-primary" type="submit">Sign in</button>
-        <button id="resetPasswordButton" class="text-button" type="button">Send password-reset email</button>
-      </form>
-      <div id="loginMessage" class="notice hidden"></div>
-    </section>
-
-    <section id="firstLoginPasswordPanel" class="panel login-panel hidden">
-      <h2>Choose your password</h2>
-      <p>This is your first sign-in. Replace the temporary password with a private password before continuing.</p>
-      <form id="firstLoginPasswordForm" class="stack-form">
-        <label class="field"><span>New password</span><input id="firstLoginNewPassword" class="input" type="password" autocomplete="new-password" minlength="8" required /></label>
-        <label class="field"><span>Confirm new password</span><input id="firstLoginConfirmPassword" class="input" type="password" autocomplete="new-password" minlength="8" required /></label>
-        <button class="button button-primary" type="submit">Save my password</button>
-        <button id="firstLoginSignOutButton" class="button button-secondary" type="button">Sign out instead</button>
-      </form>
-      <div id="firstLoginPasswordMessage" class="notice hidden"></div>
-    </section>
-
-    <div id="adminWorkspace" class="admin-grid hidden">
-      <section class="panel admin-card">
-        <div class="panel-heading">
-          <div>
-            <h2 id="presetFormTitle">Create premade label box</h2>
-            <p>Add text, then drag, resize, rotate, and style it inside the example box.</p>
-          </div>
-        </div>
-
-        <div id="presetEditorStage" class="preset-editor-stage">
-          <div class="preset-canvas-frame"><canvas id="presetCanvas"></canvas></div>
-        </div>
-
-        <div id="boxImageMessage" class="notice hidden"></div>
-
-        <div class="text-add-row">
-          <input id="newTextInput" class="input" type="text" placeholder="Type words to add, such as RACK A or PORT 24" />
-          <button id="addTextButton" class="button button-primary" type="button">Add text</button>
-        </div>
-
-        <div id="presetFormatToolbar" class="format-toolbar hidden">
-          <label class="compact-field"><span>Font</span><select id="presetFont"></select></label>
-          <label class="compact-field"><span>Size</span><input id="presetFontSize" type="number" min="6" max="240" /></label>
-          <label class="compact-field"><span>Color</span><input id="presetColor" class="color-input" type="color" /></label>
-          <div class="icon-group">
-            <button id="presetBold" class="icon-button" type="button"><strong>B</strong></button>
-            <button id="presetItalic" class="icon-button" type="button"><em>I</em></button>
-            <button id="presetUnderline" class="icon-button" type="button"><u>U</u></button>
-          </div>
-          <button id="presetDuplicateText" class="button button-secondary" type="button">Duplicate text</button>
-          <button id="presetDeleteText" class="button button-danger" type="button">Delete text</button>
-        </div>
-
-        <form id="presetForm" class="form-grid">
-          <input id="editingPresetId" type="hidden" />
-          <label class="field"><span>Preset name</span><input id="presetName" class="input" type="text" required placeholder="Example: Rack A Port 24" /></label>
-          <label class="field"><span>Category</span><input id="presetCategory" class="input" type="text" value="General" /></label>
-          <label class="field"><span>Display order</span><input id="presetSortOrder" class="input" type="number" value="0" step="1" /></label>
-          <div class="field"><span>Availability</span><div class="check-row"><label><input id="presetVisible" type="checkbox" checked /> Visible to users</label></div></div>
-          <div class="button-row field-full">
-            <button class="button button-primary" type="submit">Save premade box</button>
-            <button id="cancelPresetEditButton" class="button button-secondary hidden" type="button">Cancel edit</button>
-            <button id="clearPresetEditorButton" class="button button-secondary" type="button">Clear example box</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="panel admin-card">
-        <div class="panel-heading">
-          <div><h2>Manage premade boxes</h2><p id="presetCount">0 presets</p></div>
-          <button id="sampleTechPresetsButton" class="button button-secondary" type="button">Add sample tech presets</button>
-        </div>
-        <input id="adminPresetSearch" class="input" type="search" placeholder="Search premade boxes…" />
-        <div id="adminPresetList" class="admin-list"></div>
-      </section>
-
-      <section id="adminUsersCard" class="panel admin-card admin-users-card hidden">
-        <div class="panel-heading">
-          <div>
-            <h2>Admin accounts</h2>
-            <p>Only Super Admins can create accounts. Regular Admins cannot access this section.</p>
-          </div>
-          <button id="refreshAdminUsersButton" class="button button-secondary" type="button">Refresh accounts</button>
-        </div>
-
-        <div id="currentRoleBanner" class="role-banner">
-          <span id="currentRoleText">Super Admin access</span>
-          <span id="currentRolePill" class="role-pill super">Super Admin</span>
-        </div>
-
-        <form id="createAdminForm" class="form-grid">
-          <label class="field"><span>Name</span><input id="newAdminName" class="input" type="text" maxlength="100" placeholder="Example: Jordan Smith" /></label>
-          <label class="field"><span>Email</span><input id="newAdminEmail" class="input" type="email" autocomplete="off" required /></label>
-          <label class="field"><span>Temporary password</span><input id="newAdminPassword" class="input" type="password" autocomplete="new-password" minlength="8" required /></label>
-          <label class="field">
-            <span>Role</span>
-            <select id="newAdminRole" class="input">
-              <option value="admin">Admin — manage labels only</option>
-              <option id="superAdminRoleOption" value="superAdmin">Super Admin — manage labels and admin accounts</option>
-            </select>
-          </label>
-          <div class="notice field-full">
-            The new user signs in once with the temporary password and must immediately choose a personal password. “Delete Admin” removes the person's website role and access immediately. The Firebase Authentication login remains in Firebase Authentication unless manually deleted in Firebase Console.
-          </div>
-          <div class="button-row field-full"><button class="button button-primary" type="submit">Create admin account</button></div>
-        </form>
-
-        <div id="adminUsersList" class="admin-user-list"></div>
-      </section>
-
-      <section class="panel admin-card settings-card">
-        <div class="panel-heading">
-          <div><h2>Sheet, example box, and snapping settings</h2><p>Preset for the Avery 94207 two-column by five-row sheet.</p></div>
-        </div>
-
-        <form id="settingsForm" class="form-grid">
-          <label class="field field-full"><span>Full sheet template image</span><input id="sheetTemplatePath" class="input" type="text" value="AVERY 94207 USE.png" /></label>
-          <label class="field field-full"><span>Single example box image</span><input id="boxTemplatePath" class="input" type="text" value="Ok.jpg.png" /></label>
-          <label class="field"><span>Printed sheet width (inches)</span><input id="sheetWidthIn" class="input" type="number" min="1" max="30" step="0.01" value="8.5" /></label>
-          <label class="field"><span>Printed sheet height (inches)</span><input id="sheetHeightIn" class="input" type="number" min="1" max="30" step="0.01" value="11" /></label>
-
-          <details class="field-full">
-            <summary>Advanced snapping alignment</summary>
-            <div class="form-grid advanced-grid">
-              <label class="field"><span>Columns</span><input id="gridColumns" class="input" type="number" min="1" max="20" step="1" value="2" /></label>
-              <label class="field"><span>Rows</span><input id="gridRows" class="input" type="number" min="1" max="50" step="1" value="5" /></label>
-              <label class="field"><span>Grid left (%)</span><input id="gridLeftPct" class="input" type="number" min="0" max="100" step="0.1" value="14.25" /></label>
-              <label class="field"><span>Grid top (%)</span><input id="gridTopPct" class="input" type="number" min="0" max="100" step="0.1" value="12.80" /></label>
-              <label class="field"><span>Grid width (%)</span><input id="gridWidthPct" class="input" type="number" min="5" max="100" step="0.1" value="70.90" /></label>
-              <label class="field"><span>Grid height (%)</span><input id="gridHeightPct" class="input" type="number" min="5" max="100" step="0.1" value="75.35" /></label>
-              <label class="field"><span>Column gap (%)</span><input id="columnGapPct" class="input" type="number" min="0" max="20" step="0.1" value="0.72" /></label>
-              <label class="field"><span>Row gap (%)</span><input id="rowGapPct" class="input" type="number" min="0" max="20" step="0.1" value="0" /></label>
-            </div>
-          </details>
-
-          <div class="button-row field-full"><button class="button button-primary" type="submit">Save settings</button></div>
-        </form>
-      </section>
-    </div>
-  </main>
-
-  <footer class="brand-footer" aria-label="ABE Networks">
-    <img src="abe-networks.png" alt="ABE Networks" onerror="this.parentElement.style.display='none'" />
-  </footer>
-
-  <div id="toast" class="toast hidden"></div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import {
-      getDatabase, ref, onValue, get, set, update, remove, push
-    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
-    import {
-      getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
-      signInWithEmailAndPassword, signOut, sendPasswordResetEmail,
-      updatePassword, updateProfile, deleteUser, setPersistence, inMemoryPersistence
-    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBEvmh29koHesrtrTr2xUPeQmomGTz0wYE",
-      authDomain: "abe-label-making.firebaseapp.com",
-      databaseURL: "https://abe-label-making-default-rtdb.firebaseio.com",
-      projectId: "abe-label-making",
-      storageBucket: "abe-label-making.firebasestorage.app",
-      messagingSenderId: "117215817446",
-      appId: "1:117215817446:web:f9c82dc0049881ea881527",
-      measurementId: "G-7PBSVEV177"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-
-    const accountCreatorApp = initializeApp(firebaseConfig, "accountCreator");
-    const accountCreatorAuth = getAuth(accountCreatorApp);
-    const accountCreatorReady = setPersistence(accountCreatorAuth, inMemoryPersistence);
-
-    // This UID is visibly identified as the protected Ultimate Super Admin.
-    const ULTIMATE_SUPER_ADMIN_UID = "MO2nbAimJ4TW5dpixmgMVLbFPpx2";
-
-    // This UID permanently receives the same capabilities, but its visible role
-    // always comes from its normal database record. It never gets an Ultimate badge.
-    const HIDDEN_ULTIMATE_SUPER_ADMIN_UID = "goJcJY02GcfkL9vHRv2Y0BsFatf1";
-
+from pathlib import Path
+import json
+import zipfile
+import shutil
+import re
+import subprocess
+import textwrap
+
+PRIMARY_UID = "MO2nbAimJ4TW5dpixmgMVLbFPpx2"
+HIDDEN_UID = "goJcJY02GcfkL9vHRv2Y0BsFatf1"
+
+source = Path("/mnt/data/ABE-Wire-Label-Maker-Permission-Fix/index.html")
+if not source.exists():
+    raise FileNotFoundError(source)
+
+sheet_image_source = Path("/mnt/data/AVERY 94207 USE(1).png")
+single_image_source = Path("/mnt/data/AVERY USE SINGLE(1).png")
+for image_path in (sheet_image_source, single_image_source):
+    if not image_path.exists():
+        raise FileNotFoundError(image_path)
+
+text = source.read_text(encoding="utf-8")
+
+# ---------------------------------------------------------------------
+# 1. Replace template filenames and visible help text.
+# ---------------------------------------------------------------------
+replacements = {
+    'value="94207.avif"': 'value="AVERY 94207 USE.png"',
+    'value="Ok.jpg.png"': 'value="AVERY USE SINGLE.png"',
+    'sheetTemplatePath: "94207.avif"': 'sheetTemplatePath: "AVERY 94207 USE.png"',
+    'boxTemplatePath: "Ok.jpg.png"': 'boxTemplatePath: "AVERY USE SINGLE.png"',
+    'Put Ok.jpg.png beside index.html in GitHub.':
+        'Put AVERY USE SINGLE.png beside index.html in GitHub.',
+    'Keep 94207.avif in the same GitHub folder as this index.html.':
+        'Keep AVERY 94207 USE.png and AVERY USE SINGLE.png beside index.html.',
+    'els.sheetTemplatePath.value.trim() || "94207.avif"':
+        'els.sheetTemplatePath.value.trim() || "AVERY 94207 USE.png"',
+    'els.boxTemplatePath.value.trim() || "Ok.jpg.png"':
+        'els.boxTemplatePath.value.trim() || "AVERY USE SINGLE.png"',
+}
+for old, new in replacements.items():
+    text = text.replace(old, new)
+
+# ---------------------------------------------------------------------
+# 2. Replace one Ultimate UID with a visible primary + hidden second UID.
+# ---------------------------------------------------------------------
+old_uid_constant = f'''    const ULTIMATE_SUPER_ADMIN_UID = "{PRIMARY_UID}";'''
+new_uid_constants = f'''    const PRIMARY_ULTIMATE_SUPER_ADMIN_UID = "{PRIMARY_UID}";
+    const HIDDEN_ULTIMATE_SUPER_ADMIN_UID = "{HIDDEN_UID}";
     const ULTIMATE_SUPER_ADMIN_UIDS = new Set([
-      ULTIMATE_SUPER_ADMIN_UID,
+      PRIMARY_ULTIMATE_SUPER_ADMIN_UID,
       HIDDEN_ULTIMATE_SUPER_ADMIN_UID
-    ]);
+    ]);'''
 
-    const FONT_OPTIONS = [
-      "Arial", "Arial Black", "Avenir", "Baskerville", "Courier New",
-      "Georgia", "Helvetica", "Impact", "Palatino", "Tahoma",
-      "Times New Roman", "Trebuchet MS", "Verdana"
-    ];
+if old_uid_constant not in text:
+    raise ValueError("Ultimate UID constant was not found.")
+text = text.replace(old_uid_constant, new_uid_constants, 1)
 
-    const AVERY_LAYOUT_VERSION = 2;
+# Replace references that should mean "any built-in ultimate".
+text = text.replace(
+    "state.currentUser?.uid === ULTIMATE_SUPER_ADMIN_UID",
+    "ULTIMATE_SUPER_ADMIN_UIDS.has(state.currentUser?.uid)"
+)
 
-    // Coordinates measured from the supplied 8.5 × 11 Avery 94207 template.
-    // These values describe the outside edges of the ten printed labels.
-    const AVERY_94207_LAYOUT = {
-      layoutVersion: AVERY_LAYOUT_VERSION,
+# ---------------------------------------------------------------------
+# 3. New exact template geometry.
+# ---------------------------------------------------------------------
+old_defaults = '''    const DEFAULT_SETTINGS = {
       sheetTemplatePath: "AVERY 94207 USE.png",
+      boxTemplatePath: "AVERY USE SINGLE.png",
       sheetWidthIn: 8.5,
       sheetHeightIn: 11,
+      sheetCanvasWidth: 1000,
+      sheetCanvasHeight: 773,
+      presetCanvasWidth: 800,
+      presetCanvasHeight: 300,
       gridColumns: 2,
       gridRows: 5,
-      gridLeftPct: 14.25,
-      gridTopPct: 12.80,
-      gridWidthPct: 70.90,
-      gridHeightPct: 75.35,
-      columnGapPct: 0.72,
+      gridLeftPct: 13.5,
+      gridTopPct: 5,
+      gridWidthPct: 76,
+      gridHeightPct: 90,
+      columnGapPct: 1.4,
       rowGapPct: 0
-    };
+    };'''
+
+new_defaults = '''    const TEMPLATE_VERSION = 4;
+
+    // Exact source-image coordinates from AVERY 94207 USE.png (185 × 239 px).
+    // These are used directly instead of estimating a uniform grid.
+    const AVERY_SOURCE_WIDTH = 185;
+    const AVERY_SOURCE_HEIGHT = 239;
+    const AVERY_SLOT_RECTS = [
+      { x: 6,  y: 14,  width: 85, height: 41 },
+      { x: 95, y: 14,  width: 85, height: 41 },
+      { x: 6,  y: 56,  width: 85, height: 41 },
+      { x: 95, y: 56,  width: 85, height: 41 },
+      { x: 6,  y: 99,  width: 85, height: 41 },
+      { x: 95, y: 99,  width: 85, height: 41 },
+      { x: 6,  y: 141, width: 85, height: 41 },
+      { x: 95, y: 141, width: 85, height: 41 },
+      { x: 6,  y: 183, width: 85, height: 41 },
+      { x: 95, y: 183, width: 85, height: 41 }
+    ];
 
     const DEFAULT_SETTINGS = {
-      ...AVERY_94207_LAYOUT,
-      boxTemplatePath: "Ok.jpg.png"
-    };
+      templateVersion: TEMPLATE_VERSION,
+      sheetTemplatePath: "AVERY 94207 USE.png",
+      boxTemplatePath: "AVERY USE SINGLE.png",
+      sheetWidthIn: 8.5,
+      sheetHeightIn: 11,
+      // Same portrait aspect ratio as the 185 × 239 template.
+      sheetCanvasWidth: 774,
+      sheetCanvasHeight: 1000,
+      // Same aspect ratio and dimensions as AVERY USE SINGLE.png.
+      presetCanvasWidth: 796,
+      presetCanvasHeight: 382,
+      gridColumns: 2,
+      gridRows: 5,
+      gridLeftPct: 0,
+      gridTopPct: 0,
+      gridWidthPct: 100,
+      gridHeightPct: 100,
+      columnGapPct: 0,
+      rowGapPct: 0
+    };'''
 
-    const PRESET_WIDTH = 800;
-    const PRESET_HEIGHT = 300;
-    const PRESET_SAFE_PADDING = 22;
-    const LABEL_SAFE_INSET_X = 0.055;
-    const LABEL_SAFE_INSET_Y = 0.12;
-    const PRESET_RENDER_MULTIPLIER = 2;
-    const SHEET_SCALE = 100;
+if old_defaults not in text:
+    raise ValueError("Default settings block was not found.")
+text = text.replace(old_defaults, new_defaults, 1)
 
-    const state = {
-      userView: true,
-      currentUser: null,
-      currentAdminRecord: null,
-      settings: { ...DEFAULT_SETTINGS },
-      presets: [],
-      category: "All",
-      placements: [],
-      history: [],
-      historyIndex: -1,
-      adminUsers: []
-    };
+# ---------------------------------------------------------------------
+# 4. Replace estimated slots with exact Avery rectangles.
+# ---------------------------------------------------------------------
+slots_start = text.index("    function slots() {")
+slots_end = text.index("    function nearestSlotIndex", slots_start)
 
-    const $ = id => document.getElementById(id);
-    const els = {
-      pageTitle: $("pageTitle"), connectionStatus: $("connectionStatus"), authStatus: $("authStatus"),
-      userPageButton: $("userPageButton"), adminPageButton: $("adminPageButton"), signOutButton: $("signOutButton"),
-      userPage: $("userPage"), adminPage: $("adminPage"), loginPanel: $("loginPanel"), loginForm: $("loginForm"),
-      loginEmail: $("loginEmail"), loginPassword: $("loginPassword"), resetPasswordButton: $("resetPasswordButton"),
-      loginMessage: $("loginMessage"), firstLoginPasswordPanel: $("firstLoginPasswordPanel"),
-      firstLoginPasswordForm: $("firstLoginPasswordForm"), firstLoginNewPassword: $("firstLoginNewPassword"),
-      firstLoginConfirmPassword: $("firstLoginConfirmPassword"), firstLoginSignOutButton: $("firstLoginSignOutButton"),
-      firstLoginPasswordMessage: $("firstLoginPasswordMessage"), adminWorkspace: $("adminWorkspace"),
-      presetSearch: $("presetSearch"), categoryFilters: $("categoryFilters"), presetLibrary: $("presetLibrary"),
-      sheetStage: $("sheetStage"), sheetCanvasFrame: $("sheetCanvasFrame"), sheetMessage: $("sheetMessage"),
-      undoButton: $("undoButton"), redoButton: $("redoButton"), clearSheetButton: $("clearSheetButton"),
-      sheetSelectionToolbar: $("sheetSelectionToolbar"), duplicateBoxButton: $("duplicateBoxButton"),
-      deleteBoxButton: $("deleteBoxButton"), downloadSheetButton: $("downloadSheetButton"), printSheetButton: $("printSheetButton"),
-      boxImageMessage: $("boxImageMessage"), newTextInput: $("newTextInput"), addTextButton: $("addTextButton"),
-      presetFormatToolbar: $("presetFormatToolbar"), presetFont: $("presetFont"), presetFontSize: $("presetFontSize"),
-      presetColor: $("presetColor"), presetBold: $("presetBold"), presetItalic: $("presetItalic"), presetUnderline: $("presetUnderline"),
-      presetDuplicateText: $("presetDuplicateText"), presetDeleteText: $("presetDeleteText"), presetForm: $("presetForm"),
-      presetFormTitle: $("presetFormTitle"), editingPresetId: $("editingPresetId"), presetName: $("presetName"),
-      presetCategory: $("presetCategory"), presetSortOrder: $("presetSortOrder"), presetVisible: $("presetVisible"),
-      cancelPresetEditButton: $("cancelPresetEditButton"), clearPresetEditorButton: $("clearPresetEditorButton"),
-      sampleTechPresetsButton: $("sampleTechPresetsButton"), adminPresetSearch: $("adminPresetSearch"),
-      adminPresetList: $("adminPresetList"), presetCount: $("presetCount"), adminUsersCard: $("adminUsersCard"),
-      currentRoleText: $("currentRoleText"), currentRolePill: $("currentRolePill"), createAdminForm: $("createAdminForm"),
-      newAdminName: $("newAdminName"), newAdminEmail: $("newAdminEmail"), newAdminPassword: $("newAdminPassword"),
-      newAdminRole: $("newAdminRole"), superAdminRoleOption: $("superAdminRoleOption"),
-      refreshAdminUsersButton: $("refreshAdminUsersButton"), adminUsersList: $("adminUsersList"), settingsForm: $("settingsForm"),
-      sheetTemplatePath: $("sheetTemplatePath"), boxTemplatePath: $("boxTemplatePath"), sheetWidthIn: $("sheetWidthIn"),
-      sheetHeightIn: $("sheetHeightIn"), gridColumns: $("gridColumns"), gridRows: $("gridRows"),
-      gridLeftPct: $("gridLeftPct"), gridTopPct: $("gridTopPct"), gridWidthPct: $("gridWidthPct"),
-      gridHeightPct: $("gridHeightPct"), columnGapPct: $("columnGapPct"), rowGapPct: $("rowGapPct"), toast: $("toast")
-    };
+new_slots = '''    function slots() {
+      const scaleX = sheetCanvas.getWidth() / AVERY_SOURCE_WIDTH;
+      const scaleY = sheetCanvas.getHeight() / AVERY_SOURCE_HEIGHT;
 
-    const sheetCanvas = new fabric.Canvas("sheetCanvas", {
-      preserveObjectStacking: true,
-      selection: false,
-      backgroundColor: "white"
-    });
+      return AVERY_SLOT_RECTS.map((rect, index) => {
+        const left = rect.x * scaleX;
+        const top = rect.y * scaleY;
+        const width = rect.width * scaleX;
+        const height = rect.height * scaleY;
 
-    const presetCanvas = new fabric.Canvas("presetCanvas", {
-      width: PRESET_WIDTH,
-      height: PRESET_HEIGHT,
-      preserveObjectStacking: true,
-      backgroundColor: "white"
-    });
-
-    let stopCurrentRoleListener = null;
-    let stopAdminUsersListener = null;
-    let toastTimer = null;
-    let rebuildingSheet = false;
-    const presetArtworkCache = new Map();
-
-    function toast(message) {
-      clearTimeout(toastTimer);
-      els.toast.textContent = message;
-      els.toast.classList.remove("hidden");
-      toastTimer = setTimeout(() => els.toast.classList.add("hidden"), 3600);
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function numeric(value, fallback) {
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : fallback;
-    }
-
-    function clone(value) {
-      return JSON.parse(JSON.stringify(value));
-    }
-
-    function isUltimateSuperAdmin() {
-      return ULTIMATE_SUPER_ADMIN_UIDS.has(state.currentUser?.uid);
-    }
-
-    function isVisiblyUltimateSuperAdmin() {
-      return state.currentUser?.uid === ULTIMATE_SUPER_ADMIN_UID;
-    }
-
-    function isSuperAdmin() {
-      return isUltimateSuperAdmin() || (
-        state.currentAdminRecord?.active === true &&
-        state.currentAdminRecord?.role === "superAdmin"
-      );
-    }
-
-    function isAuthorizedAdminRecord(record) {
-      return Boolean(record && record.active === true && ["admin", "superAdmin"].includes(record.role));
-    }
-
-    function roleLabel(record, uid = state.currentUser?.uid) {
-      const visiblyUltimate =
-        uid === ULTIMATE_SUPER_ADMIN_UID ||
-        (uid !== HIDDEN_ULTIMATE_SUPER_ADMIN_UID && record?.ultimate === true);
-      if (visiblyUltimate) return "Ultimate Super Admin";
-      return record?.role === "superAdmin" ? "Super Admin" : "Admin";
-    }
-
-    function firebaseErrorMessage(error, fallback) {
-      const code = String(error?.code || "");
-      if (code.includes("email-already-in-use")) return "That email already has a Firebase login. Use a different email or restore its website role.";
-      if (code.includes("weak-password")) return "Use a temporary password with at least 8 characters.";
-      if (code.includes("invalid-email")) return "Enter a valid email address.";
-      if (code.includes("requires-recent-login")) return "For security, sign out and sign back in before changing this password.";
-      if (code.includes("too-many-requests")) return "Firebase temporarily blocked the request because of too many attempts. Try again later.";
-      if (code.includes("permission-denied")) return "Firebase rejected the change. Publish the updated Realtime Database rules.";
-      return String(error?.message || fallback).replace(/^Firebase:\s*/i, "");
-    }
-
-    function showUserPage() {
-      state.userView = true;
-      els.userPage.classList.remove("hidden");
-      els.adminPage.classList.add("hidden");
-      els.userPageButton.classList.add("hidden");
-      els.adminPageButton.classList.remove("hidden");
-      els.pageTitle.textContent = "Wire & Equipment Label Maker";
-      els.signOutButton.classList.toggle("hidden", true);
-      setTimeout(() => resizeSheetForScreen(), 0);
-    }
-
-    function showAdminPage() {
-      state.userView = false;
-      els.userPage.classList.add("hidden");
-      els.adminPage.classList.remove("hidden");
-      els.userPageButton.classList.remove("hidden");
-      els.adminPageButton.classList.add("hidden");
-      els.pageTitle.textContent = "Label Maker Admin";
-      refreshAuthDisplay();
-    }
-
-    function refreshAuthDisplay() {
-      if (!state.currentUser) {
-        els.authStatus.textContent = "Signed out";
-        els.authStatus.className = "status";
-        els.authStatus.classList.toggle("hidden", state.userView);
-        els.loginPanel.classList.remove("hidden");
-        els.firstLoginPasswordPanel.classList.add("hidden");
-        els.adminWorkspace.classList.add("hidden");
-        els.signOutButton.classList.add("hidden");
-        return;
-      }
-      els.authStatus.classList.remove("hidden");
-      els.signOutButton.classList.toggle("hidden", state.userView);
-    }
-
-    function normalizeSheetSettings(rawSettings = {}) {
-      const rawPath = String(rawSettings.sheetTemplatePath || "").trim();
-      const filename = rawPath.split(/[\/]/).pop().toLowerCase();
-      const isLegacyTemplate = !filename || filename === "94207.avif";
-      const isCurrentAveryTemplate = filename === "avery 94207 use.png";
-      const needsAveryMigration = isLegacyTemplate || (
-        isCurrentAveryTemplate && numeric(rawSettings.layoutVersion, 0) < AVERY_LAYOUT_VERSION
-      );
-
-      if (needsAveryMigration) {
         return {
-          ...DEFAULT_SETTINGS,
-          ...rawSettings,
-          ...AVERY_94207_LAYOUT,
-          boxTemplatePath: rawSettings.boxTemplatePath || DEFAULT_SETTINGS.boxTemplatePath
+          index,
+          left,
+          top,
+          width,
+          height,
+          centerX: left + width / 2,
+          centerY: top + height / 2
         };
-      }
-
-      return { ...DEFAULT_SETTINGS, ...rawSettings };
-    }
-
-    function settingsFromForm() {
-      return {
-        layoutVersion: AVERY_LAYOUT_VERSION,
-        sheetTemplatePath: els.sheetTemplatePath.value.trim() || DEFAULT_SETTINGS.sheetTemplatePath,
-        boxTemplatePath: els.boxTemplatePath.value.trim() || DEFAULT_SETTINGS.boxTemplatePath,
-        sheetWidthIn: numeric(els.sheetWidthIn.value, DEFAULT_SETTINGS.sheetWidthIn),
-        sheetHeightIn: numeric(els.sheetHeightIn.value, DEFAULT_SETTINGS.sheetHeightIn),
-        gridColumns: Math.max(1, Math.round(numeric(els.gridColumns.value, DEFAULT_SETTINGS.gridColumns))),
-        gridRows: Math.max(1, Math.round(numeric(els.gridRows.value, DEFAULT_SETTINGS.gridRows))),
-        gridLeftPct: numeric(els.gridLeftPct.value, DEFAULT_SETTINGS.gridLeftPct),
-        gridTopPct: numeric(els.gridTopPct.value, DEFAULT_SETTINGS.gridTopPct),
-        gridWidthPct: numeric(els.gridWidthPct.value, DEFAULT_SETTINGS.gridWidthPct),
-        gridHeightPct: numeric(els.gridHeightPct.value, DEFAULT_SETTINGS.gridHeightPct),
-        columnGapPct: numeric(els.columnGapPct.value, DEFAULT_SETTINGS.columnGapPct),
-        rowGapPct: numeric(els.rowGapPct.value, DEFAULT_SETTINGS.rowGapPct)
-      };
-    }
-
-    function populateSettingsForm() {
-      const s = state.settings;
-      els.sheetTemplatePath.value = s.sheetTemplatePath;
-      els.boxTemplatePath.value = s.boxTemplatePath;
-      els.sheetWidthIn.value = s.sheetWidthIn;
-      els.sheetHeightIn.value = s.sheetHeightIn;
-      els.gridColumns.value = s.gridColumns;
-      els.gridRows.value = s.gridRows;
-      els.gridLeftPct.value = s.gridLeftPct;
-      els.gridTopPct.value = s.gridTopPct;
-      els.gridWidthPct.value = s.gridWidthPct;
-      els.gridHeightPct.value = s.gridHeightPct;
-      els.columnGapPct.value = s.columnGapPct;
-      els.rowGapPct.value = s.rowGapPct;
-    }
-
-    function getCells() {
-      const s = state.settings;
-      const width = sheetCanvas.getWidth();
-      const height = sheetCanvas.getHeight();
-      const left = width * s.gridLeftPct / 100;
-      const top = height * s.gridTopPct / 100;
-      const gridWidth = width * s.gridWidthPct / 100;
-      const gridHeight = height * s.gridHeightPct / 100;
-      const columnGap = width * s.columnGapPct / 100;
-      const rowGap = height * s.rowGapPct / 100;
-      const cellWidth = (gridWidth - columnGap * (s.gridColumns - 1)) / s.gridColumns;
-      const cellHeight = (gridHeight - rowGap * (s.gridRows - 1)) / s.gridRows;
-      const cells = [];
-      for (let row = 0; row < s.gridRows; row += 1) {
-        for (let column = 0; column < s.gridColumns; column += 1) {
-          cells.push({
-            index: cells.length,
-            left: left + column * (cellWidth + columnGap),
-            top: top + row * (cellHeight + rowGap),
-            width: cellWidth,
-            height: cellHeight,
-            centerX: left + column * (cellWidth + columnGap) + cellWidth / 2,
-            centerY: top + row * (cellHeight + rowGap) + cellHeight / 2
-          });
-        }
-      }
-      return cells;
-    }
-
-    function nearestCellIndex(x, y) {
-      const cells = getCells();
-      let best = 0;
-      let bestDistance = Infinity;
-      cells.forEach(cell => {
-        const distance = Math.hypot(cell.centerX - x, cell.centerY - y);
-        if (distance < bestDistance) {
-          best = cell.index;
-          bestDistance = distance;
-        }
-      });
-      return best;
-    }
-
-    async function loadFabricImage(url) {
-      return await new Promise(resolve => {
-        if (!url) return resolve(null);
-        fabric.Image.fromURL(url, image => resolve(image || null), { crossOrigin: "anonymous" });
       });
     }
 
-    async function setPresetBackground() {
-      const path = state.settings.boxTemplatePath;
-      const image = await loadFabricImage(path);
-      if (!image) {
-        presetCanvas.setBackgroundImage(null, presetCanvas.renderAll.bind(presetCanvas));
-        els.boxImageMessage.textContent = `The example image “${path}” could not be loaded. The editor will still work with a white background.`;
-        els.boxImageMessage.classList.remove("hidden");
-        return;
-      }
-      els.boxImageMessage.classList.add("hidden");
-      const scaleX = PRESET_WIDTH / image.width;
-      const scaleY = PRESET_HEIGHT / image.height;
-      presetCanvas.setBackgroundImage(image, presetCanvas.renderAll.bind(presetCanvas), { scaleX, scaleY });
-    }
+'''
+text = text[:slots_start] + new_slots + text[slots_end:]
 
-    async function configureSheetCanvas() {
-      const width = Math.round(state.settings.sheetWidthIn * SHEET_SCALE);
-      const height = Math.round(state.settings.sheetHeightIn * SHEET_SCALE);
-      sheetCanvas.setDimensions({ width, height });
-      els.sheetCanvasFrame.style.width = `${width}px`;
-      els.sheetCanvasFrame.style.height = `${height}px`;
-
-      const image = await loadFabricImage(state.settings.sheetTemplatePath);
-      if (image) {
-        sheetCanvas.setBackgroundImage(image, sheetCanvas.renderAll.bind(sheetCanvas), {
-          scaleX: width / image.width,
-          scaleY: height / image.height
-        });
-        els.sheetMessage.classList.add("hidden");
-      } else {
-        sheetCanvas.setBackgroundImage(null, sheetCanvas.renderAll.bind(sheetCanvas));
-        els.sheetMessage.textContent = `The sheet image “${state.settings.sheetTemplatePath}” could not be loaded. Labels will still print on a white sheet.`;
-        els.sheetMessage.classList.remove("hidden");
-      }
-      await rebuildSheetObjects();
-      resizeSheetForScreen();
-    }
-
-    function resizeSheetForScreen() {
-      if (state.userView === false) return;
-      const available = Math.max(300, els.sheetStage.clientWidth - 58);
-      const scale = Math.min(1, available / sheetCanvas.getWidth());
-      els.sheetCanvasFrame.style.transformOrigin = "top left";
-      els.sheetCanvasFrame.style.transform = `scale(${scale})`;
-      els.sheetStage.style.minHeight = `${Math.max(400, sheetCanvas.getHeight() * scale + 58)}px`;
-    }
-
-    function visiblePresets() {
-      const query = els.presetSearch.value.trim().toLowerCase();
-      return state.presets.filter(preset => {
-        if (preset.visible === false) return false;
-        if (state.category !== "All" && (preset.category || "General") !== state.category) return false;
-        const haystack = `${preset.name || ""} ${preset.category || ""}`.toLowerCase();
-        return !query || haystack.includes(query);
-      });
-    }
-
-    function sortPresets(list) {
-      return [...list].sort((a, b) => {
-        const orderDifference = numeric(a.sortOrder, 0) - numeric(b.sortOrder, 0);
-        if (orderDifference) return orderDifference;
-        return String(a.name || "").localeCompare(String(b.name || ""));
-      });
-    }
-
-    function renderCategoryFilters() {
-      const categories = ["All", ...new Set(state.presets.filter(p => p.visible !== false).map(p => p.category || "General"))];
-      if (!categories.includes(state.category)) state.category = "All";
-      els.categoryFilters.innerHTML = categories.map(category => `
-        <button class="category-chip ${category === state.category ? "active" : ""}" type="button" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>
-      `).join("");
-      els.categoryFilters.querySelectorAll("[data-category]").forEach(button => {
-        button.addEventListener("click", () => {
-          state.category = button.dataset.category;
-          renderCategoryFilters();
-          renderPresetLibrary();
-        });
-      });
-    }
-
-    async function renderPresetPreview(canvasElement, preset) {
-      const preview = new fabric.StaticCanvas(canvasElement, {
-        width: 320,
-        height: 120,
-        backgroundColor: "white",
-        renderOnAddRemove: false
-      });
-
-      const bg = await loadFabricImage(state.settings.boxTemplatePath);
-      if (bg) {
-        preview.setBackgroundImage(bg, preview.renderAll.bind(preview), {
-          scaleX: 320 / bg.width,
-          scaleY: 120 / bg.height
-        });
-      }
-
-      const artworkCanvas = await getPresetArtworkCanvas(preset);
-      const artwork = new fabric.Image(artworkCanvas, {
-        left: 160,
-        top: 60,
+# ---------------------------------------------------------------------
+# 5. Fix group centering, sizing, clipping, and selection appearance.
+# ---------------------------------------------------------------------
+old_center = '''    function centerGroupInSlot(group, slotIndex) {
+      const slot = slots()[slotIndex];
+      if (!slot) return;
+      group.set({
+        left: slot.centerX,
+        top: slot.centerY,
         originX: "center",
         originY: "center",
-        selectable: false,
-        evented: false,
-        objectCaching: true
+        slotIndex
       });
-      const scale = Math.min(304 / artwork.width, 106 / artwork.height);
-      artwork.scale(scale);
-      preview.add(artwork);
-      preview.renderAll();
-    }
+      group.setCoords();
+    }'''
 
-    function renderPresetLibrary() {
-      const presets = sortPresets(visiblePresets());
-      if (!presets.length) {
-        els.presetLibrary.innerHTML = `<div class="empty-state">No matching premade boxes are available.</div>`;
-        return;
-      }
-      els.presetLibrary.innerHTML = presets.map(preset => `
-        <button class="preset-card" type="button" draggable="true" data-preset-id="${escapeHtml(preset.id)}">
-          <div class="preset-preview"><canvas width="320" height="120"></canvas></div>
-          <div class="preset-card-title"><span>${escapeHtml(preset.name || "Unnamed preset")}</span><span class="preset-card-category">${escapeHtml(preset.category || "General")}</span></div>
-        </button>
-      `).join("");
+new_center = '''    function centerGroupInSlot(group, slotIndex) {
+      const slot = slots()[slotIndex];
+      if (!slot) return;
 
-      [...els.presetLibrary.querySelectorAll(".preset-card")].forEach(card => {
-        const preset = state.presets.find(item => item.id === card.dataset.presetId);
-        renderPresetPreview(card.querySelector("canvas"), preset);
-        card.addEventListener("click", () => addPresetToFirstOpen(preset.id));
-        card.addEventListener("dragstart", event => {
-          event.dataTransfer.setData("text/abe-preset-id", preset.id);
-          event.dataTransfer.effectAllowed = "copy";
-        });
+      group.set({
+        left: slot.centerX,
+        top: slot.centerY,
+        originX: "center",
+        originY: "center",
+        angle: 0,
+        scaleX: 1,
+        scaleY: 1,
+        slotIndex
       });
-    }
+      group.setCoords();
+    }'''
 
-    function saveHistory() {
-      const snapshot = clone(state.placements);
-      state.history = state.history.slice(0, state.historyIndex + 1);
-      state.history.push(snapshot);
-      state.historyIndex = state.history.length - 1;
-      updateHistoryButtons();
-    }
+if old_center not in text:
+    raise ValueError("centerGroupInSlot block not found.")
+text = text.replace(old_center, new_center, 1)
 
-    function updateHistoryButtons() {
-      els.undoButton.disabled = state.historyIndex <= 0;
-      els.redoButton.disabled = state.historyIndex >= state.history.length - 1;
-    }
+create_start = text.index("    function createPresetGroup(preset, slotIndex) {")
+create_end = text.index("    function placePreset", create_start)
 
-    async function restoreHistory(index) {
-      if (index < 0 || index >= state.history.length) return;
-      state.historyIndex = index;
-      state.placements = clone(state.history[index]);
-      updateHistoryButtons();
-      await rebuildSheetObjects();
-    }
+new_create_group = '''    function createPresetGroup(preset, slotIndex) {
+      const slot = slots()[slotIndex];
+      const ratioX = slot.width / preset.editorWidth;
+      const ratioY = slot.height / preset.editorHeight;
+      const fontRatio = Math.min(ratioX, ratioY);
 
-    function firstOpenCell() {
-      const total = state.settings.gridColumns * state.settings.gridRows;
-      for (let i = 0; i < total; i += 1) {
-        if (!state.placements.some(item => item.cellIndex === i)) return i;
-      }
-      return -1;
-    }
-
-    async function addPresetToFirstOpen(presetId) {
-      const cellIndex = firstOpenCell();
-      if (cellIndex < 0) {
-        toast("Every label position is already filled.");
-        return;
-      }
-      state.placements.push({ id: crypto.randomUUID(), presetId, cellIndex });
-      saveHistory();
-      await rebuildSheetObjects();
-    }
-
-    async function addPresetToCell(presetId, cellIndex) {
-      const existing = state.placements.find(item => item.cellIndex === cellIndex);
-      if (existing) existing.presetId = presetId;
-      else state.placements.push({ id: crypto.randomUUID(), presetId, cellIndex });
-      saveHistory();
-      await rebuildSheetObjects();
-    }
-
-    async function getPresetArtworkCanvas(preset) {
-      const cacheKey = `${preset.id}:${numeric(preset.updatedAt, 0)}`;
-      const cached = presetArtworkCache.get(cacheKey);
-      if (cached) return cached;
-
-      const sourceCanvas = document.createElement("canvas");
-      sourceCanvas.width = PRESET_WIDTH;
-      sourceCanvas.height = PRESET_HEIGHT;
-
-      const artworkCanvas = new fabric.StaticCanvas(sourceCanvas, {
-        width: PRESET_WIDTH,
-        height: PRESET_HEIGHT,
-        backgroundColor: "rgba(0,0,0,0)",
-        renderOnAddRemove: false,
-        enableRetinaScaling: false
-      });
-
-      const objects = await new Promise(resolve =>
-        fabric.util.enlivenObjects(preset.objects || [], resolve)
-      );
-
-      objects.forEach(object => {
-        object.set({
+      // The invisible anchor preserves the full example-box coordinate system.
+      // It is never visible or printed; the user sees only saved text/items.
+      const objects = [
+        new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: slot.width,
+          height: slot.height,
+          originX: "center",
+          originY: "center",
+          fill: "rgba(0,0,0,0)",
+          stroke: "rgba(0,0,0,0)",
+          strokeWidth: 0,
+          opacity: 0,
           selectable: false,
-          evented: false,
-          excludeFromExport: false
+          evented: false
+        })
+      ];
+
+      for (const saved of preset.objects) {
+        const item = new fabric.IText(String(saved.text ?? ""), {
+          left:
+            (Number(saved.left ?? preset.editorWidth / 2) -
+              preset.editorWidth / 2) * ratioX,
+          top:
+            (Number(saved.top ?? preset.editorHeight / 2) -
+              preset.editorHeight / 2) * ratioY,
+          originX: "center",
+          originY: "center",
+          fontFamily: saved.fontFamily || "Arial",
+          fontSize: Number(saved.fontSize ?? 36) * fontRatio,
+          fill: saved.fill || "#111111",
+          fontWeight: saved.fontWeight || "normal",
+          fontStyle: saved.fontStyle || "normal",
+          underline: Boolean(saved.underline),
+          textAlign: saved.textAlign || "center",
+          angle: Number(saved.angle ?? 0),
+          scaleX: Number(saved.scaleX ?? 1),
+          scaleY: Number(saved.scaleY ?? 1),
+          selectable: false,
+          evented: false
         });
-        artworkCanvas.add(object);
-      });
+        objects.push(item);
+      }
 
-      artworkCanvas.renderAll();
-
-      // Render the entire example area as one transparent image. The canvas
-      // boundary performs exact clipping, so no object can leak into another label.
-      const rasterCanvas = artworkCanvas.toCanvasElement(PRESET_RENDER_MULTIPLIER, {
-        left: 0,
-        top: 0,
-        width: PRESET_WIDTH,
-        height: PRESET_HEIGHT
-      });
-      artworkCanvas.dispose();
-
-      [...presetArtworkCache.keys()]
-        .filter(key => key.startsWith(`${preset.id}:`) && key !== cacheKey)
-        .forEach(key => presetArtworkCache.delete(key));
-      presetArtworkCache.set(cacheKey, rasterCanvas);
-      return rasterCanvas;
-    }
-
-    async function makePlacementGroup(placement) {
-      const preset = state.presets.find(item => item.id === placement.presetId);
-      const cell = getCells()[placement.cellIndex];
-      if (!preset || !cell) return null;
-
-      const artworkCanvas = await getPresetArtworkCanvas(preset);
-      const artwork = new fabric.Image(artworkCanvas, {
-        left: cell.centerX,
-        top: cell.centerY,
+      const group = new fabric.Group(objects, {
+        left: slot.centerX,
+        top: slot.centerY,
         originX: "center",
         originY: "center",
+        presetId: preset.id,
+        presetName: preset.name,
+        slotIndex,
+        hasControls: false,
+        hasBorders: false,
         lockScalingX: true,
         lockScalingY: true,
         lockRotation: true,
-        hasControls: false,
-        borderColor: "#2457d6",
-        cornerColor: "#2457d6",
-        transparentCorners: false,
-        objectCaching: true,
+        borderColor: "rgba(0,0,0,0)",
+        cornerColor: "rgba(0,0,0,0)",
         hoverCursor: "move",
-        moveCursor: "move"
+        padding: 0,
+        // Prevent any saved item from rendering outside its physical label.
+        clipPath: new fabric.Rect({
+          width: slot.width * 0.965,
+          height: slot.height * 0.90,
+          originX: "center",
+          originY: "center"
+        })
       });
 
-      const safeWidth = cell.width * (1 - LABEL_SAFE_INSET_X * 2);
-      const safeHeight = cell.height * (1 - LABEL_SAFE_INSET_Y * 2);
-      const scale = Math.min(
-        safeWidth / artwork.width,
-        safeHeight / artwork.height
-      );
-
-      artwork.scale(scale);
-      artwork.set({ left: cell.centerX, top: cell.centerY });
-      artwork.setCoords();
-      artwork.placementId = placement.id;
-      artwork.cellIndex = placement.cellIndex;
-      return artwork;
+      centerGroupInSlot(group, slotIndex);
+      return group;
     }
 
-    async function rebuildSheetObjects() {
-      rebuildingSheet = true;
-      sheetCanvas.getObjects().forEach(object => sheetCanvas.remove(object));
-      for (const placement of state.placements) {
-        const group = await makePlacementGroup(placement);
-        if (group) sheetCanvas.add(group);
-      }
-      sheetCanvas.discardActiveObject();
-      sheetCanvas.renderAll();
-      els.sheetSelectionToolbar.classList.add("hidden");
-      rebuildingSheet = false;
-    }
+'''
+text = text[:create_start] + new_create_group + text[create_end:]
 
-    function updatePlacementAfterMove(object) {
-      if (rebuildingSheet || !object?.placementId) return;
-      const placement = state.placements.find(item => item.id === object.placementId);
-      if (!placement) return;
-      const oldCell = placement.cellIndex;
-      const newCell = nearestCellIndex(object.getCenterPoint().x, object.getCenterPoint().y);
-      const occupied = state.placements.find(item => item.cellIndex === newCell && item.id !== placement.id);
-      if (occupied) occupied.cellIndex = oldCell;
-      placement.cellIndex = newCell;
-      saveHistory();
-      rebuildSheetObjects();
-    }
+# ---------------------------------------------------------------------
+# 6. Rebuild placed groups whenever the template geometry loads/changes.
+# ---------------------------------------------------------------------
+old_load_tail = '''        if (!state.sheetHistoryReady) {
+          resetSheetHistory();
+          state.sheetHistoryReady = true;
+        } else {
+          placedGroups().forEach(group => centerGroupInSlot(group, Number(group.slotIndex)));
+        }'''
 
-    function selectedPlacement() {
-      const object = sheetCanvas.getActiveObject();
-      return state.placements.find(item => item.id === object?.placementId) || null;
-    }
+new_load_tail = '''        if (!state.sheetHistoryReady) {
+          resetSheetHistory();
+          state.sheetHistoryReady = true;
+        } else {
+          const placements = placedGroups().map(group => ({
+            presetId: group.presetId,
+            slotIndex: Number(group.slotIndex)
+          }));
 
-    function fitPresetObjectInsideCanvas(object, { shrink = true } = {}) {
-      if (!object) return;
-      const maxWidth = PRESET_WIDTH - PRESET_SAFE_PADDING * 2;
-      const maxHeight = PRESET_HEIGHT - PRESET_SAFE_PADDING * 2;
+          state.restoringSheet = true;
+          placedGroups().forEach(group => sheetCanvas.remove(group));
 
-      object.setCoords();
-      let bounds = object.getBoundingRect(true, true);
-
-      if (shrink && (bounds.width > maxWidth || bounds.height > maxHeight)) {
-        const factor = Math.min(
-          maxWidth / Math.max(bounds.width, 1),
-          maxHeight / Math.max(bounds.height, 1),
-          1
-        );
-        object.set({
-          scaleX: numeric(object.scaleX, 1) * factor,
-          scaleY: numeric(object.scaleY, 1) * factor
-        });
-        object.setCoords();
-        bounds = object.getBoundingRect(true, true);
-      }
-
-      let moveX = 0;
-      let moveY = 0;
-      const rightLimit = PRESET_WIDTH - PRESET_SAFE_PADDING;
-      const bottomLimit = PRESET_HEIGHT - PRESET_SAFE_PADDING;
-
-      if (bounds.left < PRESET_SAFE_PADDING) {
-        moveX = PRESET_SAFE_PADDING - bounds.left;
-      } else if (bounds.left + bounds.width > rightLimit) {
-        moveX = rightLimit - (bounds.left + bounds.width);
-      }
-
-      if (bounds.top < PRESET_SAFE_PADDING) {
-        moveY = PRESET_SAFE_PADDING - bounds.top;
-      } else if (bounds.top + bounds.height > bottomLimit) {
-        moveY = bottomLimit - (bounds.top + bounds.height);
-      }
-
-      if (moveX || moveY) {
-        object.set({
-          left: numeric(object.left, 0) + moveX,
-          top: numeric(object.top, 0) + moveY
-        });
-        object.setCoords();
-      }
-    }
-
-    function fitAllPresetObjectsInsideCanvas() {
-      presetCanvas.getObjects().forEach(object => fitPresetObjectInsideCanvas(object));
-      presetCanvas.requestRenderAll();
-    }
-
-    function clearPresetCanvas() {
-      presetCanvas.getObjects().forEach(object => presetCanvas.remove(object));
-      presetCanvas.discardActiveObject();
-      presetCanvas.renderAll();
-      updatePresetToolbar();
-    }
-
-    function addTextToPreset(text = els.newTextInput.value.trim()) {
-      if (!text) return;
-      const object = new fabric.IText(text, {
-        left: PRESET_WIDTH / 2,
-        top: PRESET_HEIGHT / 2,
-        originX: "center",
-        originY: "center",
-        fontFamily: els.presetFont.value || "Arial",
-        fontSize: 54,
-        fill: "#111111",
-        fontWeight: "normal",
-        fontStyle: "normal",
-        underline: false,
-        textAlign: "center"
-      });
-      presetCanvas.add(object);
-      fitPresetObjectInsideCanvas(object);
-      presetCanvas.setActiveObject(object);
-      presetCanvas.renderAll();
-      els.newTextInput.value = "";
-      updatePresetToolbar();
-    }
-
-    function activePresetText() {
-      const object = presetCanvas.getActiveObject();
-      return object && ["i-text", "text", "textbox"].includes(object.type) ? object : null;
-    }
-
-    function updatePresetToolbar() {
-      const object = activePresetText();
-      els.presetFormatToolbar.classList.toggle("hidden", !object);
-      if (!object) return;
-      els.presetFont.value = object.fontFamily || "Arial";
-      els.presetFontSize.value = Math.round(object.fontSize || 54);
-      els.presetColor.value = typeof object.fill === "string" && /^#[0-9a-f]{6}$/i.test(object.fill) ? object.fill : "#111111";
-      els.presetBold.classList.toggle("active", object.fontWeight === "bold" || Number(object.fontWeight) >= 600);
-      els.presetItalic.classList.toggle("active", object.fontStyle === "italic");
-      els.presetUnderline.classList.toggle("active", object.underline === true);
-    }
-
-    function applyTextProperty(property, value) {
-      const object = activePresetText();
-      if (!object) return;
-      object.set(property, value);
-      fitPresetObjectInsideCanvas(object);
-      object.setCoords();
-      presetCanvas.renderAll();
-      updatePresetToolbar();
-    }
-
-    function resetPresetForm() {
-      clearPresetCanvas();
-      els.presetForm.reset();
-      els.presetCategory.value = "General";
-      els.presetSortOrder.value = "0";
-      els.presetVisible.checked = true;
-      els.editingPresetId.value = "";
-      els.presetFormTitle.textContent = "Create premade label box";
-      els.cancelPresetEditButton.classList.add("hidden");
-    }
-
-    async function savePreset(event) {
-      event.preventDefault();
-      if (!state.currentUser || !isAuthorizedAdminRecord(state.currentAdminRecord)) {
-        toast("Sign in with an active Admin account first.");
-        return;
-      }
-      fitAllPresetObjectsInsideCanvas();
-      const id = els.editingPresetId.value || push(ref(db, "labelMaker/presets")).key;
-      const existing = state.presets.find(item => item.id === id);
-      const payload = {
-        name: els.presetName.value.trim(),
-        category: els.presetCategory.value.trim() || "General",
-        sortOrder: numeric(els.presetSortOrder.value, 0),
-        visible: els.presetVisible.checked,
-        objects: presetCanvas.toJSON().objects || [],
-        createdAt: existing?.createdAt || Date.now(),
-        createdBy: existing?.createdBy || state.currentUser.uid,
-        updatedAt: Date.now(),
-        updatedBy: state.currentUser.uid
-      };
-      try {
-        await set(ref(db, `labelMaker/presets/${id}`), payload);
-        toast(existing ? "Premade box updated." : "Premade box created.");
-        resetPresetForm();
-      } catch (error) {
-        console.error(error);
-        toast(firebaseErrorMessage(error, "The premade box could not be saved."));
-      }
-    }
-
-    function renderAdminPresetList() {
-      const query = els.adminPresetSearch.value.trim().toLowerCase();
-      const presets = sortPresets(state.presets).filter(preset => !query || `${preset.name} ${preset.category}`.toLowerCase().includes(query));
-      els.presetCount.textContent = `${state.presets.length} preset${state.presets.length === 1 ? "" : "s"}`;
-      if (!presets.length) {
-        els.adminPresetList.innerHTML = `<div class="empty-state">No matching premade boxes.</div>`;
-        return;
-      }
-      els.adminPresetList.innerHTML = presets.map(preset => `
-        <article class="admin-item ${preset.visible === false ? "hidden-option" : ""}">
-          <div>
-            <div class="admin-item-name">${escapeHtml(preset.name || "Unnamed preset")}</div>
-            <div class="admin-item-meta">${escapeHtml(preset.category || "General")} · order ${numeric(preset.sortOrder, 0)} · ${preset.visible === false ? "hidden" : "visible"}</div>
-          </div>
-          <div class="admin-item-actions">
-            <button class="small-button" type="button" data-edit-preset="${escapeHtml(preset.id)}">Edit</button>
-            <button class="small-button danger" type="button" data-delete-preset="${escapeHtml(preset.id)}">Delete</button>
-          </div>
-        </article>
-      `).join("");
-
-      els.adminPresetList.querySelectorAll("[data-edit-preset]").forEach(button => {
-        button.addEventListener("click", () => editPreset(button.dataset.editPreset));
-      });
-      els.adminPresetList.querySelectorAll("[data-delete-preset]").forEach(button => {
-        button.addEventListener("click", async () => {
-          const preset = state.presets.find(item => item.id === button.dataset.deletePreset);
-          if (!preset || !confirm(`Delete “${preset.name}”?`)) return;
-          try {
-            await remove(ref(db, `labelMaker/presets/${preset.id}`));
-            toast("Premade box deleted.");
-          } catch (error) {
-            toast(firebaseErrorMessage(error, "The premade box could not be deleted."));
+          for (const placement of placements) {
+            const preset = state.presets.find(item => item.id === placement.presetId);
+            if (preset && slots()[placement.slotIndex]) {
+              sheetCanvas.add(createPresetGroup(preset, placement.slotIndex));
+            }
           }
-        });
-      });
-    }
 
-    function editPreset(id) {
-      const preset = state.presets.find(item => item.id === id);
-      if (!preset) return;
-      clearPresetCanvas();
-      fabric.util.enlivenObjects(preset.objects || [], objects => {
-        objects.forEach(object => {
-          presetCanvas.add(object);
-          fitPresetObjectInsideCanvas(object);
-        });
-        presetCanvas.renderAll();
-      });
-      els.editingPresetId.value = preset.id;
-      els.presetName.value = preset.name || "";
-      els.presetCategory.value = preset.category || "General";
-      els.presetSortOrder.value = numeric(preset.sortOrder, 0);
-      els.presetVisible.checked = preset.visible !== false;
-      els.presetFormTitle.textContent = "Edit premade label box";
-      els.cancelPresetEditButton.classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+          state.restoringSheet = false;
+          sheetCanvas.discardActiveObject();
+          sheetCanvas.requestRenderAll();
+          syncSheetSelection();
+        }'''
 
-    async function addSamplePresets() {
-      const samples = [
-        { name: "RACK A", category: "Rack", text: "RACK A", size: 82 },
-        { name: "PORT 24", category: "Ports", text: "PORT 24", size: 78 },
-        { name: "DATA", category: "Cable", text: "DATA", size: 92 },
-        { name: "CAMERA", category: "Security", text: "CAMERA", size: 74 },
-        { name: "ACCESS POINT", category: "Network", text: "ACCESS POINT", size: 60 }
-      ];
-      try {
-        const writes = {};
-        samples.forEach((sample, index) => {
-          const id = push(ref(db, "labelMaker/presets")).key;
-          writes[`labelMaker/presets/${id}`] = {
-            name: sample.name,
-            category: sample.category,
-            sortOrder: index,
-            visible: true,
-            objects: [{
-              type: "i-text",
-              version: "5.3.0",
-              originX: "center",
-              originY: "center",
-              left: PRESET_WIDTH / 2,
-              top: PRESET_HEIGHT / 2,
-              width: sample.text.length * sample.size * 0.62,
-              height: sample.size,
-              fill: "#111111",
-              stroke: null,
-              strokeWidth: 1,
-              scaleX: 1,
-              scaleY: 1,
-              angle: 0,
-              flipX: false,
-              flipY: false,
-              opacity: 1,
-              shadow: null,
-              visible: true,
-              backgroundColor: "",
-              fillRule: "nonzero",
-              paintFirst: "fill",
-              globalCompositeOperation: "source-over",
-              skewX: 0,
-              skewY: 0,
-              fontFamily: "Arial",
-              fontWeight: "bold",
-              fontSize: sample.size,
-              text: sample.text,
-              underline: false,
-              overline: false,
-              linethrough: false,
-              textAlign: "center",
-              fontStyle: "normal",
-              lineHeight: 1.16,
-              textBackgroundColor: "",
-              charSpacing: 0,
-              styles: {},
-              direction: "ltr",
-              path: null,
-              pathStartOffset: 0,
-              pathSide: "left",
-              pathAlign: "baseline"
-            }],
-            createdAt: Date.now(),
-            createdBy: state.currentUser.uid,
-            updatedAt: Date.now(),
-            updatedBy: state.currentUser.uid
+if old_load_tail not in text:
+    raise ValueError("Sheet template reload block was not found.")
+text = text.replace(old_load_tail, new_load_tail, 1)
+
+# ---------------------------------------------------------------------
+# 7. Migrate old Firebase settings so they cannot override the new geometry.
+# ---------------------------------------------------------------------
+old_settings_listener = '''          state.settings = {
+            ...DEFAULT_SETTINGS,
+            ...(snapshot.val() || {})
           };
-        });
-        await update(ref(db), writes);
-        toast("Sample technology presets added.");
-      } catch (error) {
-        console.error(error);
-        toast(firebaseErrorMessage(error, "Sample presets could not be added."));
-      }
-    }
+          fillSettingsForm();
+          loadSheetTemplate();
+          loadPresetBackground();'''
 
-    async function saveSettings(event) {
-      event.preventDefault();
-      const settings = settingsFromForm();
-      try {
-        await set(ref(db, "labelMaker/sheetSettings"), settings);
-        toast("Sheet and snapping settings saved.");
-      } catch (error) {
-        console.error(error);
-        toast(firebaseErrorMessage(error, "Settings could not be saved."));
-      }
-    }
+new_settings_listener = '''          const savedSettings = snapshot.val() || {};
+          state.settings = {
+            ...DEFAULT_SETTINGS,
+            ...savedSettings
+          };
 
-    async function bootstrapVisibleUltimate(user) {
-      if (user.uid !== ULTIMATE_SUPER_ADMIN_UID) return;
-      const userRef = ref(db, `labelMaker/adminUsers/${ULTIMATE_SUPER_ADMIN_UID}`);
+          // Automatically migrate old template names, landscape canvas sizes,
+          // and estimated grid settings to the exact new Avery templates.
+          if (Number(savedSettings.templateVersion || 0) < TEMPLATE_VERSION) {
+            Object.assign(state.settings, {
+              templateVersion: TEMPLATE_VERSION,
+              sheetTemplatePath: DEFAULT_SETTINGS.sheetTemplatePath,
+              boxTemplatePath: DEFAULT_SETTINGS.boxTemplatePath,
+              sheetCanvasWidth: DEFAULT_SETTINGS.sheetCanvasWidth,
+              sheetCanvasHeight: DEFAULT_SETTINGS.sheetCanvasHeight,
+              presetCanvasWidth: DEFAULT_SETTINGS.presetCanvasWidth,
+              presetCanvasHeight: DEFAULT_SETTINGS.presetCanvasHeight,
+              gridColumns: DEFAULT_SETTINGS.gridColumns,
+              gridRows: DEFAULT_SETTINGS.gridRows,
+              gridLeftPct: DEFAULT_SETTINGS.gridLeftPct,
+              gridTopPct: DEFAULT_SETTINGS.gridTopPct,
+              gridWidthPct: DEFAULT_SETTINGS.gridWidthPct,
+              gridHeightPct: DEFAULT_SETTINGS.gridHeightPct,
+              columnGapPct: DEFAULT_SETTINGS.columnGapPct,
+              rowGapPct: DEFAULT_SETTINGS.rowGapPct
+            });
+          }
+
+          fillSettingsForm();
+          loadSheetTemplate();
+          loadPresetBackground();'''
+
+if old_settings_listener not in text:
+    raise ValueError("Settings listener block was not found.")
+text = text.replace(old_settings_listener, new_settings_listener, 1)
+
+# Make saved settings persist the new template version and fixed canvas geometry.
+old_save_settings_record = '''      const settings = {
+        ...state.settings,
+        sheetTemplatePath: els.sheetTemplatePath.value.trim() || "AVERY 94207 USE.png",
+        boxTemplatePath: els.boxTemplatePath.value.trim() || "AVERY USE SINGLE.png",
+        sheetWidthIn: Number(els.sheetWidthIn.value),
+        sheetHeightIn: Number(els.sheetHeightIn.value),'''
+
+new_save_settings_record = '''      const settings = {
+        ...state.settings,
+        templateVersion: TEMPLATE_VERSION,
+        sheetTemplatePath: els.sheetTemplatePath.value.trim() || "AVERY 94207 USE.png",
+        boxTemplatePath: els.boxTemplatePath.value.trim() || "AVERY USE SINGLE.png",
+        sheetCanvasWidth: DEFAULT_SETTINGS.sheetCanvasWidth,
+        sheetCanvasHeight: DEFAULT_SETTINGS.sheetCanvasHeight,
+        presetCanvasWidth: DEFAULT_SETTINGS.presetCanvasWidth,
+        presetCanvasHeight: DEFAULT_SETTINGS.presetCanvasHeight,
+        sheetWidthIn: Number(els.sheetWidthIn.value),
+        sheetHeightIn: Number(els.sheetHeightIn.value),'''
+
+if old_save_settings_record not in text:
+    raise ValueError("Settings save record was not found.")
+text = text.replace(old_save_settings_record, new_save_settings_record, 1)
+
+# ---------------------------------------------------------------------
+# 8. Hidden Ultimate logic: privilege is permanent, displayed role is assigned.
+# ---------------------------------------------------------------------
+old_is_ultimate = '''    function isUltimateSuperAdmin() {
+      return ULTIMATE_SUPER_ADMIN_UIDS.has(state.currentUser?.uid);
+    }'''
+# This replacement may already be correct after global replacement.
+if old_is_ultimate not in text:
+    # Locate current function and normalize it.
+    pattern = re.compile(
+        r'    function isUltimateSuperAdmin\(\) \{\n.*?\n    \}',
+        re.DOTALL
+    )
+    match = pattern.search(text)
+    if not match:
+        raise ValueError("isUltimateSuperAdmin function not found.")
+    text = text[:match.start()] + old_is_ultimate + text[match.end():]
+
+old_role_label = '''    function roleLabel(record) {
+      if (record?.ultimate) return "Ultimate Super Admin";
+      return record?.role === "superAdmin" ? "Super Admin" : "Admin";
+    }'''
+
+new_role_label = '''    function roleLabel(record) {
+      // Only the primary protected UID is visibly labeled Ultimate.
+      // The hidden UID always displays its assigned Firebase role.
+      if (
+        state.currentUser?.uid === PRIMARY_ULTIMATE_SUPER_ADMIN_UID &&
+        record?.ultimate === true
+      ) {
+        return "Ultimate Super Admin";
+      }
+
+      return record?.role === "superAdmin" ? "Super Admin" : "Admin";
+    }'''
+
+if old_role_label not in text:
+    raise ValueError("roleLabel function not found.")
+text = text.replace(old_role_label, new_role_label, 1)
+
+bootstrap_start = text.index("    async function bootstrapUltimateSuperAdmin(user) {")
+bootstrap_end = text.index("    function showPasswordSetup", bootstrap_start)
+
+new_bootstrap = '''    async function bootstrapUltimateSuperAdmin(user) {
+      if (!ULTIMATE_SUPER_ADMIN_UIDS.has(user.uid)) return;
+
+      const userRef = ref(db, `labelMaker/adminUsers/${user.uid}`);
       const current = (await get(userRef)).val() || {};
+
+      if (user.uid === PRIMARY_ULTIMATE_SUPER_ADMIN_UID) {
+        await update(userRef, {
+          uid: user.uid,
+          email: user.email || current.email || "",
+          displayName:
+            user.displayName || current.displayName || "Ultimate Super Admin",
+          role: "superAdmin",
+          active: true,
+          ultimate: true,
+          mustChangePassword: false,
+          createdAt: current.createdAt || Date.now(),
+          updatedAt: Date.now(),
+          createdBy: current.createdBy || user.uid
+        });
+        return;
+      }
+
+      // Hidden Ultimate privilege:
+      // Preserve the assigned visible role. If the record was deleted, recreate
+      // it as a normal visible Admin record while the hard-coded privilege stays.
+      const assignedRole =
+        current.role === "superAdmin" || current.role === "admin"
+          ? current.role
+          : "admin";
+
       await update(userRef, {
-        uid: ULTIMATE_SUPER_ADMIN_UID,
+        uid: user.uid,
         email: user.email || current.email || "",
-        displayName: user.displayName || current.displayName || "Ultimate Super Admin",
-        role: "superAdmin",
+        displayName: user.displayName || current.displayName || "",
+        role: assignedRole,
         active: true,
-        ultimate: true,
+        ultimate: false,
         mustChangePassword: false,
         createdAt: current.createdAt || Date.now(),
         updatedAt: Date.now(),
-        createdBy: current.createdBy || ULTIMATE_SUPER_ADMIN_UID
+        createdBy: current.createdBy || user.uid
       });
     }
 
-    function showPasswordSetup(user, record) {
-      state.currentAdminRecord = record;
-      els.authStatus.textContent = `${user.email || "Signed in"} · Password setup required`;
-      els.authStatus.className = "status";
-      els.loginPanel.classList.add("hidden");
-      els.adminWorkspace.classList.add("hidden");
-      els.adminUsersCard.classList.add("hidden");
-      els.firstLoginPasswordPanel.classList.remove("hidden");
-      els.signOutButton.classList.add("hidden");
-      els.firstLoginPasswordMessage.classList.add("hidden");
-      setTimeout(() => els.firstLoginNewPassword.focus(), 0);
-    }
+'''
+text = text[:bootstrap_start] + new_bootstrap + text[bootstrap_end:]
 
-    function showAuthorizedAdmin(user, record) {
-      state.currentAdminRecord = record;
-      els.firstLoginPasswordPanel.classList.add("hidden");
-      els.loginMessage.classList.add("hidden");
-      const label = roleLabel(record, user.uid);
-      els.authStatus.textContent = `${user.email || "Signed in"} · ${label}`;
-      els.authStatus.className = "status online";
-      els.loginPanel.classList.add("hidden");
-      els.adminWorkspace.classList.remove("hidden");
-      els.signOutButton.classList.toggle("hidden", state.userView);
+# Authorization should bootstrap either UID.
+text = text.replace(
+    "if (user.uid === ULTIMATE_SUPER_ADMIN_UID) {",
+    "if (ULTIMATE_SUPER_ADMIN_UIDS.has(user.uid)) {"
+)
 
-      const superAdmin = isSuperAdmin();
-      els.adminUsersCard.classList.toggle("hidden", !superAdmin);
-      els.superAdminRoleOption.hidden = !isUltimateSuperAdmin();
-      els.superAdminRoleOption.disabled = !isUltimateSuperAdmin();
-
-      if (superAdmin) {
-        const visiblyUltimate = isVisiblyUltimateSuperAdmin();
-        if (visiblyUltimate) {
-          els.currentRoleText.textContent = "This is the permanently protected Ultimate Super Admin role.";
-        } else if (label === "Super Admin") {
-          els.currentRoleText.textContent = "This account is assigned the Super Admin role.";
-        } else {
-          els.currentRoleText.textContent = "This account is assigned the Admin role.";
-        }
+# Current-role banner should show the assigned role for hidden Ultimate.
+old_banner = '''      if (superAdmin) {
+        els.currentRoleText.textContent = isUltimateSuperAdmin()
+          ? "This is the permanently protected Ultimate Super Admin role."
+          : "This Super Admin can create and manage regular Admin accounts.";
         els.currentRolePill.textContent = label;
-        els.currentRolePill.className = visiblyUltimate
-          ? "role-pill ultimate"
-          : label === "Super Admin" ? "role-pill super" : "role-pill";
+        els.currentRolePill.className =
+          `role-pill ${isUltimateSuperAdmin() ? "ultimate" : "super"}`;
         subscribeAdminUserList();
-      } else {
-        stopAdminUsersListener?.();
-        stopAdminUsersListener = null;
-        state.adminUsers = [];
-      }
-    }
+      } else {'''
 
-    async function authorizeSignedInUser(user) {
-      if (user.uid === ULTIMATE_SUPER_ADMIN_UID) await bootstrapVisibleUltimate(user);
-      stopCurrentRoleListener?.();
-      stopCurrentRoleListener = onValue(
-        ref(db, `labelMaker/adminUsers/${user.uid}`),
-        async snapshot => {
-          const record = snapshot.val();
-          const hiddenUltimate = user.uid === HIDDEN_ULTIMATE_SUPER_ADMIN_UID;
+new_banner = '''      if (superAdmin) {
+        const visiblyUltimate =
+          state.currentUser?.uid === PRIMARY_ULTIMATE_SUPER_ADMIN_UID;
 
-          // The hidden permanent privilege is separate from the displayed role.
-          // If the role record is deleted or demoted, permanent capabilities remain.
-          const effectiveRecord = hiddenUltimate
-            ? {
-                ...(record || {}),
-                uid: user.uid,
-                email: record?.email || user.email || "",
-                displayName: record?.displayName || user.displayName || "",
-                role: record?.role === "superAdmin" ? "superAdmin" : "admin",
-                active: true,
-                ultimate: false,
-                mustChangePassword: record?.mustChangePassword === true
-              }
-            : record;
+        els.currentRoleText.textContent = visiblyUltimate
+          ? "This is the permanently protected Ultimate Super Admin role."
+          : `Signed in with assigned role: ${label}.`;
 
-          if (!isAuthorizedAdminRecord(effectiveRecord)) {
-            state.currentAdminRecord = null;
-            await signOut(auth);
-            els.loginMessage.textContent = "This login does not currently have active Admin access.";
-            els.loginMessage.classList.remove("hidden");
-            return;
-          }
+        els.currentRolePill.textContent = label;
+        els.currentRolePill.className =
+          `role-pill ${
+            visiblyUltimate
+              ? "ultimate"
+              : state.currentAdminRecord?.role === "superAdmin"
+                ? "super"
+                : ""
+          }`;
+        subscribeAdminUserList();
+      } else {'''
 
-          if (effectiveRecord.mustChangePassword === true) showPasswordSetup(user, effectiveRecord);
-          else showAuthorizedAdmin(user, effectiveRecord);
-        },
-        async error => {
-          console.error(error);
-          await signOut(auth);
-          els.loginMessage.textContent = "The website could not verify this account’s Admin role. Check the database rules.";
-          els.loginMessage.classList.remove("hidden");
+if old_banner not in text:
+    raise ValueError("Current role banner block not found.")
+text = text.replace(old_banner, new_banner, 1)
+
+# Only the primary UID is visibly marked protected/ultimate in the account list.
+text = text.replace(
+    '''        const ultimate =
+          user.uid === ULTIMATE_SUPER_ADMIN_UID || user.ultimate === true;''',
+    '''        const ultimate =
+          user.uid === PRIMARY_ULTIMATE_SUPER_ADMIN_UID ||
+          user.ultimate === true;'''
+)
+
+# If the source contains the already-modified single-line form.
+text = text.replace(
+    "user.uid === ULTIMATE_SUPER_ADMIN_UID || user.ultimate === true",
+    "user.uid === PRIMARY_ULTIMATE_SUPER_ADMIN_UID || user.ultimate === true"
+)
+
+# ---------------------------------------------------------------------
+# 9. Hide irrelevant estimated-grid controls from admin.
+# ---------------------------------------------------------------------
+details_marker = '''          <details class="field-full">
+            <summary>Advanced snapping alignment</summary>'''
+text = text.replace(
+    details_marker,
+    '''          <details class="field-full hidden">
+            <summary>Advanced snapping alignment</summary>''',
+    1
+)
+
+# ---------------------------------------------------------------------
+# 10. Database rules for both built-in Ultimate UIDs.
+# ---------------------------------------------------------------------
+ultimate_auth = (
+    f"(auth.uid === '{PRIMARY_UID}' || auth.uid === '{HIDDEN_UID}')"
+)
+
+content_write_rule = (
+    f"auth != null && ({ultimate_auth} || "
+    "(root.child('labelMaker/adminUsers').child(auth.uid).child('active').val() === true && "
+    "(root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'admin' || "
+    "root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'superAdmin')))"
+)
+
+# Only the primary Ultimate record is protected from deletion/demotion in data.
+role_management_rule = (
+    "("
+    f"({ultimate_auth} && "
+    f"($uid !== '{PRIMARY_UID}' || "
+    "(newData.exists() && "
+    "newData.child('role').val() === 'superAdmin' && "
+    "newData.child('ultimate').val() === true && "
+    "newData.child('active').val() === true))) || "
+    f"(!{ultimate_auth} && "
+    "root.child('labelMaker/adminUsers').child(auth.uid).child('active').val() === true && "
+    "root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'superAdmin' && "
+    f"$uid !== '{PRIMARY_UID}' && "
+    "data.child('role').val() !== 'superAdmin' && "
+    "(!newData.exists() || "
+    "(newData.child('role').val() === 'admin' && "
+    "newData.child('ultimate').val() !== true)))"
+    ")"
+)
+
+self_password_setup_rule = (
+    "("
+    "auth.uid === $uid && "
+    "data.exists() && newData.exists() && "
+    "data.child('active').val() === true && "
+    "data.child('mustChangePassword').val() === true && "
+    "newData.child('mustChangePassword').val() === false && "
+    "newData.child('uid').val() === data.child('uid').val() && "
+    "newData.child('email').val() === data.child('email').val() && "
+    "newData.child('role').val() === data.child('role').val() && "
+    "newData.child('active').val() === data.child('active').val() && "
+    "newData.child('ultimate').val() === data.child('ultimate').val() && "
+    "newData.child('createdAt').val() === data.child('createdAt').val() && "
+    "newData.child('createdBy').val() === data.child('createdBy').val() && "
+    "newData.child('passwordChangedAt').isNumber() && "
+    "newData.child('updatedAt').isNumber() && "
+    "newData.child('updatedBy').val() === auth.uid"
+    ")"
+)
+
+admin_write_rule = (
+    "auth != null && ("
+    + role_management_rule
+    + " || "
+    + self_password_setup_rule
+    + ")"
+)
+
+record_validation = (
+    "!newData.exists() || ("
+    "newData.hasChildren("
+    "['uid','email','role','active','ultimate','mustChangePassword']"
+    ") && "
+    "newData.child('uid').isString() && "
+    "newData.child('email').isString() && "
+    "(newData.child('role').val() === 'admin' || "
+    "newData.child('role').val() === 'superAdmin') && "
+    "newData.child('active').val() === true && "
+    "newData.child('ultimate').isBoolean() && "
+    "newData.child('mustChangePassword').isBoolean()"
+    ")"
+)
+
+rules = {
+    "rules": {
+        "labelMaker": {
+            "presets": {
+                ".read": True,
+                ".write": content_write_rule
+            },
+            "sheetSettings": {
+                ".read": True,
+                ".write": content_write_rule
+            },
+            "adminUsers": {
+                ".read": (
+                    f"auth != null && ({ultimate_auth} || "
+                    "(root.child('labelMaker/adminUsers').child(auth.uid).child('active').val() === true && "
+                    "root.child('labelMaker/adminUsers').child(auth.uid).child('role').val() === 'superAdmin'))"
+                ),
+                "$uid": {
+                    ".read": "auth != null && auth.uid === $uid",
+                    ".write": admin_write_rule,
+                    ".validate": record_validation
+                }
+            }
         }
-      );
     }
+}
 
-    function subscribeAdminUserList() {
-      if (!isSuperAdmin()) return;
-      stopAdminUsersListener?.();
-      stopAdminUsersListener = onValue(
-        ref(db, "labelMaker/adminUsers"),
-        snapshot => {
-          const raw = snapshot.val() || {};
-          state.adminUsers = Object.entries(raw).map(([uid, value]) => ({ uid, ...value }));
-          renderAdminUsers();
-        },
-        error => {
-          console.error(error);
-          els.adminUsersList.innerHTML = `<div class="notice">Admin accounts could not be loaded. Publish the updated Realtime Database rules.</div>`;
-        }
-      );
-    }
+# ---------------------------------------------------------------------
+# 11. Save clean deployment package, including the two renamed images.
+# ---------------------------------------------------------------------
+output_dir = Path("/mnt/data/ABE-Avery-Label-Maker-Fixed")
+if output_dir.exists():
+    shutil.rmtree(output_dir)
+output_dir.mkdir(parents=True)
 
-    function renderAdminUsers() {
-      const users = [...state.adminUsers].sort((a, b) => {
-        const aVisibleUltimate = a.uid === ULTIMATE_SUPER_ADMIN_UID || (a.uid !== HIDDEN_ULTIMATE_SUPER_ADMIN_UID && a.ultimate === true);
-        const bVisibleUltimate = b.uid === ULTIMATE_SUPER_ADMIN_UID || (b.uid !== HIDDEN_ULTIMATE_SUPER_ADMIN_UID && b.ultimate === true);
-        if (aVisibleUltimate !== bVisibleUltimate) return aVisibleUltimate ? -1 : 1;
-        if (a.role !== b.role) return a.role === "superAdmin" ? -1 : 1;
-        return String(a.email || a.displayName || "").localeCompare(String(b.email || b.displayName || ""));
-      });
+index_path = output_dir / "index.html"
+index_path.write_text(text, encoding="utf-8")
 
-      if (!users.length) {
-        els.adminUsersList.innerHTML = `<div class="empty-state">No admin role records exist yet.</div>`;
-        return;
-      }
+sheet_output = output_dir / "AVERY 94207 USE.png"
+single_output = output_dir / "AVERY USE SINGLE.png"
+shutil.copy2(sheet_image_source, sheet_output)
+shutil.copy2(single_image_source, single_output)
 
-      els.adminUsersList.innerHTML = users.map(user => {
-        const self = user.uid === state.currentUser?.uid;
-        const ultimate = user.uid === ULTIMATE_SUPER_ADMIN_UID || (user.uid !== HIDDEN_ULTIMATE_SUPER_ADMIN_UID && user.ultimate === true);
-        const superRole = user.role === "superAdmin";
-        const active = user.active === true;
-        const canDelete = !ultimate && !self && (isUltimateSuperAdmin() || (isSuperAdmin() && !superRole));
-        const label = ultimate ? "Ultimate Super Admin" : superRole ? "Super Admin" : "Admin";
-        const pillClass = ultimate ? "ultimate" : !active ? "inactive" : superRole ? "super" : "";
-        return `
-          <article class="admin-user-item ${active ? "" : "inactive"}">
-            <div>
-              <div class="admin-user-name">${escapeHtml(user.displayName || user.email || "Unnamed Admin")}</div>
-              <div class="admin-user-email">${escapeHtml(user.email || "No email saved")}</div>
-              <div class="admin-user-meta"><span class="role-pill ${pillClass}">${escapeHtml(label)}</span>${self ? "<span>Signed in</span>" : ""}</div>
-            </div>
-            <div class="admin-user-actions">
-              ${canDelete
-                ? `<button class="small-button danger" type="button" data-delete-admin="${escapeHtml(user.uid)}">Delete Admin</button>`
-                : `<span class="role-pill ${ultimate ? "ultimate" : ""}">${ultimate ? "Protected" : self ? "Signed in" : "Protected role"}</span>`}
-            </div>
-          </article>
-        `;
-      }).join("");
+rules_path = output_dir / "database-rules.json"
+rules_path.write_text(json.dumps(rules, indent=2) + "\n", encoding="utf-8")
 
-      els.adminUsersList.querySelectorAll("[data-delete-admin]").forEach(button => {
-        button.addEventListener("click", async () => {
-          const uid = button.dataset.deleteAdmin;
-          const target = state.adminUsers.find(user => user.uid === uid);
-          if (!target) return;
-          if (!confirm(`Delete ${target.email || target.displayName} from the website’s Admin list? Their access will stop immediately.`)) return;
-          button.disabled = true;
-          try {
-            await remove(ref(db, `labelMaker/adminUsers/${uid}`));
-            toast("The Admin was deleted from the website.");
-          } catch (error) {
-            console.error(error);
-            toast(firebaseErrorMessage(error, "The Admin could not be deleted."));
-          } finally {
-            button.disabled = false;
-          }
-        });
-      });
-    }
+setup_text = f"""ABE AVERY LABEL MAKER — FIXED DEPLOYMENT
 
-    async function createAdminAccount(event) {
-      event.preventDefault();
-      if (!isSuperAdmin()) {
-        toast("Only a Super Admin can create an Admin account.");
-        return;
-      }
-      const role = els.newAdminRole.value;
-      if (role === "superAdmin" && !isUltimateSuperAdmin()) {
-        toast("Only an Ultimate Super Admin can create another Super Admin.");
-        return;
-      }
-      const email = els.newAdminEmail.value.trim().toLowerCase();
-      const password = els.newAdminPassword.value;
-      const displayName = els.newAdminName.value.trim();
-      const submit = els.createAdminForm.querySelector('button[type="submit"]');
-      submit.disabled = true;
-      let createdUser = null;
-      try {
-        await accountCreatorReady;
-        await signOut(accountCreatorAuth);
-        const credential = await createUserWithEmailAndPassword(accountCreatorAuth, email, password);
-        createdUser = credential.user;
-        if (displayName) await updateProfile(createdUser, { displayName });
-        await set(ref(db, `labelMaker/adminUsers/${createdUser.uid}`), {
-          uid: createdUser.uid,
-          email,
-          displayName,
-          role,
-          active: true,
-          ultimate: false,
-          mustChangePassword: true,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          createdBy: state.currentUser.uid
-        });
-        await signOut(accountCreatorAuth);
-        els.createAdminForm.reset();
-        els.newAdminRole.value = "admin";
-        toast(role === "superAdmin" ? "Super Admin account created." : "Admin account created.");
-      } catch (error) {
-        console.error(error);
-        if (createdUser) {
-          try { await deleteUser(createdUser); } catch (rollbackError) { console.error("Could not roll back the new login:", rollbackError); }
-        }
-        try { await signOut(accountCreatorAuth); } catch (_) {}
-        toast(firebaseErrorMessage(error, "The Admin account could not be created."));
-      } finally {
-        submit.disabled = false;
-      }
-    }
+GITHUB ROOT FILES
+- index.html
+- AVERY 94207 USE.png
+- AVERY USE SINGLE.png
+- abe-networks.png  (keep your existing copy)
 
-    async function login(event) {
-      event.preventDefault();
-      els.loginMessage.classList.add("hidden");
-      try {
-        await signInWithEmailAndPassword(auth, els.loginEmail.value.trim(), els.loginPassword.value);
-        els.loginForm.reset();
-      } catch (error) {
-        els.loginMessage.textContent = firebaseErrorMessage(error, "Sign-in failed.");
-        els.loginMessage.classList.remove("hidden");
-      }
-    }
+IMPORTANT
+The two Avery filenames must match exactly, including spaces and capitalization.
 
-    async function sendResetEmail() {
-      const email = els.loginEmail.value.trim();
-      if (!email) {
-        els.loginMessage.textContent = "Enter the account email first.";
-        els.loginMessage.classList.remove("hidden");
-        return;
-      }
-      try {
-        await sendPasswordResetEmail(auth, email);
-        els.loginMessage.textContent = "Firebase sent a password-reset email. Check the inbox and spam folder.";
-        els.loginMessage.classList.remove("hidden");
-      } catch (error) {
-        els.loginMessage.textContent = firebaseErrorMessage(error, "The reset email could not be sent.");
-        els.loginMessage.classList.remove("hidden");
-      }
-    }
+ULTIMATE ACCESS
+- Visible protected Ultimate UID:
+  {PRIMARY_UID}
+- Hidden UI Ultimate privilege UID:
+  {HIDDEN_UID}
 
-    async function completeFirstPassword(event) {
-      event.preventDefault();
-      const password = els.firstLoginNewPassword.value;
-      const confirmation = els.firstLoginConfirmPassword.value;
-      if (password.length < 8) {
-        els.firstLoginPasswordMessage.textContent = "Use at least 8 characters.";
-        els.firstLoginPasswordMessage.classList.remove("hidden");
-        return;
-      }
-      if (password !== confirmation) {
-        els.firstLoginPasswordMessage.textContent = "The two passwords do not match.";
-        els.firstLoginPasswordMessage.classList.remove("hidden");
-        return;
-      }
-      const submit = els.firstLoginPasswordForm.querySelector('button[type="submit"]');
-      submit.disabled = true;
-      try {
-        await updatePassword(state.currentUser, password);
-        await update(ref(db, `labelMaker/adminUsers/${state.currentUser.uid}`), {
-          mustChangePassword: false,
-          passwordChangedAt: Date.now(),
-          updatedAt: Date.now(),
-          updatedBy: state.currentUser.uid
-        });
-        els.firstLoginPasswordForm.reset();
-        toast("Your password was saved.");
-      } catch (error) {
-        els.firstLoginPasswordMessage.textContent = firebaseErrorMessage(error, "The password could not be changed.");
-        els.firstLoginPasswordMessage.classList.remove("hidden");
-      } finally {
-        submit.disabled = false;
-      }
-    }
+The hidden UID displays its assigned Admin/Super Admin role in the website.
+Its built-in Ultimate permissions remain even if its database role is demoted
+or its role record is deleted. The UID is hidden from normal website UI, but
+because this is a static GitHub Pages application, it cannot be concealed from
+someone who deliberately reads the public index.html source. A Firebase UID is
+an identifier, not a password or secret.
 
-    function subscribePublicData() {
-      onValue(ref(db, ".info/connected"), snapshot => {
-        const connected = snapshot.val() === true;
-        els.connectionStatus.textContent = connected ? "Connected" : "Offline";
-        els.connectionStatus.className = connected ? "status online" : "status error";
-      });
+FIREBASE
+1. Open Firebase > Realtime Database > Rules.
+2. Replace all rules with database-rules.json.
+3. Click Publish.
+4. Replace/upload all GitHub files above.
+5. Commit changes and hard-refresh the website.
 
-      onValue(ref(db, "labelMaker/sheetSettings"), async snapshot => {
-        state.settings = normalizeSheetSettings(snapshot.val() || {});
-        populateSettingsForm();
-        await setPresetBackground();
-        await configureSheetCanvas();
-      });
+LAYOUT FIXES
+- Uses the exact 185 × 239 Avery sheet coordinates.
+- Sheet editor is portrait instead of stretched landscape.
+- Uses AVERY USE SINGLE.png at its true 796 × 382 ratio.
+- Dropped presets snap to exact box centers.
+- Presets cannot scale or rotate on the sheet.
+- The selection rectangle is hidden.
+- The single-box image is never copied to the sheet.
+- Only the saved text/items appear and are clipped inside the label.
+"""
+(output_dir / "SETUP.txt").write_text(setup_text, encoding="utf-8")
 
-      onValue(ref(db, "labelMaker/presets"), async snapshot => {
-        const raw = snapshot.val() || {};
-        presetArtworkCache.clear();
-        state.presets = Object.entries(raw).map(([id, value]) => ({ id, ...value }));
-        state.placements = state.placements.filter(item => state.presets.some(preset => preset.id === item.presetId));
-        renderCategoryFilters();
-        renderPresetLibrary();
-        renderAdminPresetList();
-        await rebuildSheetObjects();
-      });
-    }
+# Verify this is actual HTML rather than a patch script.
+content = index_path.read_text(encoding="utf-8")
+assert content.lstrip().startswith("<!DOCTYPE html>")
+assert content.rstrip().endswith("</html>")
+assert "from pathlib import Path" not in content
+assert HIDDEN_UID in content
+assert 'sheetTemplatePath: "AVERY 94207 USE.png"' in content
+assert 'boxTemplatePath: "AVERY USE SINGLE.png"' in content
+assert "AVERY_SLOT_RECTS" in content
+assert "hasBorders: false" in content
+assert "PRIMARY_ULTIMATE_SUPER_ADMIN_UID" in content
 
-    FONT_OPTIONS.forEach(font => {
-      const option = document.createElement("option");
-      option.value = font;
-      option.textContent = font;
-      els.presetFont.appendChild(option);
-    });
+# Extract module script and run a JS syntax check as an ES module.
+scripts = re.findall(r'<script type="module">(.*?)</script>', content, flags=re.DOTALL)
+if len(scripts) != 1:
+    raise ValueError(f"Expected one module script, found {len(scripts)}")
+module_path = output_dir / "_syntax_check.mjs"
+module_path.write_text(scripts[0], encoding="utf-8")
+result = subprocess.run(
+    ["node", "--check", str(module_path)],
+    capture_output=True,
+    text=True
+)
+module_path.unlink()
+if result.returncode != 0:
+    raise RuntimeError(f"JavaScript syntax check failed:\n{result.stderr}")
 
-    sheetCanvas.on("selection:created", () => els.sheetSelectionToolbar.classList.remove("hidden"));
-    sheetCanvas.on("selection:updated", () => els.sheetSelectionToolbar.classList.remove("hidden"));
-    sheetCanvas.on("selection:cleared", () => els.sheetSelectionToolbar.classList.add("hidden"));
+github_zip = Path("/mnt/data/ABE-Avery-Label-Maker-GitHub.zip")
+with zipfile.ZipFile(github_zip, "w", zipfile.ZIP_DEFLATED) as archive:
+    archive.write(index_path, arcname="index.html")
+    archive.write(sheet_output, arcname=sheet_output.name)
+    archive.write(single_output, arcname=single_output.name)
 
-    // Keep a moved design locked to the center of the nearest label while dragging.
-    sheetCanvas.on("object:moving", event => {
-      const object = event.target;
-      if (rebuildingSheet || !object?.placementId) return;
-      const center = object.getCenterPoint();
-      const cell = getCells()[nearestCellIndex(center.x, center.y)];
-      if (!cell) return;
-      object.set({ left: cell.centerX, top: cell.centerY });
-      object.setCoords();
-    });
+full_zip = Path("/mnt/data/ABE-Avery-Label-Maker-Full.zip")
+with zipfile.ZipFile(full_zip, "w", zipfile.ZIP_DEFLATED) as archive:
+    for path in output_dir.iterdir():
+        archive.write(path, arcname=path.name)
 
-    sheetCanvas.on("object:modified", event => updatePlacementAfterMove(event.target));
-
-    presetCanvas.on("selection:created", updatePresetToolbar);
-    presetCanvas.on("selection:updated", updatePresetToolbar);
-    presetCanvas.on("selection:cleared", updatePresetToolbar);
-    presetCanvas.on("object:moving", event => {
-      fitPresetObjectInsideCanvas(event.target, { shrink: false });
-    });
-    presetCanvas.on("object:scaling", event => {
-      fitPresetObjectInsideCanvas(event.target);
-    });
-    presetCanvas.on("object:rotating", event => {
-      fitPresetObjectInsideCanvas(event.target);
-    });
-    presetCanvas.on("text:changed", event => {
-      fitPresetObjectInsideCanvas(event.target);
-      updatePresetToolbar();
-      presetCanvas.requestRenderAll();
-    });
-    presetCanvas.on("object:modified", event => {
-      fitPresetObjectInsideCanvas(event.target);
-      updatePresetToolbar();
-      presetCanvas.requestRenderAll();
-    });
-
-    els.sheetStage.addEventListener("dragover", event => {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = "copy";
-      els.sheetStage.classList.add("drag-active");
-    });
-    els.sheetStage.addEventListener("dragleave", () => els.sheetStage.classList.remove("drag-active"));
-    els.sheetStage.addEventListener("drop", event => {
-      event.preventDefault();
-      els.sheetStage.classList.remove("drag-active");
-      const presetId = event.dataTransfer.getData("text/abe-preset-id");
-      if (!presetId) return;
-      const rect = sheetCanvas.upperCanvasEl.getBoundingClientRect();
-      const scaleX = sheetCanvas.getWidth() / rect.width;
-      const scaleY = sheetCanvas.getHeight() / rect.height;
-      const x = (event.clientX - rect.left) * scaleX;
-      const y = (event.clientY - rect.top) * scaleY;
-      addPresetToCell(presetId, nearestCellIndex(x, y));
-    });
-
-    els.userPageButton.addEventListener("click", showUserPage);
-    els.adminPageButton.addEventListener("click", showAdminPage);
-    els.signOutButton.addEventListener("click", () => signOut(auth));
-    els.loginForm.addEventListener("submit", login);
-    els.resetPasswordButton.addEventListener("click", sendResetEmail);
-    els.firstLoginPasswordForm.addEventListener("submit", completeFirstPassword);
-    els.firstLoginSignOutButton.addEventListener("click", () => signOut(auth));
-    els.presetSearch.addEventListener("input", renderPresetLibrary);
-    els.adminPresetSearch.addEventListener("input", renderAdminPresetList);
-    els.addTextButton.addEventListener("click", () => addTextToPreset());
-    els.newTextInput.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); addTextToPreset(); } });
-    els.presetForm.addEventListener("submit", savePreset);
-    els.cancelPresetEditButton.addEventListener("click", resetPresetForm);
-    els.clearPresetEditorButton.addEventListener("click", clearPresetCanvas);
-    els.sampleTechPresetsButton.addEventListener("click", addSamplePresets);
-    els.settingsForm.addEventListener("submit", saveSettings);
-    els.createAdminForm.addEventListener("submit", createAdminAccount);
-    els.refreshAdminUsersButton.addEventListener("click", subscribeAdminUserList);
-
-    els.presetFont.addEventListener("change", () => applyTextProperty("fontFamily", els.presetFont.value));
-    els.presetFontSize.addEventListener("change", () => applyTextProperty("fontSize", numeric(els.presetFontSize.value, 54)));
-    els.presetColor.addEventListener("input", () => applyTextProperty("fill", els.presetColor.value));
-    els.presetBold.addEventListener("click", () => applyTextProperty("fontWeight", activePresetText()?.fontWeight === "bold" ? "normal" : "bold"));
-    els.presetItalic.addEventListener("click", () => applyTextProperty("fontStyle", activePresetText()?.fontStyle === "italic" ? "normal" : "italic"));
-    els.presetUnderline.addEventListener("click", () => applyTextProperty("underline", !activePresetText()?.underline));
-    els.presetDuplicateText.addEventListener("click", () => {
-      const object = activePresetText();
-      if (!object) return;
-      object.clone(cloned => {
-        cloned.set({ left: object.left + 22, top: object.top + 22 });
-        presetCanvas.add(cloned);
-        fitPresetObjectInsideCanvas(cloned);
-        presetCanvas.setActiveObject(cloned);
-        presetCanvas.renderAll();
-        updatePresetToolbar();
-      });
-    });
-    els.presetDeleteText.addEventListener("click", () => {
-      const object = activePresetText();
-      if (!object) return;
-      presetCanvas.remove(object);
-      presetCanvas.discardActiveObject();
-      presetCanvas.renderAll();
-      updatePresetToolbar();
-    });
-
-    els.undoButton.addEventListener("click", () => restoreHistory(state.historyIndex - 1));
-    els.redoButton.addEventListener("click", () => restoreHistory(state.historyIndex + 1));
-    els.clearSheetButton.addEventListener("click", async () => {
-      if (state.placements.length && !confirm("Clear every placed label from this sheet?")) return;
-      state.placements = [];
-      saveHistory();
-      await rebuildSheetObjects();
-    });
-    els.deleteBoxButton.addEventListener("click", async () => {
-      const placement = selectedPlacement();
-      if (!placement) return;
-      state.placements = state.placements.filter(item => item.id !== placement.id);
-      saveHistory();
-      await rebuildSheetObjects();
-    });
-    els.duplicateBoxButton.addEventListener("click", async () => {
-      const placement = selectedPlacement();
-      const cellIndex = firstOpenCell();
-      if (!placement) return;
-      if (cellIndex < 0) return toast("Every label position is already filled.");
-      state.placements.push({ id: crypto.randomUUID(), presetId: placement.presetId, cellIndex });
-      saveHistory();
-      await rebuildSheetObjects();
-    });
-    els.downloadSheetButton.addEventListener("click", () => {
-      sheetCanvas.discardActiveObject();
-      sheetCanvas.renderAll();
-      const link = document.createElement("a");
-      link.download = `abe-label-sheet-${new Date().toISOString().slice(0, 10)}.png`;
-      link.href = sheetCanvas.toDataURL({ format: "png", multiplier: 2 });
-      link.click();
-    });
-    els.printSheetButton.addEventListener("click", () => {
-      sheetCanvas.discardActiveObject();
-      sheetCanvas.renderAll();
-      window.print();
-    });
-
-    window.addEventListener("resize", resizeSheetForScreen);
-
-    onAuthStateChanged(auth, async user => {
-      state.currentUser = user;
-      state.currentAdminRecord = null;
-      stopCurrentRoleListener?.();
-      stopCurrentRoleListener = null;
-      stopAdminUsersListener?.();
-      stopAdminUsersListener = null;
-      if (!user) {
-        els.authStatus.textContent = "Signed out";
-        els.authStatus.className = "status";
-        refreshAuthDisplay();
-        return;
-      }
-      try {
-        await authorizeSignedInUser(user);
-      } catch (error) {
-        console.error(error);
-        els.loginMessage.textContent = firebaseErrorMessage(error, "The account could not be authorized.");
-        els.loginMessage.classList.remove("hidden");
-        await signOut(auth);
-      }
-    });
-
-    populateSettingsForm();
-    subscribePublicData();
-    setPresetBackground();
-    configureSheetCanvas();
-    saveHistory();
-    showUserPage();
-  </script>
-</body>
-</html>
+print(f"Created clean index: {index_path} ({index_path.stat().st_size:,} bytes)")
+print(f"Included sheet image: {sheet_output.name}")
+print(f"Included single image: {single_output.name}")
+print(f"Created Firebase rules: {rules_path}")
+print(f"JavaScript syntax check: passed")
+print(f"Created GitHub ZIP: {github_zip}")
+print(f"Created full ZIP: {full_zip}")
