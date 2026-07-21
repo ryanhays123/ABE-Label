@@ -933,8 +933,8 @@
 
       <p class="sheet-help">
         Drag an existing box to another label position to move it. If the destination is occupied,
-        the two boxes swap places. The black outlines use the exact physical 4" × 2" Avery positions,
-        are placement guides only, and are removed from printing and PDF downloads.
+        the two boxes swap places. The preview slightly separates the boxes and visually centers each
+        design for readability. PDF and printing still use the exact physical Avery coordinates.
       </p>
     </section>
   </main>
@@ -1355,6 +1355,12 @@
       rows: 5
     };
 
+    // These affect only the on-screen preview. They do not change PDF or print
+    // coordinates. The inset creates visible separation between touching labels.
+    const PREVIEW_GUIDE_INSET_X = 7;
+    const PREVIEW_GUIDE_INSET_Y = 7;
+    const PREVIEW_CONTENT_PADDING = 12;
+
     const DEFAULT_SETTINGS = {
       templateVersion: TEMPLATE_VERSION,
       sheetTemplatePath: "AVERY 94207 USE.png",
@@ -1545,7 +1551,7 @@
       ) || null;
     }
 
-    function centerGroupInSlot(group, slotIndex) {
+    function setGroupToExactPrintPosition(group, slotIndex) {
       const slot = slots()[slotIndex];
       if (!slot) return;
 
@@ -1560,6 +1566,90 @@
         slotIndex
       });
       group.setCoords();
+    }
+
+    function groupVisibleContentBounds(group) {
+      const visibleItems = group.getObjects().filter(object =>
+        object.opacity !== 0 &&
+        object.visible !== false &&
+        object.fill !== "rgba(0,0,0,0)"
+      );
+
+      if (!visibleItems.length) {
+        return {
+          centerX: 0,
+          centerY: 0,
+          width: 0,
+          height: 0
+        };
+      }
+
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      for (const object of visibleItems) {
+        const width = Math.abs(object.getScaledWidth());
+        const height = Math.abs(object.getScaledHeight());
+        const radians = Math.abs(Number(object.angle || 0)) * Math.PI / 180;
+        const rotatedWidth =
+          Math.abs(width * Math.cos(radians)) +
+          Math.abs(height * Math.sin(radians));
+        const rotatedHeight =
+          Math.abs(width * Math.sin(radians)) +
+          Math.abs(height * Math.cos(radians));
+        const centerX = Number(object.left || 0);
+        const centerY = Number(object.top || 0);
+
+        minX = Math.min(minX, centerX - rotatedWidth / 2);
+        maxX = Math.max(maxX, centerX + rotatedWidth / 2);
+        minY = Math.min(minY, centerY - rotatedHeight / 2);
+        maxY = Math.max(maxY, centerY + rotatedHeight / 2);
+      }
+
+      return {
+        centerX: (minX + maxX) / 2,
+        centerY: (minY + maxY) / 2,
+        width: maxX - minX,
+        height: maxY - minY
+      };
+    }
+
+    function applyPreviewAlignment(group, slotIndex) {
+      const slot = slots()[slotIndex];
+      if (!slot) return;
+
+      // Start from the exact print location, then shift only the browser preview
+      // so the visible content appears centered in its label.
+      setGroupToExactPrintPosition(group, slotIndex);
+
+      const bounds = groupVisibleContentBounds(group);
+      const maximumOffsetX =
+        Math.max(0, (slot.width - bounds.width) / 2 - PREVIEW_CONTENT_PADDING);
+      const maximumOffsetY =
+        Math.max(0, (slot.height - bounds.height) / 2 - PREVIEW_CONTENT_PADDING);
+
+      const offsetX = Math.max(
+        -maximumOffsetX,
+        Math.min(maximumOffsetX, -bounds.centerX)
+      );
+      const offsetY = Math.max(
+        -maximumOffsetY,
+        Math.min(maximumOffsetY, -bounds.centerY)
+      );
+
+      group.set({
+        left: slot.centerX + offsetX,
+        top: slot.centerY + offsetY,
+        previewOffsetX: offsetX,
+        previewOffsetY: offsetY
+      });
+      group.setCoords();
+    }
+
+    function centerGroupInSlot(group, slotIndex) {
+      applyPreviewAlignment(group, slotIndex);
     }
 
     async function createPresetGroup(preset, slotIndex) {
@@ -1741,17 +1831,17 @@
 
       const guideObjects = slots().map(slot =>
         new fabric.Rect({
-          left: slot.left,
-          top: slot.top,
-          width: slot.width,
-          height: slot.height,
+          left: slot.left + PREVIEW_GUIDE_INSET_X,
+          top: slot.top + PREVIEW_GUIDE_INSET_Y,
+          width: slot.width - PREVIEW_GUIDE_INSET_X * 2,
+          height: slot.height - PREVIEW_GUIDE_INSET_Y * 2,
           originX: "left",
           originY: "top",
           rx: Math.min(slot.width, slot.height) * 0.045,
           ry: Math.min(slot.width, slot.height) * 0.045,
-          fill: "rgba(255,255,255,0)",
-          stroke: "#111111",
-          strokeWidth: 1.4,
+          fill: "rgba(255,255,255,0.72)",
+          stroke: "#364152",
+          strokeWidth: 1.15,
           selectable: false,
           evented: false
         })
@@ -1897,10 +1987,19 @@
 
       const templateWasVisible = state.sheetTemplate?.visible !== false;
       const previousBackground = sheetCanvas.backgroundColor;
+      const previewPositions = placedGroups().map(group => ({
+        group,
+        left: Number(group.left),
+        top: Number(group.top)
+      }));
 
       try {
-        // The Avery sheet image is only an on-screen alignment guide.
-        // Hide it so the output is white with only placed preset content.
+        // The browser preview may visually re-center content for clarity.
+        // Restore the exact physical Avery position before creating the PDF.
+        placedGroups().forEach(group =>
+          setGroupToExactPrintPosition(group, Number(group.slotIndex))
+        );
+
         if (state.sheetTemplate) {
           state.sheetTemplate.set({ visible: false });
         }
@@ -1925,6 +2024,11 @@
           backgroundColor: "#ffffff"
         });
       } finally {
+        previewPositions.forEach(({ group, left, top }) => {
+          group.set({ left, top });
+          group.setCoords();
+        });
+
         if (state.sheetTemplate) {
           state.sheetTemplate.set({ visible: templateWasVisible });
         }
