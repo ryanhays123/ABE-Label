@@ -933,8 +933,8 @@
 
       <p class="sheet-help">
         Drag an existing box to another label position to move it. If the destination is occupied,
-        the two boxes swap places. The black Avery outlines are placement guides only and are
-        automatically removed from printing and PDF downloads.
+        the two boxes swap places. The black outlines use the exact physical 4" × 2" Avery positions,
+        are placement guides only, and are removed from printing and PDF downloads.
       </p>
     </section>
   </main>
@@ -1338,24 +1338,22 @@
       "Verdana"
     ];
 
-    const TEMPLATE_VERSION = 4;
+    const TEMPLATE_VERSION = 5;
 
-    // Exact source-image coordinates from AVERY 94207 USE.png (185 × 239 px).
-    // These are used directly instead of estimating a uniform grid.
-    const AVERY_SOURCE_WIDTH = 185;
-    const AVERY_SOURCE_HEIGHT = 239;
-    const AVERY_SLOT_RECTS = [
-      { x: 6,  y: 14,  width: 85, height: 41 },
-      { x: 95, y: 14,  width: 85, height: 41 },
-      { x: 6,  y: 56,  width: 85, height: 41 },
-      { x: 95, y: 56,  width: 85, height: 41 },
-      { x: 6,  y: 99,  width: 85, height: 41 },
-      { x: 95, y: 99,  width: 85, height: 41 },
-      { x: 6,  y: 141, width: 85, height: 41 },
-      { x: 95, y: 141, width: 85, height: 41 },
-      { x: 6,  y: 183, width: 85, height: 41 },
-      { x: 95, y: 183, width: 85, height: 41 }
-    ];
+    // Exact physical Avery 94207 / 5163 sheet geometry in inches.
+    // 2 columns × 5 rows; each label is exactly 4" × 2".
+    const AVERY_LAYOUT = {
+      pageWidthIn: 8.5,
+      pageHeightIn: 11,
+      labelWidthIn: 4,
+      labelHeightIn: 2,
+      leftMarginIn: 0.15625,
+      topMarginIn: 0.5,
+      horizontalPitchIn: 4.1875,
+      verticalPitchIn: 2,
+      columns: 2,
+      rows: 5
+    };
 
     const DEFAULT_SETTINGS = {
       templateVersion: TEMPLATE_VERSION,
@@ -1363,10 +1361,9 @@
       boxTemplatePath: "AVERY USE SINGLE.png",
       sheetWidthIn: 8.5,
       sheetHeightIn: 11,
-      // Same portrait aspect ratio as the 185 × 239 template.
-      sheetCanvasWidth: 774,
-      sheetCanvasHeight: 1000,
-      // Same aspect ratio and dimensions as AVERY USE SINGLE.png.
+      // Exactly 100 canvas pixels per physical inch.
+      sheetCanvasWidth: 850,
+      sheetCanvasHeight: 1100,
       presetCanvasWidth: 796,
       presetCanvasHeight: 382,
       gridColumns: 2,
@@ -1494,25 +1491,36 @@
     }
 
     function slots() {
-      const scaleX = sheetCanvas.getWidth() / AVERY_SOURCE_WIDTH;
-      const scaleY = sheetCanvas.getHeight() / AVERY_SOURCE_HEIGHT;
+      const scaleX = sheetCanvas.getWidth() / AVERY_LAYOUT.pageWidthIn;
+      const scaleY = sheetCanvas.getHeight() / AVERY_LAYOUT.pageHeightIn;
+      const result = [];
 
-      return AVERY_SLOT_RECTS.map((rect, index) => {
-        const left = rect.x * scaleX;
-        const top = rect.y * scaleY;
-        const width = rect.width * scaleX;
-        const height = rect.height * scaleY;
+      for (let row = 0; row < AVERY_LAYOUT.rows; row += 1) {
+        for (let column = 0; column < AVERY_LAYOUT.columns; column += 1) {
+          const leftIn =
+            AVERY_LAYOUT.leftMarginIn +
+            column * AVERY_LAYOUT.horizontalPitchIn;
+          const topIn =
+            AVERY_LAYOUT.topMarginIn +
+            row * AVERY_LAYOUT.verticalPitchIn;
+          const left = leftIn * scaleX;
+          const top = topIn * scaleY;
+          const width = AVERY_LAYOUT.labelWidthIn * scaleX;
+          const height = AVERY_LAYOUT.labelHeightIn * scaleY;
 
-        return {
-          index,
-          left,
-          top,
-          width,
-          height,
-          centerX: left + width / 2,
-          centerY: top + height / 2
-        };
-      });
+          result.push({
+            index: row * AVERY_LAYOUT.columns + column,
+            left,
+            top,
+            width,
+            height,
+            centerX: left + width / 2,
+            centerY: top + height / 2
+          });
+        }
+      }
+
+      return result;
     }
 
     function nearestSlotIndex(x, y) {
@@ -1723,84 +1731,89 @@
       sheetCanvas.requestRenderAll();
     }
 
-    function loadSheetTemplate() {
+    async function loadSheetTemplate() {
       resizeSheetCanvas();
 
       if (state.sheetTemplate) sheetCanvas.remove(state.sheetTemplate);
       if (state.slotHighlight) sheetCanvas.remove(state.slotHighlight);
 
       els.sheetMessage.classList.add("hidden");
-      const image = new Image();
-      image.crossOrigin = "anonymous";
 
-      image.onload = async () => {
-        state.sheetTemplate = new fabric.Image(image, {
-          left: 0,
-          top: 0,
+      const guideObjects = slots().map(slot =>
+        new fabric.Rect({
+          left: slot.left,
+          top: slot.top,
+          width: slot.width,
+          height: slot.height,
           originX: "left",
           originY: "top",
-          scaleX: sheetCanvas.getWidth() / image.naturalWidth,
-          scaleY: sheetCanvas.getHeight() / image.naturalHeight,
+          rx: Math.min(slot.width, slot.height) * 0.045,
+          ry: Math.min(slot.width, slot.height) * 0.045,
+          fill: "rgba(255,255,255,0)",
+          stroke: "#111111",
+          strokeWidth: 1.4,
           selectable: false,
           evented: false
-        });
+        })
+      );
 
-        state.slotHighlight = new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: 10,
-          height: 10,
-          originX: "left",
-          originY: "top",
-          fill: "rgba(36,87,214,0.13)",
-          stroke: "#2457d6",
-          strokeWidth: 2,
-          selectable: false,
-          evented: false,
-          visible: false,
-          excludeFromExport: true
-        });
+      state.sheetTemplate = new fabric.Group(guideObjects, {
+        left: 0,
+        top: 0,
+        originX: "left",
+        originY: "top",
+        selectable: false,
+        evented: false,
+        excludeFromExport: true
+      });
 
-        state.restoringSheet = true;
-        sheetCanvas.add(state.sheetTemplate);
-        sheetCanvas.sendToBack(state.sheetTemplate);
-        sheetCanvas.add(state.slotHighlight);
-        state.restoringSheet = false;
-        sheetCanvas.requestRenderAll();
+      state.slotHighlight = new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: 10,
+        height: 10,
+        originX: "left",
+        originY: "top",
+        fill: "rgba(36,87,214,0.13)",
+        stroke: "#2457d6",
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+        visible: false,
+        excludeFromExport: true
+      });
 
-        if (!state.sheetHistoryReady) {
-          resetSheetHistory();
-          state.sheetHistoryReady = true;
-        } else {
-          const placements = placedGroups().map(group => ({
+      const placements = state.sheetHistoryReady
+        ? placedGroups().map(group => ({
             presetId: group.presetId,
             slotIndex: Number(group.slotIndex)
-          }));
+          }))
+        : [];
 
-          state.restoringSheet = true;
-          placedGroups().forEach(group => sheetCanvas.remove(group));
+      state.restoringSheet = true;
+      placedGroups().forEach(group => sheetCanvas.remove(group));
+      sheetCanvas.add(state.sheetTemplate);
+      sheetCanvas.sendToBack(state.sheetTemplate);
+      sheetCanvas.add(state.slotHighlight);
 
-          for (const placement of placements) {
-            const preset = state.presets.find(item => item.id === placement.presetId);
-            if (preset && slots()[placement.slotIndex]) {
-              sheetCanvas.add(await createPresetGroup(preset, placement.slotIndex));
-            }
-          }
-
-          state.restoringSheet = false;
-          sheetCanvas.discardActiveObject();
-          sheetCanvas.requestRenderAll();
-          syncSheetSelection();
+      for (const placement of placements) {
+        const preset = state.presets.find(item => item.id === placement.presetId);
+        if (preset && slots()[placement.slotIndex]) {
+          sheetCanvas.add(
+            await createPresetGroup(preset, placement.slotIndex)
+          );
         }
-      };
+      }
 
-      image.onerror = () => {
-        els.sheetMessage.textContent =
-          `The full template "${state.settings.sheetTemplatePath}" could not be loaded. Put it beside index.html in GitHub.`;
-        els.sheetMessage.classList.remove("hidden");
-      };
+      state.restoringSheet = false;
+      sheetCanvas.discardActiveObject();
+      sheetCanvas.requestRenderAll();
+      syncSheetSelection();
 
-      image.src = new URL(state.settings.sheetTemplatePath, location.href).href;
+      if (!state.sheetHistoryReady) {
+        resetSheetHistory();
+        state.sheetHistoryReady = true;
+      }
     }
 
     function serializeSheet() {
@@ -1921,80 +1934,84 @@
       }
     }
 
-    function downloadSheet() {
+    function createPrintReadyPdf() {
       if (!window.jspdf?.jsPDF) {
-        toast("The PDF library has not loaded. Refresh the page and try again.");
-        return;
+        throw new Error(
+          "The PDF library has not loaded. Refresh the page and try again."
+        );
       }
 
       const dataUrl = exportCleanSheetDataUrl();
-      const width = Number(state.settings.sheetWidthIn);
-      const height = Number(state.settings.sheetHeightIn);
-      const orientation = width > height ? "landscape" : "portrait";
       const { jsPDF } = window.jspdf;
 
+      // Letter size in PDF points prevents browser/custom-format rounding.
       const pdf = new jsPDF({
-        orientation,
-        unit: "in",
-        format: [width, height],
-        compress: true,
-        hotfixes: ["px_scaling"]
+        orientation: "portrait",
+        unit: "pt",
+        format: "letter",
+        compress: true
       });
 
-      pdf.addImage(dataUrl, "PNG", 0, 0, width, height, undefined, "FAST");
-      pdf.save(
-        `wire-label-sheet-${new Date().toISOString().slice(0, 10)}.pdf`
+      pdf.addImage(
+        dataUrl,
+        "PNG",
+        0,
+        0,
+        612,
+        792,
+        undefined,
+        "FAST"
       );
+
+      // Ask compatible PDF viewers to default to 100% / Actual Size.
+      if (typeof pdf.viewerPreferences === "function") {
+        pdf.viewerPreferences({
+          PrintScaling: "None"
+        });
+      }
+
+      pdf.setProperties({
+        title: "Avery 94207 Label Sheet",
+        subject: "Print at Actual Size - Avery 94207 / 5163",
+        creator: "ABE Wire & Equipment Label Maker"
+      });
+
+      return pdf;
+    }
+
+    function downloadSheet() {
+      try {
+        const pdf = createPrintReadyPdf();
+        pdf.save(
+          `wire-label-sheet-${new Date().toISOString().slice(0, 10)}.pdf`
+        );
+      } catch (error) {
+        console.error(error);
+        toast(error.message || "The PDF could not be created.");
+      }
     }
 
     function printSheet() {
-      const printWindow = window.open("", "_blank", "width=900,height=800");
-      if (!printWindow) {
-        toast("Allow pop-ups so the print window can open.");
-        return;
+      try {
+        const pdf = createPrintReadyPdf();
+        const blobUrl = URL.createObjectURL(pdf.output("blob"));
+        const printWindow = window.open(blobUrl, "_blank");
+
+        if (!printWindow) {
+          URL.revokeObjectURL(blobUrl);
+          toast("Allow pop-ups so the print-ready PDF can open.");
+          return;
+        }
+
+        toast(
+          "Print-ready PDF opened. Use Actual Size / 100% if your viewer asks."
+        );
+
+        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 120000);
+      } catch (error) {
+        console.error(error);
+        toast(error.message || "The print-ready PDF could not be created.");
       }
-
-      const dataUrl = exportCleanSheetDataUrl();
-      const width = state.settings.sheetWidthIn;
-      const height = state.settings.sheetHeightIn;
-
-      printWindow.document.write(`<!DOCTYPE html>
-        <html>
-          <head>
-            <title>Print Label Sheet</title>
-            <style>
-              html, body {
-                margin: 0;
-                padding: 0;
-                width: ${width}in;
-                height: ${height}in;
-                overflow: hidden;
-                background: #ffffff;
-              }
-              @page { size: ${width}in ${height}in; margin: 0; }
-              img {
-                display: block;
-                width: ${width}in;
-                height: ${height}in;
-                object-fit: fill;
-                border: 0;
-                outline: 0;
-                background: #ffffff;
-              }
-            </style>
-          </head>
-          <body>
-            <img src="${dataUrl}" alt="Label sheet">
-            <script>
-              document.querySelector("img").addEventListener("load", () => {
-                window.focus();
-                window.print();
-              });
-              window.addEventListener("afterprint", () => window.close());
-            <\/script>
-          </body>
-        </html>`);
-      printWindow.document.close();
     }
 
     sheetCanvas.on("selection:created", syncSheetSelection);
